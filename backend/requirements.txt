@@ -26,7 +26,8 @@ pathspec==0.12.1
 prisma-client==0.2.1
 psycopg2-binary==2.9.11
 pydantic==1.10.24
-pydantic_core==2.41.4
+pydantic_core==2.41.4   
+pydantic_set
 Pygments==2.19.2
 python-dotenv==1.2.1
 python-multipart==0.0.20
@@ -48,3 +49,5 @@ uvicorn==0.38.0
 uvloop==0.22.1
 watchfiles==1.1.1
 websockets==15.0.1
+pytest==8.3.3
+black==24.8.0

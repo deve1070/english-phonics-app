@@ -1,36 +1,56 @@
+import os
 from functools import lru_cache
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class BaseCofig(BaseSettings):
+class BaseConfig(BaseSettings):
     PROJECT_NAME: str = "English Phonics App"
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
-    ENV_STATE: Optional[str] = None
+    VERSION: str = "0.1.0"
+    ENV_STATE: str = os.getenv("ENV_STATE", "dev")
+    DEBUG: bool = os.getenv("DEBUG", "true").lower() == "true"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_ignore_empty=True,
+        extra="ignore",
+    )
 
 
-class GlobalCofig(BaseCofig):
+class GlobalConfig(BaseConfig):
     DATABASE_URL: Optional[str] = None
-    DB_FORCE_ROLL_BACK: bool = False
+    DB_FORCE_ROLLBACK: bool = False
+    AUDIO_STORAGE_URL: Optional[str] = None
 
 
-class DevConfig(GlobalCofig):
+class DevConfig(GlobalConfig):
     model_config = SettingsConfigDict(env_prefix="DEV_")
 
 
-class TestConfig(GlobalCofig):
+class TestConfig(GlobalConfig):
     model_config = SettingsConfigDict(env_prefix="TEST_")
 
 
-class ProdCofig(GlobalCofig):
+class ProdConfig(GlobalConfig):
     model_config = SettingsConfigDict(env_prefix="PROD_")
 
 
 @lru_cache()
-def get_config(env_state: str):
-    configs = {"dev": DevConfig, "test": TestConfig, "prod": ProdCofig}
-    return configs[env_state]
+def get_config(env_state: str) -> GlobalConfig:
+    # Validate env_state
+    if env_state not in {"dev", "test", "prod"}:
+        raise ValueError(
+            f"Invalid ENV_STATE: {env_state}. Must be 'dev', 'test', or 'prod'."
+        )
+
+    configs = {"dev": DevConfig, "test": TestConfig, "prod": ProdConfig}
+    return configs[env_state]()
 
 
-config = get_config(BaseCofig().ENV_STATE)
+# Global config instance: Automatically uses ENV_STATE from env or default
+config = get_config(os.getenv("ENV_STATE", "dev"))
+
+
+# ... end of file
+config = get_config(os.getenv("ENV_STATE", "dev"))

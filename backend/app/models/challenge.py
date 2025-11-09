@@ -1,6 +1,7 @@
-from app.database import Base
 from sqlalchemy import Column, DateTime, Integer, String, func
-from sqlachemy.orm import relationship
+from sqlalchemy.orm import relationship  # Correct
+
+from ..db.base_class import Base
 
 
 class Challenge(Base):
