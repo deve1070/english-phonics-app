@@ -1,6 +1,6 @@
 from typing import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from ..core.config import config
 
@@ -13,9 +13,7 @@ DATABASE_URL = raw_url.replace(
 )  # Async dialect
 engine = create_async_engine(DATABASE_URL, echo=config.DEBUG)
 
-AsyncSessionLocal = async_sessionmaker(
-    engine, class_=AsyncAttrs, expire_on_commit=False
-)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
 async def get_db() -> AsyncGenerator:

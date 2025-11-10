@@ -7,6 +7,7 @@ from pydantic_settings import SettingsConfigDict
 class UserBase(BaseModel):
     name: str
     email: EmailStr
+    age_group: int
 
 
 class UserCreate(UserBase):

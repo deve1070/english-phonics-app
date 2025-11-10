@@ -1,13 +1,17 @@
 from typing import Optional
-from sqlalchemy.orm import Session
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..crud.base import CRUDBase
 from ..models.user import User
-from ..schemas import UserCreate, UserUpdate
-from .base import CRUDBase
+from ..schemas.user import UserCreate, UserUpdate
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
-    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
-        return db.query(self.model).filter(self.model.email == email).first()
+    async def get_by_email(self, db: AsyncSession, *, email: str) -> Optional[User]:
+        result = await db.execute(select(User).filter(User.email == email))
+        return result.scalar_one_or_none()
 
 
 crud = CRUDUser(User)

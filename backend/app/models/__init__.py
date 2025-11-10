@@ -1,17 +1,9 @@
-from .challenge import Challenge
-from .exersices import Exercise
-from .gamification import Gamification
-from .lesson import Lesson
-from .progress import Progress
-from .pronunciation import PronunciationScore
 from .user import User
-
-__all__ = [
-    "Challenge",
-    "Exercise",
-    "Gamification",
-    "Progress",
-    "User",
-    "PronunciationScore",
-    "Lesson",
-]
+from .enums import UserRole
+from .phoneme import Phoneme
+from .word import Word
+from .lesson import Lesson
+from .exercise import Exercise
+from .progress import Progress
+from .pronouncation_score import PronunciationScore
+from .gamification import Gamification
