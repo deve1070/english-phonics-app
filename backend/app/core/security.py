@@ -3,6 +3,7 @@ from typing import Optional
 
 from app.core.config import config
 from app.db.session import get_db
+from app.models.enums import UserRole
 from app.models.user import User
 from argon2 import PasswordHasher
 from argon2.exceptions import HashingError, VerifyMismatchError
@@ -69,4 +70,26 @@ async def get_current_active_user(
 ) -> User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+async def get_current_admin(current_user: User = Depends(get_current_active_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    return current_user
+
+
+async def get_current_teacher_or_admin(
+    current_user: User = Depends(get_current_active_user),
+):
+    if current_user.role not in [UserRole.ADMIN, UserRole.TEACHER]:
+        raise HTTPException(
+            status_code=403, detail="Teacher or Admin privileges required"
+        )
+    return current_user
+
+
+async def get_current_student(current_user: User = Depends(get_current_active_user)):
+    if current_user.role != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Student access only")
     return current_user

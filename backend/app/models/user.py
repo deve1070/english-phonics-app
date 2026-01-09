@@ -2,6 +2,7 @@ from sqlalchemy import Boolean, Column, DateTime, Integer, String, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import relationship
+from app.models.teacher_student import teacher_student_association
 
 from ..db.base_class import Base
 from .enums import UserRole
@@ -14,7 +15,6 @@ class User(Base, AsyncAttrs):
     def create_user_name(name: str, id: int) -> str:
         import re
 
-        # sanitize: keep lowercase alphanumerics, replace spaces with hyphen
         base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
         return f"{base}-{id}"
 
@@ -23,7 +23,7 @@ class User(Base, AsyncAttrs):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     user_name = Column(String, unique=True, index=True, nullable=False)
-    role = Column(SQLEnum(UserRole), default=UserRole.STUDENT)
+    role: UserRole = Column(SQLEnum(UserRole), default=UserRole.STUDENT)
     is_active = Column(Boolean, default=True)
     age_group = Column(Integer)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -45,4 +45,20 @@ class User(Base, AsyncAttrs):
         back_populates="user",
         lazy="noload",
         collection_class=list,
+    )
+
+    taught_students = relationship(
+        "User",
+        secondary=teacher_student_association,
+        primaryjoin=(teacher_student_association.c.teacher_id == id),
+        secondaryjoin=(teacher_student_association.c.student_id == id),
+        backref="teachers",
+    )
+
+    teachers = relationship(
+        "User",
+        secondary=teacher_student_association,
+        primaryjoin=(teacher_student_association.c.student_id == id),
+        secondaryjoin=(teacher_student_association.c.teacher_id == id),
+        backref="students",
     )
