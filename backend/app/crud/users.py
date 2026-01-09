@@ -1,11 +1,15 @@
-from typing import Optional
+import uuid
+from typing import List, Optional
 
+from app.core.security import get_password_hash
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from ..crud.base import CRUDBase
 from ..models.user import User
-from ..schemas.user import UserCreate, UserUpdate
+from ..schemas.user import UserCreate, UserResponse, UserUpdate
+from .base import CRUDBase
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
@@ -13,5 +17,103 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         result = await db.execute(select(User).filter(User.email == email))
         return result.scalar_one_or_none()
 
+    async def get_user(self, db: AsyncSession, *, id: int) -> Optional[User]:
+        result = await db.execute(
+            select(self.model)
+            .options(
+                selectinload(self.model.scores),
+                selectinload(self.model.achievements),
+                selectinload(self.model.progress),
+            )
+            .filter(self.model.id == id)
+        )
+        return result.scalars_one_or_none()
+
+    async def create_user(
+        self, db: AsyncSession, *, obj_in: UserCreate
+    ) -> UserResponse:
+        hashed_password = get_password_hash(obj_in.password)
+
+        existing = await self.get_by_email(db, email=obj_in.email)
+
+        if existing:
+            if existing.is_active:
+                raise HTTPException(status_code=400, detail="Email already registered")
+
+            existing.hashed_password = hashed_password
+            existing.name = obj_in.name or existing.name
+            existing.age_group = (
+                obj_in.age_group if obj_in.age_group is not None else existing.age_group
+            )
+            existing.role = obj_in.role or existing.role
+            existing.is_active = True
+
+            if not existing.user_name:
+                existing.user_name = User.create_user_name(
+                    existing.name, existing.id, hashed_password=hashed_password
+                )
+
+            db.add(existing)
+            await db.commit()
+            await db.refresh(existing)
+            return existing
+
+        create_data = obj_in.model_dump(exclude={"password"})
+        create_data["hashed_password"] = hashed_password
+
+        db_obj = User(**create_data)
+        db_obj.user_name = f"temp-{uuid.uuid4().hex}"
+
+        db.add(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
+
+        db_obj.user_name = User.create_user_name(db_obj.name, db_obj.id)
+        db.add(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
+
+        return db_obj
+
+    async def update(
+        self, db: AsyncSession, *, db_obj: User, obj_in: UserUpdate
+    ) -> User:
+        if obj_in.email:
+            existing = await self.get_by_email(db, email=obj_in.email)
+            if existing and existing.id != db_obj.id:
+                raise ValueError("Email already registered")
+        return await super().update(db, db_obj=db_obj, obj_in=obj_in)
+
+    async def get_multi(
+        self, db: AsyncSession, *, skip=0, limit=100
+    ) -> List[UserResponse]:
+        result = await db.execute(
+            select(self.model)
+            .options(
+                selectinload(self.model.progress),
+                selectinload(self.model.scores),
+                selectinload(self.model.achievements),
+            )
+            .where(self.model.is_active == True)
+            .offset(skip)
+            .limit(limit)
+        )
+        users = result.scalars().all()
+        for u in users:
+            for rel in ("progress", "scores", "achievements"):
+                try:
+                    if getattr(u, rel) is None:
+                        setattr(u, rel, [])
+                except Exception:
+                    setattr(u, rel, [])
+        return users
+
+    async def remove(self, db: AsyncSession, *, id: int) -> Optional[User]:
+        return await super().remove(db, id=id)
+
 
 crud = CRUDUser(User)
+
+
+async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
+    return await crud.get_by_email(db, email=email)

@@ -54,12 +54,24 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.refresh(db_obj)
         return db_obj
 
-    async def remove(self, db: AsyncSession, *, id: int) -> ModelType:
+    async def remove(self, db: AsyncSession, *, id: int) -> Optional[ModelType]:
         result = await db.execute(select(self.model).filter(self.model.id == id))
         obj = result.scalar_one_or_none()
         if obj:
-            await db.delete(obj)
-            await db.commit()
+            if hasattr(obj, "is_active"):
+                try:
+                    setattr(obj, "is_active", False)
+                    db.add(obj)
+                    await db.commit()
+                    await db.refresh(obj)
+                    return obj
+                except Exception:
+                    await db.delete(obj)
+                    await db.commit()
+                    return obj
+            else:
+                await db.delete(obj)
+                await db.commit()
         return obj
 
 

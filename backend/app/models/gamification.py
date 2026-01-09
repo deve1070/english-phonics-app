@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from ..db.base_class import Base
 
 
@@ -12,5 +13,5 @@ class Gamification(Base):
     points_required = Column(Integer, default=100)
     image_url = Column(String)
 
-    # Relationships (junction for many-to-many with User)
+    # Fixed: Property name "user_achievements" (no underscore), matching back_populates in UserAchievement
     user_achievements = relationship("UserAchievement", back_populates="gamification")

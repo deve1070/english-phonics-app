@@ -1,3 +1,3 @@
 from fastapi import APIRouter
 
-from .endpoints import api_router
+from .endpoints import api_router, auth

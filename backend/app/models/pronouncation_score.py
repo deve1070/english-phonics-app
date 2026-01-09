@@ -1,4 +1,5 @@
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, func
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import func
 from sqlalchemy.orm import relationship
 
 from ..db.base_class import Base
@@ -12,8 +13,9 @@ class PronunciationScore(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     score = Column(Float, nullable=False)  # 0-100
     audio_url = Column(String)  # User recording
-    timestamp = Column(DateTime, default=func.utcnow)
+    # Use DB NOW() for timestamp defaults
+    timestamp = Column(DateTime, default=func.now())
 
-    # Relationships
+    # Relationships (back_populates match User and Exercise)
     exercise = relationship("Exercise", back_populates="scores")
     user = relationship("User", back_populates="scores")

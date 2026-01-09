@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, func
 from sqlalchemy.orm import relationship
 
@@ -16,9 +14,10 @@ class Progress(Base):
     completed = Column(Boolean, default=False)
     score = Column(Float, default=0.0)
     attempts = Column(Integer, default=0)
-    updated_at = Column(DateTime, default=func.utcnow(), onupdate=datetime.utcnow)
+    # Use SQL function NOW() so defaults and onupdate are handled by the DB
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
-    # Relationships
+    # Relationships (back_populates match User, Lesson, Exercise)
     user = relationship("User", back_populates="progress")
     lesson = relationship("Lesson", back_populates="progress")
     exercise = relationship("Exercise", back_populates="progress")
