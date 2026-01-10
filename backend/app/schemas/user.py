@@ -12,6 +12,7 @@ class UserBase(BaseModel):
     is_active: bool = True
     role: Optional[str] = "STUDENT"
     created_at: Optional[datetime] = None
+    user_name: Optional[str] = None
 
 
 class UserCreate(UserBase):

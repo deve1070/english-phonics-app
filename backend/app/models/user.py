@@ -1,8 +1,8 @@
+from app.models.teacher_student import teacher_student_association
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import relationship
-from app.models.teacher_student import teacher_student_association
 
 from ..db.base_class import Base
 from .enums import UserRole
@@ -52,7 +52,7 @@ class User(Base, AsyncAttrs):
         secondary=teacher_student_association,
         primaryjoin=(teacher_student_association.c.teacher_id == id),
         secondaryjoin=(teacher_student_association.c.student_id == id),
-        backref="teachers",
+        back_populates="teachers",
     )
 
     teachers = relationship(
@@ -60,5 +60,5 @@ class User(Base, AsyncAttrs):
         secondary=teacher_student_association,
         primaryjoin=(teacher_student_association.c.student_id == id),
         secondaryjoin=(teacher_student_association.c.teacher_id == id),
-        backref="students",
+        back_populates="taught_students",
     )

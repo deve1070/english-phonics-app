@@ -17,7 +17,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         result = await db.execute(select(User).filter(User.email == email))
         return result.scalar_one_or_none()
 
-    async def get_user(self, db: AsyncSession, *, id: int) -> Optional[User]:
+    async def get_user(self, db: AsyncSession, *, id: int) -> Optional[UserResponse]:
         result = await db.execute(
             select(self.model)
             .options(
@@ -27,7 +27,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             )
             .filter(self.model.id == id)
         )
-        return result.scalars_one_or_none()
+        return result.scalar_one_or_none()
 
     async def create_user(
         self, db: AsyncSession, *, obj_in: UserCreate
@@ -49,9 +49,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             existing.is_active = True
 
             if not existing.user_name:
-                existing.user_name = User.create_user_name(
-                    existing.name, existing.id, hashed_password=hashed_password
-                )
+                existing.user_name = User.create_user_name(existing.name, existing.id)
 
             db.add(existing)
             await db.commit()
@@ -110,6 +108,30 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     async def remove(self, db: AsyncSession, *, id: int) -> Optional[User]:
         return await super().remove(db, id=id)
+
+    async def add_student(
+        db: AsyncSession, *, teacher_id: int, student_id: int
+    ) -> None:
+        teacher = await db.get(User, teacher_id)
+        student = await db.get(User, student_id)
+        if not teacher or not student:
+            raise ValueError("Teacher or Student not found")
+        teacher.taught_students.append(student)
+        db.add(teacher)
+        await db.commit()
+        await db.refresh(teacher)
+
+    async def remove_student(
+        db: AsyncSession, *, teacher_id: int, student_id: int
+    ) -> None:
+        teacher = await db.get(User, teacher_id)
+        student = await db.get(User, student_id)
+        if not teacher or not student:
+            raise ValueError("Teacher or Student not found")
+        teacher.taught_students.remove(student)
+        db.add(teacher)
+        await db.commit()
+        await db.refresh(teacher)
 
 
 crud = CRUDUser(User)
