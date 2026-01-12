@@ -109,30 +109,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def remove(self, db: AsyncSession, *, id: int) -> Optional[User]:
         return await super().remove(db, id=id)
 
-    async def add_student(
-        db: AsyncSession, *, teacher_id: int, student_id: int
-    ) -> None:
-        teacher = await db.get(User, teacher_id)
-        student = await db.get(User, student_id)
-        if not teacher or not student:
-            raise ValueError("Teacher or Student not found")
-        teacher.taught_students.append(student)
-        db.add(teacher)
-        await db.commit()
-        await db.refresh(teacher)
-
-    async def remove_student(
-        db: AsyncSession, *, teacher_id: int, student_id: int
-    ) -> None:
-        teacher = await db.get(User, teacher_id)
-        student = await db.get(User, student_id)
-        if not teacher or not student:
-            raise ValueError("Teacher or Student not found")
-        teacher.taught_students.remove(student)
-        db.add(teacher)
-        await db.commit()
-        await db.refresh(teacher)
-
 
 crud = CRUDUser(User)
 

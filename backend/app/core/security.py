@@ -8,7 +8,11 @@ from app.models.user import User
 from argon2 import PasswordHasher
 from argon2.exceptions import HashingError, VerifyMismatchError
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    OAuth2PasswordBearer,
+)
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +20,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ph = PasswordHasher()
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+bearer_scheme = HTTPBearer()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -43,8 +49,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 
 async def get_current_user(
-    db: AsyncSession = Depends(get_db), token: str = Depends(oauth_scheme)
+    db: AsyncSession = Depends(get_db),
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> User:
+    token = credentials.credentials
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

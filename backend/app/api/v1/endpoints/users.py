@@ -2,7 +2,11 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.security import get_current_user, get_current_admin
+from app.core.security import (
+    get_current_user,
+    get_current_admin,
+    get_current_active_user,
+)
 
 from ....crud import crud
 from ....crud import user as user_crud
@@ -65,3 +69,14 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     deleted = await crud.remove(db, id=user_id)
     return deleted
+
+
+@router.put("/me/", response_model=UserResponse)
+async def update_current_user(
+    *,
+    obj_in: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    update_user = await crud.user.update(db=db, db_obj=current_user, obj_in=obj_in)
+    return update_user

@@ -251,3 +251,8 @@ webots-ros2-turtlebot==2025.0.0
 webots-ros2-universal-robot==2025.0.0
 websockets==15.0.1
 xacro==2.1.1
+faster-whisper==1.0.3
+jiwer==3.0.4
+pronouncing==0.2.0
+python-levenshtein==0.25.1  # Fast distance calc
+azure-cognitiveservices-speech==1.40.0

@@ -7,7 +7,7 @@ if str(ROOT) not in sys.path:
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, StaticFiles
 
 from .api import api_router
 from .core.config import config
@@ -31,6 +31,7 @@ app = FastAPI(
     lifespan=lifespan,  # Replaces @app.on_event
 )
 
+app.mount("/static", StaticFiles(directory="uploads/audio"), name="audio")
 app.include_router(api_router, prefix="/api/v1")
 
 

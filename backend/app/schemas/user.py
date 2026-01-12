@@ -13,6 +13,10 @@ class UserBase(BaseModel):
     role: Optional[str] = "STUDENT"
     created_at: Optional[datetime] = None
     user_name: Optional[str] = None
+    grade_level: Optional[int] = None
+    school_name: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
 
 
 class UserCreate(UserBase):

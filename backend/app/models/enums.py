@@ -25,3 +25,9 @@ class Level(str, Enum):
     LEVEL3 = "level_3"
     LEVEL4 = "level_4"
     LEVEL5 = "level_5"
+
+
+class FriendRequestStatus(str, Enum):
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
