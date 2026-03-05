@@ -1,18 +1,25 @@
 # English Phonics App - Implementation Summary
 
+**Last updated:** February 2025
+
 ## **General Structure**
 
 The app is a multi-platform English phonics learning application with:
 
 1. **Backend** (Python/FastAPI) - ✅ **Fully Implemented**
-2. **Web Frontend** - ❌ **Empty directory**
-3. **Mobile App** - ❌ **Empty directory**
+2. **Web Frontend** (phonics-web, Next.js/React) - ✅ **Initial Setup Complete**
+3. **Mobile App** - ❌ **Not started**
+4. **Documentation** - ✅ **SRS (incomplete), completion tasks, app summary**
+
+**Planned business rule (from SRS):** All users must pay monthly to use the app; no free tier for learning content. Subscription/payment not yet implemented.
 
 ---
 
 ## **Backend Implementation (What's Done)**
 
 ### **1. Technology Stack**
+
+#### **Backend:**
 - **Framework**: FastAPI (async)
 - **Database**: PostgreSQL with SQLAlchemy 2.0 (async)
 - **ORM**: SQLAlchemy with async support
@@ -20,6 +27,24 @@ The app is a multi-platform English phonics learning application with:
 - **Containerization**: Docker Compose for PostgreSQL
 - **Authentication**: JWT tokens (python-jose)
 - **Password Hashing**: Argon2
+- **Speech Recognition**: Azure Cognitive Services Speech SDK (pronunciation assessment)
+- **Text-to-Speech**: Azure TTS (for reference audio generation)
+
+#### **Frontend (phonics-web):**
+- **Framework**: Next.js 16.1.2 (App Router)
+- **UI Library**: React 19.2.3
+- **Styling**: Tailwind CSS v4
+- **State Management**: Zustand 5.0.10
+- **Data Fetching**: TanStack React Query 5.90.17
+- **HTTP Client**: Axios 1.13.2
+- **Form Handling**: React Hook Form 7.71.1
+- **Form Validation**: Zod 4.3.5
+- **Authentication**: NextAuth.js 4.24.13
+- **Audio Recording**: RecordRTC 5.6.2
+- **Language**: TypeScript 5
+- **Linting**: ESLint 9 with Next.js config
+- **Git Hooks**: Husky 9.1.7
+- **React Compiler**: Enabled (babel-plugin-react-compiler)
 
 ### **2. Database Schema (Models)**
 
@@ -97,6 +122,22 @@ The app is a multi-platform English phonics learning application with:
 - `GET /teachers/me/studnets` - Get my students (teacher/admin only)
 - `GET /students/me/teachers` - Get my teachers (teacher/admin only)
 
+#### **Phonemes Management** (`/api/v1/phonemes`):
+- `POST /` - Create phoneme with audio upload (admin only)
+- `GET /` - List all phonemes (public access)
+- `GET /{phoneme_id}` - Get phoneme by ID (public access)
+- `PUT /{phoneme_id}` - Update phoneme (admin only, audio optional)
+- `DELETE /{phoneme_id}` - Delete phoneme (admin only)
+
+#### **Exercises** (`/api/v1/exercises`):
+- `GET /{exercise_id}` - Get exercise by ID
+- `POST /{exercise_id}/submit-pronunciation` - Submit pronunciation audio for assessment (student only)
+- `GET /{exercise_id}/reference-audio` - Get reference audio stream (with blending option)
+
+#### **Progress & Recommendations** (`/api/v1/progress`):
+- `GET /me/recommended` - Get personalized exercise recommendations (authenticated)
+- `GET /me/feedback` - Get personalized motivational feedback based on recent performance (authenticated)
+
 ### **4. Application Architecture**
 
 #### **Project Structure:**
@@ -110,7 +151,10 @@ backend/
 │   │           ├── users.py
 │   │           ├── auth.py
 │   │           ├── friends.py
-│   │           └── associations.py
+│   │           ├── associations.py
+│   │           ├── phonemes.py
+│   │           ├── exercises.py
+│   │           └── progress.py
 │   ├── core/             # Configuration and security
 │   │   ├── config.py     # Environment-based config (dev/test/prod)
 │   │   └── security.py   # JWT, password hashing, role-based access control
@@ -118,7 +162,10 @@ backend/
 │   │   ├── base.py       # Generic CRUD base class
 │   │   ├── users.py      # User-specific CRUD operations
 │   │   ├── friend.py     # Friend request CRUD operations
-│   │   └── association.py # Teacher-student association CRUD operations
+│   │   ├── association.py # Teacher-student association CRUD operations
+│   │   ├── crud_exercise.py # Exercise CRUD operations
+│   │   ├── crud_phoneme.py # Phoneme CRUD operations
+│   │   └── crud_pronunciation_score.py # Pronunciation score CRUD operations
 │   ├── db/               # Database setup
 │   │   ├── session.py    # Async database session
 │   │   ├── base_class.py # SQLAlchemy Base
@@ -142,7 +189,19 @@ backend/
 │   │   ├── user.py
 │   │   ├── auth.py
 │   │   ├── friend.py
-│   │   └── aassociation.py
+│   │   ├── association.py
+│   │   ├── phoneme.py
+│   │   └── pronunciation_score.py
+│   ├── services/         # Business logic services
+│   │   ├── pronunciation_service.py # Pronunciation assessment service
+│   │   ├── recommendation_service.py # Personalized exercise recommendations
+│   │   ├── reference_audio_service.py # Audio streaming and TTS
+│   │   ├── tts_service.py # Text-to-speech service
+│   │   └── exercise_generation_service.py # Exercise generation logic
+│   ├── utils/            # Utility functions
+│   │   ├── audio.py # Audio file handling (save, upload)
+│   │   ├── pronunciation_assessor.py # Azure Speech SDK integration
+│   │   └── tts_synthesizer.py # TTS synthesis utilities
 │   └── main.py           # FastAPI application entry point
 ├── alembic/              # Database migrations
 │   └── versions/         # 9+ migration files
@@ -157,6 +216,29 @@ backend/
 │       └── 627f9d6cf257_add_friend_requests_and_friends_.py
 ├── docker-compose.yml    # PostgreSQL service
 └── requirements.txt      # Python dependencies
+phonics-web/              # Next.js frontend application
+├── src/
+│   ├── app/              # Next.js App Router
+│   │   ├── layout.tsx    # Root layout
+│   │   ├── page.tsx      # Home page
+│   │   └── globals.css   # Global styles
+│   ├── components/       # React components (ready for implementation)
+│   ├── hooks/            # Custom hooks (ready for implementation)
+│   ├── lib/              # Utilities (ready for implementation)
+│   ├── stores/           # Zustand (ready for implementation)
+│   └── types/            # TypeScript types (ready for implementation)
+├── public/               # Static assets
+├── package.json          # Next 16, React 19, NextAuth, RHF, Zod, React Query, Zustand, RecordRTC, Framer Motion
+├── next.config.ts        # React Compiler enabled
+├── tsconfig.json         # Path alias @/* → src/*
+├── tailwind.config.ts    # Custom theme (primary, accent, success, fonts)
+├── postcss.config.mjs
+└── eslint.config.mjs
+docs/                     # Project documentation
+├── SRS_English_Phonics_App.md   # Software Requirements Spec (incomplete; mandatory monthly payment)
+└── SRS_Completion_Tasks.md      # SRS completion task list
+phonics-web/README.md     # Frontend readme
+.github/copilot-instructions.md  # Copilot instructions
 ```
 
 ### **5. Features Implemented**
@@ -212,6 +294,40 @@ backend/
 - Teacher-student association table
 - Protected endpoints (teacher/admin only)
 
+✅ **Phonemes Management:**
+- Full CRUD operations for phonemes
+- Audio file upload support (MP3, WAV, OGG, WebM, M4A)
+- Public read access, admin-only write access
+- Phoneme type classification system
+- Audio storage in uploads/audio directory
+
+✅ **Exercises & Pronunciation:**
+- Get exercise by ID
+- Submit pronunciation audio for assessment
+- Real-time pronunciation scoring using Azure Speech SDK
+- Automatic progress tracking and updates
+- Reference audio streaming (pre-recorded or TTS-generated)
+- Audio blending support for exercises
+- Pronunciation assessment with accuracy, fluency, and feedback
+- Automatic transcription of student speech
+
+✅ **Progress & Recommendations:**
+- Personalized exercise recommendations based on:
+  - Weakest phonemes (lowest average scores)
+  - Next uncompleted lessons
+  - Fallback to general exercises
+- Personalized motivational feedback
+- Recent performance analysis
+- Adaptive learning path algorithm
+
+✅ **Services & Utilities:**
+- Pronunciation assessment service (Azure Speech SDK integration)
+- Recommendation engine for personalized learning
+- Text-to-speech (TTS) service for reference audio
+- Reference audio streaming service
+- Audio file handling utilities
+- Exercise generation service
+
 ✅ **Configuration:**
 - Environment-based configuration (dev/test/prod)
 - Database URL configuration
@@ -228,37 +344,41 @@ backend/
 - Generic CRUD base class for reusability
 - Role-based access control patterns
 
+✅ **Frontend (phonics-web):**
+- Next.js 16 with App Router, TypeScript, Tailwind CSS v4 (custom theme: primary, accent, success; fonts: Patrick Hand, Nunito)
+- React 19 with React Compiler; ESLint, Husky, path alias `@/*`
+- Project structure: `src/app/` (layout, page, globals.css); `src/components/`, `hooks/`, `lib/`, `stores/`, `types/` ready for implementation
+- Dependencies installed: NextAuth, React Hook Form, Zod, @hookform/resolvers, React Query, Zustand, Axios, RecordRTC, Framer Motion, OpenType.js
+- Auth pages, dashboard, exercises, profile, friends, and subscription UI not yet implemented
+
 ---
 
 ## **What's Missing / Not Implemented**
 
 ### ❌ **API Endpoints:**
 - No endpoints for Lessons management
-- No endpoints for Phonemes management
 - No endpoints for Words management
-- No endpoints for Exercises management
-- No endpoints for Progress tracking
-- No endpoints for Pronunciation scores
 - No endpoints for Gamification/Achievements
-- No audio file upload endpoints
 - No user registration endpoint (currently using user creation)
+- No endpoints for managing user achievements
 
 ### ❌ **Frontend:**
-- Web frontend directory is completely empty
-- Mobile app directory is completely empty
+- Web (`phonics-web`) - ✅ Initial setup complete (Next.js, structure, dependencies); auth, dashboard, exercises, profile, friends, subscription UI pending
+- Mobile app - ❌ Not started
 
 ### ❌ **Additional Features:**
-- Audio file handling/storage
-- Pronunciation scoring algorithm
-- Achievement system logic
-- Progress calculation logic
-- Lesson/exercise content management
+- **Subscription/payment** (mandatory monthly) — planned in SRS; not implemented
+- Achievement system logic (gamification endpoints)
+- Lesson/exercise content management endpoints
 - User registration endpoint (separate from user creation)
 - Password reset functionality
 - Email verification
+- Word management endpoints
+- Lesson management endpoints
+- Notifications (in-app, email, push) — in SRS; not implemented
 
 ### ❌ **Infrastructure:**
-- No audio storage solution configured
+- No cloud-based audio storage (currently using local file system)
 - No production deployment configuration
 - No comprehensive testing suite (only basic import test exists)
 
@@ -310,25 +430,43 @@ Gamification
 ## **Enums Defined**
 
 - **UserRole**: `STUDENT`, `TEACHER`, `ADMIN`
-- **StudnetLevel**: `BEGINNER`, `INTERMEDIATE`, `ADVANCED` (Note: typo in name)
-- **ExerciseType**: `WORD`, `SENTENCE`, `PHONEME`
+- **StudentLevel**: `BEGINNER`, `INTERMEDIATE`, `ADVANCED`
+- **ExerciseType**: `WORD`, `SENTENCE`, `PHONEME`, `PHARAGRAPH`
 - **Level**: `LEVEL1`, `LEVEL2`, `LEVEL3`, `LEVEL4`, `LEVEL5`
 - **FriendRequestStatus**: `PENDING`, `ACCEPTED`, `REJECTED`
+- **PhonemeType**: `ALPHABET`, `LONG_VOWEL`, `SHORT_VOWEL`, `DIPHTHONG`, `CONSONANT_BLEND`, `LETTER_COMBINATION`, `R_CONTROLLED_VOWEL`, `SILENT_LETTER`, `SCHWA`, `SUFFIX`
+- **LessonStatus**: `NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`
+- **NotificationType**: `FRIEND_REQUEST`, `MESSAGE`, `SYSTEM_ALERT`
 
 ---
 
 ## **Summary**
 
-The backend has a **strong, production-ready foundation** with:
+The application has a **strong, production-ready foundation** with:
+
+**Backend:**
 - ✅ Complete database schema for a phonics learning app
 - ✅ Full authentication & authorization system (JWT + RBAC)
 - ✅ User management API fully functional with role-based access
 - ✅ Friends system with requests and recommendations
 - ✅ Teacher-student association system
+- ✅ **Phonemes management with full CRUD and audio upload**
+- ✅ **Pronunciation assessment with Azure Speech SDK**
+- ✅ **Personalized exercise recommendations**
+- ✅ **Progress tracking and feedback system**
+- ✅ **Audio file handling and streaming**
 - ✅ Modern async architecture
 - ✅ Comprehensive database migrations
 - ✅ Secure password hashing (Argon2)
 - ✅ Protected endpoints with role-based access control
+
+**Frontend:**
+- ✅ **Next.js 16 setup with App Router**
+- ✅ **TypeScript configuration**
+- ✅ **Tailwind CSS v4 with custom theme**
+- ✅ **Project structure organized and ready for development**
+- ✅ **Key dependencies installed** (React Query, Zustand, NextAuth, React Hook Form, RecordRTC)
+- ✅ **Development tooling configured** (ESLint, Husky, React Compiler)
 
 **Recently Added Features:**
 1. ✅ JWT-based authentication system
@@ -339,15 +477,30 @@ The backend has a **strong, production-ready foundation** with:
 6. ✅ Teacher-student associations
 7. ✅ Student profile fields (grade_level, school_name, city, country)
 8. ✅ Protected API endpoints
+9. ✅ **Phonemes management with audio upload**
+10. ✅ **Pronunciation assessment system (Azure Speech SDK)**
+11. ✅ **Exercise submission and scoring**
+12. ✅ **Personalized exercise recommendations**
+13. ✅ **Reference audio streaming (TTS & pre-recorded)**
+14. ✅ **Progress tracking and feedback**
+15. ✅ **Audio file handling utilities**
+
+**Documentation (current):**
+- **SRS** (`docs/SRS_English_Phonics_App.md`) — incomplete; defines mandatory monthly payment, payments, notifications, admin, data privacy; placeholders for teams to complete
+- **SRS completion tasks** (`docs/SRS_Completion_Tasks.md`) — task list for completing the SRS
+- **APP_SUMMARY.md** — this file (implementation summary)
+- **phonics-web/README.md** — frontend readme; **.github/copilot-instructions.md** — Copilot instructions
 
 **Next Priority Steps:**
-1. Implement remaining API endpoints (lessons, exercises, progress, etc.)
-2. Build frontend applications (web and mobile)
-3. Implement audio handling and pronunciation scoring
-4. Add gamification logic
-5. Add password reset functionality
-6. Add email verification
+1. **Complete SRS** (use `docs/SRS_Completion_Tasks.md`; fill placeholders in `docs/SRS_English_Phonics_App.md`)
+2. Implement subscription/payment (mandatory monthly) per SRS
+3. Implement remaining API endpoints (lessons, words, gamification)
+4. Build frontend: auth (login/register with NextAuth), dashboard, exercises, profile, friends, paywall/subscription UI
+5. Integrate frontend with backend API
+6. Add gamification and achievement endpoints; password reset; email verification
+7. Notifications (in-app, email, push) per SRS
+8. Build mobile app
 
-The architecture is well-structured and production-ready for these additions!
+The architecture is well-structured and ready for SRS completion and implementation.
 
 

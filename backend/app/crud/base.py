@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import select  # For async queries
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..db.base_class import Base
+from ..db.base import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)

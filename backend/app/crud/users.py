@@ -2,6 +2,7 @@ import uuid
 from typing import List, Optional
 
 from app.core.security import get_password_hash
+from app.models.enums import UserRole
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +11,18 @@ from sqlalchemy.orm import selectinload
 from ..models.user import User
 from ..schemas.user import UserCreate, UserResponse, UserUpdate
 from .base import CRUDBase
+
+
+def _normalize_role(role: Optional[str]) -> Optional[UserRole]:
+    """Convert API role string (STUDENT/ADMIN) to UserRole enum for DB (student/admin)."""
+    if role is None:
+        return None
+    r = (role or "").strip().upper()
+    if r == "STUDENT":
+        return UserRole.STUDENT
+    if r == "ADMIN":
+        return UserRole.ADMIN
+    return None
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
@@ -45,7 +58,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             existing.age_group = (
                 obj_in.age_group if obj_in.age_group is not None else existing.age_group
             )
-            existing.role = obj_in.role or existing.role
+            existing.role = _normalize_role(obj_in.role) or existing.role
             existing.is_active = True
 
             if not existing.user_name:
@@ -58,6 +71,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
         create_data = obj_in.model_dump(exclude={"password"})
         create_data["hashed_password"] = hashed_password
+        create_data["role"] = (
+            _normalize_role(create_data.get("role")) or UserRole.STUDENT
+        )
 
         db_obj = User(**create_data)
         db_obj.user_name = f"temp-{uuid.uuid4().hex}"

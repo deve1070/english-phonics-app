@@ -1,4 +1,4 @@
-from .base_class import Base
+from .base import Base
 from .session import engine
 
 

@@ -5,30 +5,18 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
-from fastapi import FastAPI, StaticFiles
-
+import app.models  # noqa: F401 - register all models before API so SQLAlchemy can resolve relationships (e.g. User -> Subscription)
 from .api import api_router
-from .core.config import config
-from .db.base_class import Base  # For metadata
-from .db.session import engine  # Fixed: Import from db.session
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup: Create tables (use Alembic in prod)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    print("All tables created successfully")
-    yield
-    await engine.dispose()
-
+from .core.config import settings
+from .core.lifespan import lifespan
 
 app = FastAPI(
-    title=config.PROJECT_NAME,
-    version=config.VERSION,  # Fixed: Matches config.py
-    lifespan=lifespan,  # Replaces @app.on_event
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    lifespan=lifespan,
 )
 
 app.mount("/static", StaticFiles(directory="uploads/audio"), name="audio")
@@ -43,4 +31,4 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=config.DEBUG)  # Reload in dev
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=settings.DEBUG)

@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, func
 from sqlalchemy.orm import relationship
-from ..db.base_class import Base
+
+from ..db.base import Base
 
 
 class UserAchievement(Base):

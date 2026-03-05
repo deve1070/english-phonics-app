@@ -256,3 +256,5 @@ jiwer==3.0.4
 pronouncing==0.2.0
 python-levenshtein==0.25.1  # Fast distance calc
 azure-cognitiveservices-speech==1.40.0
+eng-to-ipa==0.0.2
+phonemizer==3.2.1  # Latest stable

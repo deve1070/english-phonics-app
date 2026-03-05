@@ -2,14 +2,14 @@ from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from ..core.config import config
+from ..core.config import settings
 
-raw_url = config.DATABASE_URL
-if raw_url is None or not raw_url.strip():
+raw_url = settings.DATABASE_URL
+if not raw_url or not raw_url.strip():
     raise ValueError("DATABASE_URL is not set in the configuration.")
 
 DATABASE_URL = raw_url.replace("postgresql://", "postgresql+asyncpg://")
-engine = create_async_engine(DATABASE_URL, echo=config.DEBUG)
+engine = create_async_engine(DATABASE_URL, echo=settings.DEBUG)
 
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
