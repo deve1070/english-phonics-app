@@ -1,19 +1,26 @@
 from typing import List, Optional
 
+from app.core.security import (
+    get_current_active_user,
+    get_current_admin,
+)
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.security import (
-    get_current_user,
-    get_current_admin,
-    get_current_active_user,
-)
 
 from ....crud import crud
 from ....crud import user as user_crud
 from ....db.session import get_db
 from ....schemas.user import User, UserCreate, UserResponse, UserUpdate
 
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.get("/me", response_model=UserResponse)
+async def read_current_user(
+    *,
+    current_user: User = Depends(get_current_active_user),
+) -> User:
+    return current_user
 
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -36,6 +43,17 @@ async def read_user(*, db: AsyncSession = Depends(get_db), user_id: int) -> User
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+@router.put("/me", response_model=UserResponse)
+async def update_current_user(
+    *,
+    obj_in: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    update_user = await crud.user.update(db=db, db_obj=current_user, obj_in=obj_in)
+    return update_user
 
 
 @router.put("/{id}", response_model=User)
@@ -64,19 +82,8 @@ async def read_users(
 async def delete_user(
     *, db: AsyncSession = Depends(get_db), user_id: int
 ) -> Optional[User]:
-    user = await crud.get(db, id=user_id)
+    user = await crud.user.get(db, id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    deleted = await crud.remove(db, id=user_id)
+    deleted = await crud.user.remove(db, id=user_id)
     return deleted
-
-
-@router.put("/me/", response_model=UserResponse)
-async def update_current_user(
-    *,
-    obj_in: UserUpdate,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
-    update_user = await crud.user.update(db=db, db_obj=current_user, obj_in=obj_in)
-    return update_user

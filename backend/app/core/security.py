@@ -8,19 +8,11 @@ from app.models.user import User
 from argon2 import PasswordHasher
 from argon2.exceptions import HashingError, VerifyMismatchError
 from fastapi import Depends, HTTPException, status
-from fastapi.security import (
-    HTTPAuthorizationCredentials,
-    HTTPBearer,
-    OAuth2PasswordBearer,
-)
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ph = PasswordHasher()
-oauth_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 bearer_scheme = HTTPBearer()
 
 
@@ -43,7 +35,10 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=15))
+    default_delta = timedelta(
+        minutes=getattr(settings, "ACCESS_TOKEN_EXPIRE_MINUTES", 15)
+    )
+    expire = datetime.now(UTC) + (expires_delta or default_delta)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
@@ -59,12 +54,15 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
+
     from app.crud.users import get_user_by_email
 
     user = await get_user_by_email(db, email)
@@ -81,23 +79,17 @@ async def get_current_active_user(
     return current_user
 
 
-async def get_current_admin(current_user: User = Depends(get_current_active_user)):
+async def get_current_admin(
+    current_user: User = Depends(get_current_active_user),
+) -> User:
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
     return current_user
 
 
-async def get_current_teacher_or_admin(
+async def get_current_student(
     current_user: User = Depends(get_current_active_user),
-):
-    if current_user.role not in [UserRole.ADMIN, UserRole.TEACHER]:
-        raise HTTPException(
-            status_code=403, detail="Teacher or Admin privileges required"
-        )
-    return current_user
-
-
-async def get_current_student(current_user: User = Depends(get_current_active_user)):
+) -> User:
     if current_user.role != UserRole.STUDENT:
         raise HTTPException(status_code=403, detail="Student access only")
     return current_user
