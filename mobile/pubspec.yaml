@@ -1,0 +1,94 @@
+name: phonics_app
+description: PhonicsFriends — Kids English phonics learning app
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── State Management ──────────────────────────────────────────
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+
+  # ── Dependency Injection ──────────────────────────────────────
+  get_it: ^7.7.0
+  injectable: ^2.4.4
+
+  # ── Navigation ────────────────────────────────────────────────
+  go_router: ^14.2.7
+
+  # ── Network ───────────────────────────────────────────────────
+  dio: ^5.7.0
+  pretty_dio_logger: ^1.4.0
+
+  # ── Local Storage ─────────────────────────────────────────────
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.2
+
+  # ── Audio ─────────────────────────────────────────────────────
+  just_audio: ^0.9.40
+  record: ^6.2.0
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # ── Animations ────────────────────────────────────────────────
+  lottie: ^3.1.2
+  flutter_animate: ^4.5.0
+
+  # ── JSON / Serialization ──────────────────────────────────────
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # ── UI Utilities ──────────────────────────────────────────────
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
+  google_fonts: ^6.2.1
+  gap: ^3.0.1 # Clean spacing widget
+  shimmer: ^3.0.0 # Loading skeletons
+
+  # ── Functional / Utils ────────────────────────────────────────
+  dartz: ^0.10.1 # Either for error handling
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # ── Code Generation ───────────────────────────────────────────
+  build_runner: ^2.4.12
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  injectable_generator: ^2.6.2
+
+# flutter:
+#   uses-material-design: true
+
+#   assets:
+#     - assets/images/
+#     - assets/animations/
+#     - assets/audio/
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/audio/phonemes/
+
+  fonts:
+    - family: PatrickHand
+      fonts:
+        - asset: assets/fonts/PatrickHand-Regular.ttf
+
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-ExtraBold.ttf
+          weight: 800
