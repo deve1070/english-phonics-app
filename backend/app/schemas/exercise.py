@@ -1,16 +1,28 @@
-from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
-from app.models.enums import ExerciseType
+from pydantic import BaseModel
+
+from ..models.enums import ExerciseType
 
 
 class ExerciseBase(BaseModel):
-    lesson_id: int
     content: str
     type: ExerciseType = ExerciseType.WORD
     difficulty: int = 1
 
 
-class Exercise(ExerciseBase):
-    id: int
+class ExerciseCreate(ExerciseBase):
+    lesson_id: int
 
-    model_config = ConfigDict(from_attributes=True)
+
+class ExerciseUpdate(BaseModel):
+    content: Optional[str] = None
+    type: Optional[ExerciseType] = None
+    difficulty: Optional[int] = None
+
+
+class ExerciseResponse(ExerciseBase):
+    id: int
+    lesson_id: int
+
+    model_config = {"from_attributes": True}

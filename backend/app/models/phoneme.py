@@ -15,6 +15,7 @@ class Phoneme(Base):
     description = Column(Text)
     audio_url = Column(String)
     lesson_id = Column(Integer, ForeignKey("lessons.id"), nullable=False, index=True)
+    order = Column(Integer, nullable=False, default=0)
     type = Column(SQLEnum(PhonemeType), default=PhonemeType.ALPHABET)
     created_at = Column(DateTime, default=func.now())
 

@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter(prefix="/progress", tags=["progress", "recommendations"])
 
 
-@router.get("/me/recommended", response_model=list[schemas.Exercise])
+@router.get("/me/recommended", response_model=list[schemas.exercise.ExerciseResponse])
 async def get_my_recommended_exercises(
     db: AsyncSession = Depends(get_db),
     limit: int = 10,

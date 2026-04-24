@@ -1,14 +1,17 @@
 from typing import List
 
 from app.crud.base import CRUDBase
-from app.models.pronunciation_score import PronunciationScore
-from app.schemas.pronunciation_score import PronunciationScoreCreate
-from sqalalchemy import desc, select
+from app.models import PronunciationScore
+from app.schemas import (
+    PronunciationScoreCreate,
+    PronunciationScoreUpdate,
+)
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-crud_pronunciation_score = CRUDBase[PronunciationScore, PronunciationScoreCreate](
-    PronunciationScore
-)
+crud_pronunciation_score = CRUDBase[
+    PronunciationScore, PronunciationScoreCreate, PronunciationScoreUpdate
+](PronunciationScore)
 
 
 async def get_recent_by_user(

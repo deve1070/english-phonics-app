@@ -1,17 +1,16 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, PhoneNumber
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from pydantic_settings import SettingsConfigDict
 
 
 class UserBase(BaseModel):
-    first_name: str
-    father_name: str
+    name: str
     email: EmailStr
-    age: int
-    image_url: Optional[str] = None
+    age_group: int
     is_active: bool = True
+    role: Optional[str] = "STUDENT"
     created_at: Optional[datetime] = None
     user_name: Optional[str] = None
     grade_level: Optional[int] = None
@@ -22,33 +21,16 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
-    parent_phone_number: PhoneNumber = Field(
-        ..., min_length=10, max_length=15, regex=r"^\+?\d{10,15}$"
-    )
 
 
 class UserUpdate(BaseModel):
-    first_name: Optional[str] = None
-    father_name: Optional[str] = None
-    image_url: Optional[str] = None
-    grade_level: Optional[int] = None
-    school_name: Optional[str] = None
-    city: Optional[str] = None
-    country: Optional[str] = None
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
 
 
-class UserResponse(BaseModel):
+class UserResponse(UserBase):
     id: int
-    first_name: str
-    father_name: str
-    email: EmailStr
-    age: int
-    is_active: bool
-    created_at: Optional[datetime] = None
-    grade_level: Optional[int] = None
-    school_name: Optional[str] = None
-    city: Optional[str] = None
-    country: Optional[str] = None
+    user_name: str
     model_config = ConfigDict(from_attributes=True)
 
 
