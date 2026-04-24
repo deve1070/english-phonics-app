@@ -25,7 +25,7 @@ def upgrade() -> None:
         op.drop_table("friends")
 
     # === Rest of the migration (safe to run always) ===
-    op.add_column("exercises", sa.Column("difficulty", sa.Integer(), nullable=True))
+    #op.add_column("exercises", sa.Column("difficulty", sa.Integer(), nullable=True))
     op.alter_column(
         "exercises", "lesson_id", existing_type=sa.INTEGER(), nullable=False
     )
