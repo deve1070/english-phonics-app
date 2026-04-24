@@ -1,21 +1,197 @@
-from app.core.config import settings
-from openai import AzureOpenAI
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Dict
+"""
+Exercise Generation Service
+============================
+Generates phonics exercises using Azure OpenAI, enforcing the phoneme
+ordering rule: all content in exercises for phoneme N may only use
+phonemes with order <= N.
 
-client = AzureOpenAI(
+Flow:
+  1. Caller passes target phoneme + all prior phonemes (order <= N).
+  2. We build a prompt listing only the allowed phonemes.
+  3. Azure OpenAI returns a structured JSON list of exercises.
+  4. We validate + save them via crud_exercise.bulk_create().
+  5. Saved Exercise objects (with IDs) are returned to the caller.
+"""
+
+import json
+import logging
+from typing import List
+
+from app.core.config import settings
+from app.crud.crud_exercise import crud_exercise
+from app.models.enums import ExerciseType
+from app.models.exercise import Exercise
+from app.models.phoneme import Phoneme
+from openai import AsyncAzureOpenAI
+from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
+
+# ------------------------------------------------------------------
+# Async Azure OpenAI client (fixes original sync-in-async bug)
+# ------------------------------------------------------------------
+_client = AsyncAzureOpenAI(
     api_version="2024-08-01-preview",
     azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
     api_key=settings.AZURE_OPENAI_API_KEY,
 )
 
+# How many exercises to generate per type by default
+DEFAULT_COUNTS = {
+    ExerciseType.PHONEME: 3,
+    ExerciseType.WORD: 4,
+    ExerciseType.SENTENCE: 2,
+    ExerciseType.PHARAGRAPH: 1,
+}
 
-async def get_user_mastered_phonemes(
-        db:AsyncSession, user_id:int,
-        threshold:int=80
-)->List[Dict]:
-    """ Get Phonemes user has mastered(avg_score >= threshold) + current lesson phonemes."""
-    masterd_query=text("""
-                    SELECT p.id, p.symbol,AVG(ps.score) AS avg_score
-                    FROM pronunciation_scores ps
-                    JOIN exercise e ON )
+
+def _build_prompt(
+    target_phoneme: Phoneme,
+    allowed_phonemes: List[Phoneme],
+) -> str:
+    """
+    Build the system + user prompt for exercise generation.
+
+    The allowed_phonemes list contains every phoneme with order <=
+    target_phoneme.order, including the target itself. This is the
+    complete set of sounds the child has already been taught.
+    """
+    allowed_symbols = ", ".join(
+        f"/{p.symbol}/" for p in sorted(allowed_phonemes, key=lambda p: p.order)
+    )
+    counts = DEFAULT_COUNTS
+
+    return f"""You are a phonics curriculum designer for young children (ages 4-8).
+
+TARGET PHONEME: /{target_phoneme.symbol}/ ({target_phoneme.description or target_phoneme.type.value})
+
+ALLOWED PHONEMES (the child has only learned these so far): {allowed_symbols}
+
+STRICT RULE: Every word in every exercise must ONLY contain sounds from the allowed phonemes list above.
+Do NOT use any phoneme the child has not yet learned. For example, if /t/ is not in the allowed list,
+no word containing the /t/ sound may appear anywhere.
+
+Generate the following exercises:
+- {counts[ExerciseType.PHONEME]} PHONEME exercises: single phoneme sound practice (just the symbol or a minimal pair)
+- {counts[ExerciseType.WORD]} WORD exercises: single words that prominently feature /{target_phoneme.symbol}/
+- {counts[ExerciseType.SENTENCE]} SENTENCE exercises: short simple sentences (4-6 words)
+- {counts[ExerciseType.PHARAGRAPH]} PARAGRAPH exercise: 2-3 short sentences forming a mini story
+
+Respond ONLY with a valid JSON array. No markdown, no explanation, no extra text.
+Each item must have exactly these fields:
+  "type":       one of "WORD", "PHONEME", "SENTENCE", "PHARAGRAPH"
+  "content":    the exercise text (string)
+  "difficulty": integer 1 (easiest) to 3 (hardest)
+
+Example format:
+[
+  {{"type": "PHONEME", "content": "/æ/", "difficulty": 1}},
+  {{"type": "WORD", "content": "cat", "difficulty": 1}},
+  {{"type": "SENTENCE", "content": "The cat sat.", "difficulty": 2}},
+  {{"type": "PHARAGRAPH", "content": "A cat sat on a mat. The cat had a nap.", "difficulty": 3}}
+]"""
+
+
+def _parse_response(raw: str, lesson_id: int) -> List[dict]:
+    """
+    Parse and validate the JSON returned by Azure OpenAI.
+    Returns a list of dicts ready for bulk_create.
+    Skips any malformed items with a warning rather than crashing.
+    """
+    valid_types = {e.value for e in ExerciseType}
+
+    try:
+        items = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        logger.error("Azure OpenAI returned non-JSON: %s", raw[:300])
+        raise ValueError(f"Exercise generation returned invalid JSON: {exc}") from exc
+
+    if not isinstance(items, list):
+        raise ValueError("Expected a JSON array from exercise generation.")
+
+    parsed = []
+    for item in items:
+        raw_type = item.get("type", "").upper()
+        content = item.get("content", "").strip()
+        difficulty = item.get("difficulty", 1)
+
+        if raw_type not in valid_types:
+            logger.warning("Skipping exercise with unknown type: %s", raw_type)
+            continue
+        if not content:
+            logger.warning("Skipping exercise with empty content.")
+            continue
+        if not isinstance(difficulty, int) or not (1 <= difficulty <= 3):
+            difficulty = 1
+
+        parsed.append(
+            {
+                "lesson_id": lesson_id,
+                "content": content,
+                "type": ExerciseType(raw_type),
+                "difficulty": difficulty,
+            }
+        )
+
+    return parsed
+
+
+async def generate_exercises_for_phoneme(
+    db: AsyncSession,
+    *,
+    target_phoneme: Phoneme,
+    allowed_phonemes: List[Phoneme],
+) -> List[Exercise]:
+    """
+    Main entry point.
+
+    Parameters
+    ----------
+    db               : async DB session
+    target_phoneme   : the Phoneme the child is currently learning
+    allowed_phonemes : all Phoneme objects with order <= target_phoneme.order
+                       (fetched by the caller / endpoint before invoking this)
+
+    Returns
+    -------
+    List of saved Exercise objects with DB-assigned IDs.
+    """
+    prompt = _build_prompt(target_phoneme, allowed_phonemes)
+
+    logger.info(
+        "Generating exercises for phoneme /%s/ (lesson_id=%d)",
+        target_phoneme.symbol,
+        target_phoneme.lesson_id,
+    )
+
+    try:
+        response = await _client.chat.completions.create(
+            model=settings.AZURE_OPENAI_DEPLOYMENT_NAME,  # deployment name, e.g. "gpt-4o"
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=1000,
+        )
+    except Exception as exc:
+        logger.error("Azure OpenAI call failed: %s", exc)
+        raise RuntimeError(f"Exercise generation failed: {exc}") from exc
+
+    raw_content = response.choices[0].message.content or ""
+    exercises_data = _parse_response(raw_content, lesson_id=target_phoneme.lesson_id)
+
+    if not exercises_data:
+        raise ValueError(
+            f"No valid exercises could be parsed for phoneme /{target_phoneme.symbol}/."
+        )
+
+    saved = await crud_exercise.bulk_create(
+        db,
+        exercises_data=exercises_data,
+        phoneme=target_phoneme,
+    )
+
+    logger.info(
+        "Saved %d exercises for phoneme /%s/",
+        len(saved),
+        target_phoneme.symbol,
+    )
+    return saved

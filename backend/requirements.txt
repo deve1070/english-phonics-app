@@ -110,6 +110,7 @@ psycopg2-binary==2.9.11
 pyasn1==0.6.1
 pycparser==2.23
 pydantic==2.12.4
+pydantic-extra-types[phonenumbers]
 pydantic-settings==2.11.0
 pydantic_core==2.41.5
 Pygments==2.19.2

@@ -1,5 +1,3 @@
-import json
-
 import azure.cognitiveservices.speech as speechsdk
 from app.core.config import settings
 
@@ -25,6 +23,14 @@ def create_speech_config():
 
 
 async def assess_pronunciation(local_audio_path: str, reference_text: str) -> dict:
+
+    audio_format = speechsdk.audio.AudioStreamFormat(
+        samples_per_second=16000,
+        bits_per_sample=16,
+        channels=1,
+    )
+    audio_config = speechsdk.AudioConfig(filename=local_audio_path)
+    # rest of the function unchanged...
     audio_config = speechsdk.AudioConfig(filename=local_audio_path)
 
     pron_config = speechsdk.PronunciationAssessmentConfig(
@@ -63,11 +69,6 @@ async def assess_pronunciation(local_audio_path: str, reference_text: str) -> di
             "fluency": round(pron_result.fluency_score, 0),
             "feedback": feedback,
             "transcription": result.text.strip(),
-            "detailed": json.loads(
-                result.properties.get_property(
-                    speechsdk.PropertyId.SpeechServiceResponse_JsonResult
-                )
-            ),
         }
     elif result.reason == speechsdk.ResultReason.NoMatch:
         return {

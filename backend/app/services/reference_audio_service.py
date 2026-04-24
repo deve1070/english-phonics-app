@@ -34,5 +34,5 @@ async def get_reference_audio_stream(
     if not text.strip():
         raise HTTPException(400, "No text for audio")
 
-    audio_bytes = synthesize_tts(text, blending=blending)
+    audio_bytes = await synthesize_tts(text, blending=blending)
     return StreamingResponse(io.BytesIO(audio_bytes), media_type="audio/mpeg")
