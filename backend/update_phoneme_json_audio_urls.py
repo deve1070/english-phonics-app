@@ -2,13 +2,12 @@ import json
 import re
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parent
 PHONEME_JSON = ROOT / "phoneme.json"
-AUDIO_DIR = ROOT / "uploads" / "audio_standardized"
-
+AUDIO_DIR = ROOT / "uploads" / "audio"
 
 SYMBOL_TO_FILE = {
+    # Short Vowels
     "a": "phoneme_a_short.mp3",
     "b": "phoneme_b.mp3",
     "k": "phoneme_k.mp3",
@@ -35,6 +34,8 @@ SYMBOL_TO_FILE = {
     "ks": "phoneme_x.mp3",
     "j": "phoneme_y.mp3",
     "z": "phoneme_z.mp3",
+    
+    # Long Vowels & Spelled Digraphs
     "eɪ (a_e)": "phoneme_a_long.mp3",
     "aɪ (i_e)": "phoneme_ie.mp3",
     "oʊ (o_e)": "phoneme_o_long.mp3",
@@ -42,18 +43,22 @@ SYMBOL_TO_FILE = {
     "eɪ (ai)": "phoneme_ai.mp3",
     "eɪ (ay)": "phoneme_ai.mp3",
     "iː (ee/ea)": "phoneme_ee.mp3",
-    "bl": "phoneme_b.mp3",
-    "cl": "phoneme_k.mp3",
-    "br": "phoneme_b.mp3",
-    "cr": "phoneme_k.mp3",
-    "fl": "phoneme_f.mp3",
-    "gl": "phoneme_g.mp3",
-    "fr": "phoneme_f.mp3",
-    "gr": "phoneme_g.mp3",
-    "pl": "phoneme_p.mp3",
-    "sl": "phoneme_s.mp3",
-    "dr": "phoneme_d.mp3",
-    "tr": "phoneme_t.mp3",
+
+    # Consonant Blends
+    "bl": "phoneme_bl.mp3",
+    "cl": "phoneme_cl.mp3",
+    "br": "phoneme_br.mp3",
+    "cr": "phoneme_cr.mp3",
+    "fl": "phoneme_fl.mp3",
+    "gl": "phoneme_gl.mp3",
+    "fr": "phoneme_fr.mp3",
+    "gr": "phoneme_gr.mp3",
+    "pl": "phoneme_pl.mp3",
+    "sl": "phoneme_sl.mp3",
+    "dr": "phoneme_dr.mp3",
+    "tr": "phoneme_tr.mp3",
+
+    # Soft Blends & Digraphs
     "sh": "phoneme_sh.mp3",
     "ʃ (sh)": "phoneme_sh.mp3",
     "ch": "phoneme_ch.mp3",
@@ -108,13 +113,11 @@ SYMBOL_TO_FILE = {
     "ʒər (sure)": "phoneme_sh.mp3",
     "ʃən (tion/sion)": "phoneme_sh.mp3",
     "əs (ous)": "phoneme_s.mp3",
-    "fəl (ful)": "phoneme_f.mp3",
+    "fəl (ful)": "phoneme_f.mp3"
 }
-
 
 def normalize_symbol(symbol: str) -> str:
     return re.sub(r"\s+", " ", (symbol or "").strip())
-
 
 def main() -> None:
     available = {p.name for p in AUDIO_DIR.glob("*.mp3")}
@@ -127,7 +130,7 @@ def main() -> None:
         symbol = normalize_symbol(item.get("symbol", ""))
         filename = SYMBOL_TO_FILE.get(symbol)
         if filename and filename in available:
-            item["audio_url"] = f"/audio_standardized/{filename}"
+            item["audio_url"] = f"/static/{filename}"
             updated += 1
         else:
             item["audio_url"] = None
@@ -137,10 +140,9 @@ def main() -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
-    print(f"Updated audio_url for {updated} phonemes.")
+    print(f"Updated audio_url for {updated} phonemes in phoneme.json")
     if missing:
         print(f"Set audio_url=null for {len(missing)} phonemes without mapping.")
-
 
 if __name__ == "__main__":
     main()

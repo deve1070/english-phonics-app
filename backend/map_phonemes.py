@@ -120,7 +120,7 @@ def normalize_symbol(symbol: str) -> str:
     return re.sub(r"\s+", " ", (symbol or "").strip())
 
 async def main():
-    directory = "uploads/audio_standardized"
+    directory = "uploads/audio"
     if not os.path.exists(directory):
         print(f"Directory {directory} not found")
         return
@@ -137,7 +137,7 @@ async def main():
             filename = SYMBOL_TO_FILE.get(symbol)
             
             if filename and filename in available_files:
-                p.audio_url = f"/audio_standardized/{filename}"
+                p.audio_url = f"/static/{filename}"
                 updated_count += 1
                 print(f"Mapped '{p.symbol}' -> {filename}")
             else:
