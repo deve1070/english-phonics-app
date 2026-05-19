@@ -1,0 +1,161 @@
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+# lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+*.manifest
+*.spec
+MANIFEST
+.pytest_cache/
+.coverage
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.example
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Alembic migrations (keep migration scripts, ignore env)
+alembic/env.py
+alembic/script.py.mako
+
+# IDE / Editors
+.idea/
+.vscode/
+# Cursor/VS Code local DB (can be huge; never commit)
+.vscode/browse.vc.db
+.vscode/browse.vc.db-shm
+.vscode/browse.vc.db-wal
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.tmproj
+*.esproj
+*.code-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+.vscode
+/.vscode
+
+# Optional npm cache
+.npm
+
+# Optional REPL history
+.python_history
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# PyCharm
+# Covers JetBrains IDEs (IntelliJ, PyCharm, etc.)
+# If you use other IDEs, adjust accordingly
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# Generated files
+*.bak
+*.tmp
+
+# Frontend (future Next.js / Flutter placeholders)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+
+# Mobile (Flutter - when you add)
+mobile/ios/.symlinks/
+mobile/ios/Pods/
+mobile/ios/Runner/GeneratedPluginRegistrant.*
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/gradlew
+mobile/android/gradlew.bat
+
+# End of file
+cat >> backend/.gitignore << EOF
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+EOF
