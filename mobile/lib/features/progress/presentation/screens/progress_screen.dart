@@ -239,14 +239,6 @@ class _FeedbackCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (state.averageRecentScore != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Avg score: ${state.averageRecentScore!.toInt()} '
-                    '· ${state.practicedCount} recent attempts',
-                    style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
-                  ),
-                ],
               ],
             ),
           ),
@@ -446,10 +438,31 @@ class _LessonProgressRow extends StatelessWidget {
   final int index;
   const _LessonProgressRow({required this.lesson, required this.index});
 
+  String _getPhonemesDisplay() {
+    return lesson.phonemes.map((p) {
+      String spelling = p.symbol;
+      if (spelling.contains('(')) {
+        final match = RegExp(r'\(([^)]+)\)').firstMatch(spelling);
+        if (match != null) {
+          spelling = match.group(1)!.trim();
+        }
+      }
+      
+      spelling = spelling.replaceAll('-', '').trim();
+      if (spelling.isEmpty) return '';
+      
+      if (spelling.length == 1) {
+        return '${spelling.toUpperCase()}${spelling.toLowerCase()}';
+      }
+      return '${spelling[0].toUpperCase()}${spelling.substring(1).toLowerCase()}';
+    }).where((s) => s.isNotEmpty).join('  ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = LevelStyle.color(lesson.level);
     final progress = lesson.progressPercent;
+    final phonemesDisplay = _getPhonemesDisplay();
 
     return GestureDetector(
       onTap: () => context.push('/lessons/${lesson.id}'),
@@ -493,9 +506,12 @@ class _LessonProgressRow extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          '${LevelStyle.label(lesson.level)} · Lesson ${lesson.order}',
-                          style:
-                              AppTextStyles.headingSmall.copyWith(fontSize: 14),
+                          phonemesDisplay,
+                          style: AppTextStyles.headingSmall.copyWith(
+                            fontSize: 20,
+                            color: color,
+                            fontFamily: 'PatrickHand',
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -523,8 +539,8 @@ class _LessonProgressRow extends StatelessWidget {
                     lesson.isCompleted
                         ? '✅ Completed'
                         : lesson.isStarted
-                            ? '${(progress * 100).toInt()}% done'
-                            : '${lesson.phonemes.length} sounds · tap to start',
+                            ? '${LevelStyle.label(lesson.level)} · ${(progress * 100).toInt()}% done'
+                            : '${LevelStyle.label(lesson.level)} · Tap to start',
                     style: AppTextStyles.bodySmall.copyWith(
                       fontSize: 11,
                       color: lesson.isCompleted

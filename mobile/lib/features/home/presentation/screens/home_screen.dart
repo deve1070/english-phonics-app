@@ -124,7 +124,7 @@ class _LoadedView extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.md),
                   child: SizedBox(
-                    height: 140,
+                    height: 165,
                     child: LessonCard(
                       lesson: lesson,
                       index: index,

@@ -17,10 +17,31 @@ class LessonCard extends StatelessWidget {
     required this.index,
   });
 
+  String _getPhonemesDisplay() {
+    return lesson.phonemes.map((p) {
+      String spelling = p.symbol;
+      if (spelling.contains('(')) {
+        final match = RegExp(r'\(([^)]+)\)').firstMatch(spelling);
+        if (match != null) {
+          spelling = match.group(1)!.trim();
+        }
+      }
+      
+      spelling = spelling.replaceAll('-', '').trim();
+      if (spelling.isEmpty) return '';
+      
+      if (spelling.length == 1) {
+        return '${spelling.toUpperCase()}${spelling.toLowerCase()}';
+      }
+      return '${spelling[0].toUpperCase()}${spelling.substring(1).toLowerCase()}';
+    }).where((s) => s.isNotEmpty).join('  ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = LevelStyle.color(lesson.level);
     final isLocked = index > 0 && !lesson.isStarted;
+    final phonemesDisplay = _getPhonemesDisplay();
 
     return GestureDetector(
       onTap: isLocked ? null : onTap,
@@ -73,20 +94,29 @@ class LessonCard extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.sm),
 
-              // Level label
+              // Phoneme symbols - huge & kid friendly!
               Text(
-                LevelStyle.label(lesson.level),
-                style: AppTextStyles.headingSmall,
+                phonemesDisplay,
+                style: AppTextStyles.headingLarge.copyWith(
+                  color: color,
+                  fontSize: 28,
+                  fontFamily: 'PatrickHand',
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
 
               const SizedBox(height: 2),
 
-              // Phoneme count
+              // Level label and sounds count
               Text(
-                '${lesson.phonemes.length} sounds',
-                style: AppTextStyles.bodySmall,
+                '${LevelStyle.label(lesson.level)} · ${lesson.phonemes.length} sound${lesson.phonemes.length > 1 ? 's' : ''}',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
 
               const Spacer(),

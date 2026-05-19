@@ -101,25 +101,11 @@ class _LoadedView extends StatelessWidget {
                   const SizedBox(height: AppSpacing.md),
 
                   _SettingsItem(
-                    icon: Icons.notifications_outlined,
-                    label: 'Notifications',
-                    color: AppColors.teal,
-                    onTap: () {},
-                  ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
-
-                  _SettingsItem(
-                    icon: Icons.volume_up_outlined,
+                    icon: Icons.volume_up_rounded,
                     label: 'Sound Effects',
                     color: AppColors.yellow,
                     onTap: () {},
-                  ).animate(delay: 290.ms).fadeIn(duration: 400.ms),
-
-                  _SettingsItem(
-                    icon: Icons.help_outline_rounded,
-                    label: 'Help & Support',
-                    color: AppColors.purple,
-                    onTap: () {},
-                  ).animate(delay: 330.ms).fadeIn(duration: 400.ms),
+                  ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
 
                   const SizedBox(height: AppSpacing.xl),
 
