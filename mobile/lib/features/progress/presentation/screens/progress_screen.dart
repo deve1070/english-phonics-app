@@ -78,6 +78,8 @@ class _LoadedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayedLessons = state.lessons.take(4).toList();
+
     return CustomScrollView(
       slivers: [
         // ── App bar ───────────────────────────────────────────
@@ -123,13 +125,6 @@ class _LoadedView extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xl),
                 ],
 
-                // ── Feedback card (NEW) ───────────────────────
-                _FeedbackCard(state: state)
-                    .animate(delay: 200.ms)
-                    .fadeIn(duration: 400.ms),
-
-                const SizedBox(height: AppSpacing.xl),
-
                 // ── Lesson breakdown header ───────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -144,7 +139,7 @@ class _LoadedView extends StatelessWidget {
                       ),
                     ),
                   ],
-                ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
+                ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
 
                 const SizedBox(height: AppSpacing.md),
               ],
@@ -159,15 +154,15 @@ class _LoadedView extends StatelessWidget {
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) => _LessonProgressRow(
-                lesson: state.lessons[index],
+                lesson: displayedLessons[index],
                 index: index,
               )
                   .animate(
-                    delay: Duration(milliseconds: 300 + index * 60),
+                    delay: Duration(milliseconds: 250 + index * 60),
                   )
                   .fadeIn(duration: 350.ms)
                   .slideX(begin: 0.1, end: 0, duration: 350.ms),
-              childCount: state.lessons.length,
+              childCount: displayedLessons.length,
             ),
           ),
         ),
@@ -176,77 +171,6 @@ class _LoadedView extends StatelessWidget {
   }
 }
 
-// ── Feedback card (NEW) ────────────────────────────────────────────
-class _FeedbackCard extends StatelessWidget {
-  final ProgressLoaded state;
-  const _FeedbackCard({required this.state});
-
-  Color get _scoreColor {
-    final score = state.averageRecentScore;
-    if (score == null) return AppColors.teal;
-    if (score >= 90) return AppColors.green;
-    if (score >= 70) return AppColors.teal;
-    return AppColors.coral;
-  }
-
-  String get _emoji {
-    final score = state.averageRecentScore;
-    if (score == null) return '🎯';
-    if (score >= 90) return '🌟';
-    if (score >= 70) return '😊';
-    return '💪';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: _scoreColor.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: _scoreColor.withOpacity(0.25),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: _scoreColor.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(_emoji, style: const TextStyle(fontSize: 24)),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Coach says',
-                  style: AppTextStyles.label.copyWith(color: _scoreColor),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  state.feedbackMessage,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ── Stats row ─────────────────────────────────────────────────────
 class _StatsRow extends StatelessWidget {
@@ -508,7 +432,7 @@ class _LessonProgressRow extends StatelessWidget {
                         child: Text(
                           phonemesDisplay,
                           style: AppTextStyles.headingSmall.copyWith(
-                            fontSize: 20,
+                            fontSize: 36,
                             color: color,
                             fontFamily: 'PatrickHand',
                           ),

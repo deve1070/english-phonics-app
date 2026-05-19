@@ -23,7 +23,7 @@ class _PhonicsAppState extends State<PhonicsApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'PhonicsFriends',
+      title: 'Phonics ኢትዮጵያ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: _appRouter.router,

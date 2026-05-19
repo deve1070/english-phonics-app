@@ -99,7 +99,7 @@ class LessonCard extends StatelessWidget {
                 phonemesDisplay,
                 style: AppTextStyles.headingLarge.copyWith(
                   color: color,
-                  fontSize: 28,
+                  fontSize: 50,
                   fontFamily: 'PatrickHand',
                 ),
                 maxLines: 1,
