@@ -20,7 +20,7 @@
       "type": "alphabet",
       "unit": "UNIT1",
       "exercises": ["bear", "bird", "bed", "banana"],
-      "lesson": 2
+      "lesson": 1
     },
     {
       "id": 3,
@@ -31,7 +31,7 @@
       "type": "alphabet",
       "unit": "UNIT1",
       "exercises": ["cat", "cup", "car", "computer"],
-      "lesson": 3
+      "lesson": 1
     },
 
     {

@@ -1,18 +1,21 @@
-# from .pronuncation_score import PronunciationScore
 from app.models.pronuncation_score import PronunciationScore
+
+from .auth_models import BiometricToken, InviteLink  # noqa: F401
+from .parent import (  # noqa: F401
+    LearningGoal,
+    ParentChildLink,
+    ScreenTimeLog,
+    WeeklyReport,
+)
 
 from .enums import (
     ExerciseType,
-    FriendRequestStatus,
     Level,
     PhonemeType,
     UserRole,
 )
 from .exercise import Exercise
-from .gamification import Gamification
 from .lesson import Lesson
 from .phoneme import Phoneme
 from .progress import Progress
-from .subscription import Subscription
 from .user import User
-from .user_achievement import UserAchievement

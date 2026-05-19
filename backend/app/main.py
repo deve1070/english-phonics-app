@@ -20,6 +20,11 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory="uploads/audio"), name="audio")
+app.mount(
+    "/audio_standardized",
+    StaticFiles(directory="uploads/audio_standardized"),
+    name="audio_standardized",
+)
 app.include_router(api_router, prefix="/api/v1")
 
 

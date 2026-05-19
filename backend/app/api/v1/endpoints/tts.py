@@ -27,9 +27,14 @@ from app.utils.tts_synthesizer import (
     generate_phoneme_sound_ssml,
     generate_ssml,
 )
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from pathlib import Path
+from app.api.deps import get_db
+from app.models.phoneme import Phoneme
 
 router = APIRouter(prefix="/tts", tags=["tts"])
 
@@ -51,6 +56,14 @@ class PhonemeAudioWithVisemes(BaseModel):
     visemes: List[VisemeEvent]
 
 
+def _resolve_audio_file_path(audio_url: str) -> Path | None:
+    url_path = audio_url.lstrip("/")
+    candidate = Path("uploads") / url_path
+    if candidate.exists():
+        return candidate
+    return None
+
+
 # ── Plain TTS ─────────────────────────────────────────────────────
 @router.post("/synthesize")
 async def synthesize(body: TTSRequest):
@@ -68,30 +81,43 @@ async def synthesize(body: TTSRequest):
 
 # ── Phoneme audio + visemes ───────────────────────────────────────
 @router.post("/phoneme-with-visemes", response_model=PhonemeAudioWithVisemes)
-async def phoneme_with_visemes(body: TTSRequest):
+async def phoneme_with_visemes(body: TTSRequest, db: AsyncSession = Depends(get_db)):
     """
     Synthesize a phoneme symbol (e.g. "a", "ʃ (sh)") to audio
     and return both the MP3 bytes AND the viseme sequence.
-
-    Flutter uses the viseme sequence to animate the mouth widget
-    in sync with audio playback.
-
-    The phoneme symbol is looked up in PHONEME_IPA_MAP to get the
-    IPA string, then synthesized using the isolated-sound SSML.
+    
+    Now updated to serve pre-recorded human audio if available in the database,
+    returning mock generic visemes so the UI still animates.
     """
-    ipa = PHONEME_IPA_MAP.get(body.text)
-    if ipa:
-        ssml = generate_phoneme_sound_ssml(ipa, repeat=3)
-    else:
-        ssml = generate_ssml(body.text, blending=False)
+    # 1. Try to fetch pre-recorded audio from the database
+    result = await db.execute(select(Phoneme).filter(Phoneme.symbol == body.text))
+    phoneme = result.scalars().first()
+    
+    if phoneme and phoneme.audio_url:
+        file_path = _resolve_audio_file_path(phoneme.audio_url)
+        if file_path:
+            with open(file_path, "rb") as f:
+                audio_bytes = f.read()
+            
+            # Create a mock open/close mouth animation for human audio
+            # 0 = closed, 1 = wide open, 0 = closed
+            viseme_events = [
+                VisemeEvent(viseme_id=0, offset_ms=0),
+                VisemeEvent(viseme_id=1, offset_ms=100),
+                VisemeEvent(viseme_id=0, offset_ms=500),
+            ]
+            
+            return PhonemeAudioWithVisemes(
+                audio_b64=base64.b64encode(audio_bytes).decode(),
+                visemes=viseme_events,
+            )
 
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, partial(_synthesize_with_visemes, ssml))
-    audio_bytes, viseme_events = result
-
-    return PhonemeAudioWithVisemes(
-        audio_b64=base64.b64encode(audio_bytes).decode(),
-        visemes=viseme_events,
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=(
+            "No pre-recorded phoneme audio found. "
+            "Phoneme TTS endpoint is configured to use pre-recorded audio only."
+        ),
     )
 
 

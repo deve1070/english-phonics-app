@@ -5,4 +5,4 @@ from .pronunciation_score import (
     PronunciationScore,
     PronunciationScoreUpdate,
 )
-from .user import User, UserBase, UserCreate, UserUpdate
+from .user import User, UserBase, UserRegister, UserUpdate

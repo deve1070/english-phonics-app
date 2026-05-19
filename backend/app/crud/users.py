@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Optional
 
-from app.core.security import get_password_hash
+
 from app.models.enums import UserRole
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..models.user import User
-from ..schemas.user import UserCreate, UserResponse, UserUpdate
+from ..schemas.user import UserRegister, UserResponse, UserUpdate
 from .base import CRUDBase
 
 
@@ -22,12 +22,16 @@ def _normalize_role(role: Optional[str]) -> Optional[UserRole]:
         return UserRole.STUDENT
     if r == "ADMIN":
         return UserRole.ADMIN
+    if r == "PARENT":
+        return UserRole.PARENT
     return None
 
 
-class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
-    async def get_by_email(self, db: AsyncSession, *, email: str) -> Optional[User]:
-        result = await db.execute(select(User).filter(User.email == email))
+class CRUDUser(CRUDBase[User, UserRegister, UserUpdate]):
+    async def get_by_phone(self, db: AsyncSession, *, phone: Optional[str]) -> Optional[User]:
+        if phone is None:
+            return None
+        result = await db.execute(select(User).filter(User.phone_number == phone))
         return result.scalar_one_or_none()
 
     async def get_user(self, db: AsyncSession, *, id: int) -> Optional[UserResponse]:
@@ -43,21 +47,16 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return result.scalar_one_or_none()
 
     async def create_user(
-        self, db: AsyncSession, *, obj_in: UserCreate
+        self, db: AsyncSession, *, obj_in: UserRegister
     ) -> UserResponse:
-        hashed_password = get_password_hash(obj_in.password)
 
-        existing = await self.get_by_email(db, email=obj_in.email)
+        existing = await self.get_by_phone(db, phone=obj_in.phone_number)
 
         if existing:
             if existing.is_active:
-                raise HTTPException(status_code=400, detail="Email already registered")
+                raise HTTPException(status_code=400, detail="Phone number already registered")
 
-            existing.hashed_password = hashed_password
             existing.name = obj_in.name or existing.name
-            existing.age_group = (
-                obj_in.age_group if obj_in.age_group is not None else existing.age_group
-            )
             existing.role = _normalize_role(obj_in.role) or existing.role
             existing.is_active = True
 
@@ -69,8 +68,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             await db.refresh(existing)
             return existing
 
-        create_data = obj_in.model_dump(exclude={"password"})
-        create_data["hashed_password"] = hashed_password
+        create_data = obj_in.model_dump()
         create_data["role"] = (
             _normalize_role(create_data.get("role")) or UserRole.STUDENT
         )
@@ -92,10 +90,10 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def update(
         self, db: AsyncSession, *, db_obj: User, obj_in: UserUpdate
     ) -> User:
-        if obj_in.email:
-            existing = await self.get_by_email(db, email=obj_in.email)
+        if obj_in.phone_number:
+            existing = await self.get_by_phone(db, phone=obj_in.phone_number)
             if existing and existing.id != db_obj.id:
-                raise ValueError("Email already registered")
+                raise ValueError("Phone number already registered")
         return await super().update(db, db_obj=db_obj, obj_in=obj_in)
 
     async def get_multi(
@@ -129,5 +127,5 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 crud = CRUDUser(User)
 
 
-async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
-    return await crud.get_by_email(db, email=email)
+async def get_user_by_phone(db: AsyncSession, phone: str) -> Optional[User]:
+    return await crud.get_by_phone(db, phone=phone)

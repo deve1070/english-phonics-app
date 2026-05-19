@@ -7,6 +7,14 @@ from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 
 
+def _resolve_audio_file_path(audio_url: str) -> Path | None:
+    url_path = audio_url.lstrip("/")
+    candidate = Path("uploads") / url_path
+    if candidate.exists():
+        return candidate
+    return None
+
+
 async def get_reference_audio_stream(
     exercise: models.Exercise, blending: bool = False
 ) -> StreamingResponse:
@@ -16,18 +24,19 @@ async def get_reference_audio_stream(
         and not blending
     ):
         phoneme = exercise.phonemes[0]
-        if not phoneme.audio_url:
-            raise HTTPException(404, "No pre-recorded audio")
+        if phoneme.audio_url:
+            file_path = _resolve_audio_file_path(phoneme.audio_url)
+            if file_path:
+                def iterfile():
+                    with open(file_path, "rb") as f:
+                        yield from f
 
-        file_path = Path("uploads/audio") / Path(phoneme.audio_url).name
-        if not file_path.exists():
-            raise HTTPException(500, "Audio file missing")
-
-        def iterfile():
-            with open(file_path, "rb") as f:
-                yield from f
-
-        return StreamingResponse(iterfile(), media_type="audio/mpeg")
+                return StreamingResponse(iterfile(), media_type="audio/mpeg")
+        raise HTTPException(
+            404,
+            "No pre-recorded audio found for this phoneme. "
+            "Phoneme reference audio uses pre-recorded sounds only.",
+        )
 
     # TTS: use exercise content (no separate Word model)
     text = exercise.content or "Practice this!"
