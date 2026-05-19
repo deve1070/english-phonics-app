@@ -286,7 +286,7 @@ class _LoadedView extends StatelessWidget {
   }
 }
 
-// ── Stage indicator ───────────────────────────────────────────────
+// ── Stage indicator (Simplified & Centered) ───────────────────────
 class _StageIndicator extends StatelessWidget {
   final _LessonStage stage;
   final Color color;
@@ -295,10 +295,10 @@ class _StageIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stages = [
-      (icon: Icons.hearing_rounded, label: 'Learn'),
-      (icon: Icons.mic_rounded, label: 'Say it'),
-      (icon: Icons.quiz_rounded, label: 'Quiz'),
-      (icon: Icons.edit_rounded, label: 'Practice'),
+      Icons.hearing_rounded,
+      Icons.mic_rounded,
+      Icons.quiz_rounded,
+      Icons.edit_rounded,
     ];
     final current = _LessonStage.values.indexOf(stage);
 
@@ -308,64 +308,51 @@ class _StageIndicator extends StatelessWidget {
       child: Row(
         children: stages.asMap().entries.map((e) {
           final i = e.key;
-          final s = e.value;
+          final icon = e.value;
           final isDone = i < current;
           final isActive = i == current;
 
           return Expanded(
             child: Row(
               children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isDone
-                              ? AppColors.green
-                              : isActive
-                                  ? color
-                                  : AppColors.surfaceVariant,
-                          boxShadow: isActive
-                              ? [
-                                  BoxShadow(
-                                      color: color.withOpacity(0.35),
-                                      blurRadius: 8)
-                                ]
-                              : null,
-                        ),
-                        child: Icon(
-                          isDone ? Icons.check_rounded : s.icon,
-                          color: isDone || isActive
-                              ? Colors.white
-                              : AppColors.textSecondary,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        s.label,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 10,
-                          color: isActive ? color : AppColors.textSecondary,
-                          fontWeight:
-                              isActive ? FontWeight.w700 : FontWeight.w400,
-                        ),
-                      ),
-                    ],
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDone
+                        ? AppColors.green
+                        : isActive
+                            ? color
+                            : AppColors.surfaceVariant,
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                                color: color.withOpacity(0.35),
+                                blurRadius: 8)
+                          ]
+                        : null,
+                  ),
+                  child: Icon(
+                    isDone ? Icons.check_rounded : icon,
+                    color: isDone || isActive
+                        ? Colors.white
+                        : AppColors.textSecondary,
+                    size: 16,
                   ),
                 ),
                 if (i < stages.length - 1)
                   Expanded(
                     child: Container(
-                      height: 2,
-                      margin: const EdgeInsets.only(bottom: 20),
-                      color: i < current
-                          ? AppColors.green.withOpacity(0.5)
-                          : AppColors.border,
+                      height: 3,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: i < current
+                            ? AppColors.green.withOpacity(0.6)
+                            : AppColors.border,
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                      ),
                     ),
                   ),
               ],
@@ -407,9 +394,14 @@ class _GateSection extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text(phoneme.symbol,
-                  style: AppTextStyles.phonemeDisplay.copyWith(color: color),
-                  textAlign: TextAlign.center),
+              Text(
+                phoneme.dualCaseSymbol,
+                style: AppTextStyles.phonemeDisplay.copyWith(
+                  color: color,
+                  fontSize: phoneme.dualCaseSymbol.length > 8 ? 42 : 56,
+                ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: AppSpacing.sm),
               Text('Say this sound out loud!',
                   style: AppTextStyles.headingSmall,

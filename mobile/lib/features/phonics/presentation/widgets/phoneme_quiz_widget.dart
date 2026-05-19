@@ -194,14 +194,14 @@ class _QuestionPrompt extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          // Show the symbol large
+          // Show the symbol large with both cases together
           Text(
-            correctPhoneme.symbol,
+            correctPhoneme.dualCaseSymbol,
             style: AppTextStyles.phonemeDisplay.copyWith(
-              fontSize: 80,
+              fontSize: correctPhoneme.dualCaseSymbol.length > 8 ? 36 : (correctPhoneme.dualCaseSymbol.length > 4 ? 48 : 64),
               color: AppColors.coral,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       );
@@ -328,9 +328,9 @@ class _OptionTile extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          option.symbol,
+                          option.dualCaseSymbol,
                           style: AppTextStyles.phonemeDisplay.copyWith(
-                            fontSize: 36,
+                            fontSize: option.dualCaseSymbol.length > 8 ? 16 : (option.dualCaseSymbol.length > 4 ? 20 : 26),
                             color: answered && _isCorrect
                                 ? AppColors.green
                                 : AppColors.textPrimary,

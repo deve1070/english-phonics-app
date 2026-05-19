@@ -8,9 +8,8 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import '../widgets/home_greeting_header.dart';
-import '../widgets/continue_learning_banner.dart';
-import '../widgets/overall_progress_ring.dart';
 import '../widgets/lesson_card.dart';
+import '../../../phonics/domain/entities/lesson_entity.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -58,33 +57,30 @@ class _LoadedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lessons = state.lessons;
+    int activeIndex = lessons.indexWhere((l) => !l.isCompleted);
+    if (activeIndex == -1) {
+      activeIndex = lessons.isNotEmpty ? lessons.length - 1 : 0;
+    }
+
+    final filteredLessons = lessons.isNotEmpty
+        ? [
+            lessons[activeIndex],
+            ...lessons.sublist(
+              (activeIndex + 1).clamp(0, lessons.length),
+              (activeIndex + 4).clamp(0, lessons.length),
+            ),
+          ]
+        : <LessonEntity>[];
+
     return CustomScrollView(
       slivers: [
-        // ── Transparent SliverAppBar ────────────────────────────
+        // ── Transparent SliverAppBar (Clean & Blank) ────────────
         SliverAppBar(
           backgroundColor: AppColors.background,
           elevation: 0,
           floating: true,
           expandedHeight: 0,
-          actions: [
-            IconButton(
-              icon: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.textPrimary,
-                  size: 22,
-                ),
-              ),
-              onPressed: () {},
-            ),
-            const SizedBox(width: 8),
-          ],
         ),
 
         SliverToBoxAdapter(
@@ -97,74 +93,23 @@ class _LoadedView extends StatelessWidget {
                 streakDays: state.streakDays,
               ),
 
-              const SizedBox(height: AppSpacing.xl),
-
-              // Continue learning banner
-              if (state.nextLesson != null) ...[
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: AppSpacing.lg,
-                    bottom: AppSpacing.md,
-                  ),
-                  child: Text(
-                    'Pick up where you left off',
-                    style: AppTextStyles.headingSmall,
-                  ).animate(delay: 150.ms).fadeIn(duration: 350.ms),
-                ),
-                ContinueLearningBanner(
-                  lesson: state.nextLesson!,
-                  onTap: () => context.push(
-                    '/lessons/${state.nextLesson!.id}',
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-              ],
-
-              // Overall progress
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: AppSpacing.lg,
-                  bottom: AppSpacing.md,
-                ),
-                child: Text(
-                  'Your Progress',
-                  style: AppTextStyles.headingSmall,
-                ).animate(delay: 200.ms).fadeIn(duration: 350.ms),
-              ),
-              OverallProgressRing(
-                progress: state.overallProgress,
-                completedLessons: state.totalCompleted,
-                totalLessons: state.lessons.length,
-              ),
-
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.lg),
 
               // Lessons header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('All Lessons', style: AppTextStyles.headingSmall)
-                        .animate(delay: 250.ms)
-                        .fadeIn(duration: 350.ms),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'See all',
-                        style: AppTextStyles.buttonMedium.copyWith(
-                          color: AppColors.teal,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: Text(
+                  'My Phonics Path 🚀',
+                  style: AppTextStyles.headingMedium.copyWith(fontSize: 22),
+                ).animate(delay: 150.ms).fadeIn(duration: 350.ms),
               ),
+
+              const SizedBox(height: AppSpacing.md),
             ],
           ),
         ),
 
-        // ── Lessons grid ─────────────────────────────────────────
+        // ── Lessons single-column path ───────────────────────────
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg,
@@ -172,26 +117,26 @@ class _LoadedView extends StatelessWidget {
             AppSpacing.lg,
             AppSpacing.xxl,
           ),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: AppSpacing.md,
-              mainAxisSpacing: AppSpacing.md,
-              childAspectRatio: 0.85,
-            ),
+          sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                final lesson = state.lessons[index];
-                return LessonCard(
-                  lesson: lesson,
-                  index: index,
-                  onTap: () => context.push('/lessons/${lesson.id}'),
+                final lesson = filteredLessons[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: SizedBox(
+                    height: 140,
+                    child: LessonCard(
+                      lesson: lesson,
+                      index: index,
+                      onTap: () => context.push('/lessons/${lesson.id}'),
+                    ),
+                  ),
                 )
-                    .animate(delay: Duration(milliseconds: 300 + index * 60))
+                    .animate(delay: Duration(milliseconds: 200 + index * 60))
                     .fadeIn(duration: 350.ms)
-                    .slideY(begin: 0.15, end: 0, duration: 350.ms);
+                    .slideY(begin: 0.1, end: 0, duration: 350.ms);
               },
-              childCount: state.lessons.length,
+              childCount: filteredLessons.length,
             ),
           ),
         ),

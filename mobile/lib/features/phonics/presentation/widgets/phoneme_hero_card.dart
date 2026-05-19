@@ -46,27 +46,19 @@ class PhonemeHeroCard extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // The phoneme symbol — huge PatrickHand
+                // The phoneme symbol — huge PatrickHand displaying both cases together
                 Text(
-                  phoneme.symbol.toUpperCase(),
-                  style: AppTextStyles.phonemeDisplay.copyWith(color: color),
+                  phoneme.dualCaseSymbol,
+                  style: AppTextStyles.phonemeDisplay.copyWith(
+                    color: color,
+                    fontSize: phoneme.dualCaseSymbol.length > 8 ? 42 : 56, // auto-scale font size if it has helper guides
+                  ),
                   textAlign: TextAlign.center,
                 ).animate().fadeIn(duration: 300.ms).scale(
                       begin: const Offset(0.7, 0.7),
                       duration: 400.ms,
                       curve: Curves.elasticOut,
                     ),
-
-                const SizedBox(height: AppSpacing.sm),
-
-                // Lowercase version
-                Text(
-                  phoneme.symbol.toLowerCase(),
-                  style: AppTextStyles.displaySmall.copyWith(
-                    color: color.withOpacity(0.5),
-                  ),
-                  textAlign: TextAlign.center,
-                ).animate(delay: 100.ms).fadeIn(duration: 300.ms),
 
                 const SizedBox(height: AppSpacing.md),
 

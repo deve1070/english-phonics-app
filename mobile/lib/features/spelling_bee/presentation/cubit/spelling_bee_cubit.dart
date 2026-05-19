@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/constants/app_constants.dart';
 import 'spelling_bee_state.dart';
 
 class SpellingBeeCubit extends Cubit<SpellingBeeState> {
@@ -209,8 +210,8 @@ class SpellingBeeCubit extends Cubit<SpellingBeeState> {
 
     // ── Tier 1: Backend /tts/synthesize ───────────────────────
     try {
-      final response = await _dio.post<List<int>>(
-        '/tts/synthesize',
+      final response = await _dio.post(
+        ApiConstants.ttsSynthesize,
         data: {'text': state.word},
         options: Options(
           responseType: ResponseType.bytes,
@@ -218,17 +219,20 @@ class SpellingBeeCubit extends Cubit<SpellingBeeState> {
         ),
       );
 
-      if (response.data != null && response.data!.isNotEmpty) {
-        final tempDir = await getTemporaryDirectory();
-        final tempFile = File('${tempDir.path}/spelling_${state.word}.mp3');
-        await tempFile.writeAsBytes(response.data!);
-        await _player.stop();
-        await _player.setFilePath(tempFile.path);
-        await _player.play();
-        played = true;
+      if (response.data != null) {
+        final bytes = response.data as List<int>;
+        if (bytes.isNotEmpty) {
+          final tempDir = await getTemporaryDirectory();
+          final tempFile = File('${tempDir.path}/spelling_${state.word}.mp3');
+          await tempFile.writeAsBytes(bytes);
+          await _player.stop();
+          await _player.setFilePath(tempFile.path);
+          await _player.play();
+          played = true;
+        }
       }
-    } catch (_) {
-      // Tier 1 failed — try next
+    } catch (e) {
+      print('Spelling Bee Tier 1 TTS failed: $e');
     }
 
     // ── Tier 2: Free TTS URL fallback ─────────────────────────
