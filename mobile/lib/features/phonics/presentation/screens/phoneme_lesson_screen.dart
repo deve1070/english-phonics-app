@@ -378,66 +378,33 @@ class _GateSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lastScore = state.lastGateScore;
-    final failed = lastScore != null && lastScore < PhonicsLoaded.gatePassScore;
-
     return Column(
       children: [
         const SizedBox(height: AppSpacing.xl),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl,
+            vertical: AppSpacing.xxl,
+          ),
           decoration: BoxDecoration(
             color: color.withOpacity(0.08),
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(color: color.withOpacity(0.25), width: 2),
           ),
-          child: Column(
-            children: [
-              Text(
-                phoneme.dualCaseSymbol,
-                style: AppTextStyles.phonemeDisplay.copyWith(
-                  color: color,
-                  fontSize: phoneme.dualCaseSymbol.length > 8 ? 42 : 56,
-                ),
-                textAlign: TextAlign.center,
+          child: Center(
+            child: Text(
+              phoneme.dualCaseSymbol,
+              style: AppTextStyles.phonemeDisplay.copyWith(
+                color: color,
+                fontSize: phoneme.dualCaseSymbol.length > 8 ? 48 : 64,
+                fontFamily: 'PatrickHand',
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text('Say this sound out loud!',
-                  style: AppTextStyles.headingSmall,
-                  textAlign: TextAlign.center),
-              const SizedBox(height: AppSpacing.xs),
-              Text('Score ${PhonicsLoaded.gatePassScore.toInt()} or above to continue',
-                  style: AppTextStyles.bodySmall, textAlign: TextAlign.center),
-            ],
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
-        if (failed) ...[
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.coral.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(
-                  color: AppColors.coral.withOpacity(0.3), width: 1.5),
-            ),
-            child: Row(
-              children: [
-                const Text('😊', style: TextStyle(fontSize: 24)),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    'Score: ${lastScore.toInt()}/100 — try again! You need ${PhonicsLoaded.gatePassScore.toInt()} to continue.',
-                    style: AppTextStyles.bodyMedium
-                        .copyWith(color: AppColors.coral),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
+        const SizedBox(height: AppSpacing.xxl),
         _GateRecordButton(state: state),
         const SizedBox(height: AppSpacing.xl),
       ],
