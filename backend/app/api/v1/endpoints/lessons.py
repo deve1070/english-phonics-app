@@ -41,13 +41,30 @@ async def list_lessons(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_active_user),  # must be logged in
+    current_user: User = Depends(get_current_active_user),  # must be logged in
 ):
     """
     Returns all lessons ordered by level then order index.
     Optionally filter by a specific level.
     """
     lessons = await crud_lesson.get_by_level(db, level=level, skip=skip, limit=limit)
+    
+    # Fetch all completed exercise IDs for the current user
+    from app.models.progress import Progress
+    from sqlalchemy import select
+    
+    result = await db.execute(
+        select(Progress.exercise_id)
+        .where(Progress.user_id == current_user.id, Progress.completed == True)
+    )
+    completed_exercise_ids = set(result.scalars().all())
+    
+    for lesson in lessons:
+        lesson.total_exercises = len(lesson.exercises)
+        lesson.completed_exercises = sum(
+            1 for e in lesson.exercises if e.id in completed_exercise_ids
+        )
+        
     return lessons
 
 
@@ -217,3 +234,37 @@ async def delete_lesson(
             detail=f"Lesson with id {lesson_id} not found.",
         )
     await crud_lesson.remove(db, id=lesson_id)
+
+
+# ----------------------------------------------------------------------
+# POST /lessons/{lesson_id}/complete
+# Authenticated: mark all exercises in a lesson as completed.
+# ----------------------------------------------------------------------
+@router.post("/{lesson_id}/complete", status_code=status.HTTP_200_OK)
+async def complete_lesson(
+    lesson_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Marks a lesson as completed by marking all exercises in the lesson
+    as completed for the current user.
+    """
+    lesson = await crud_lesson.get_with_relations(db, lesson_id=lesson_id)
+    if not lesson:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lesson with id {lesson_id} not found.",
+        )
+
+    from app.crud.crud_progress import crud_progress
+    for ex in lesson.exercises:
+        await crud_progress.upsert_after_attempt(
+            db,
+            user_id=current_user.id,
+            lesson_id=lesson_id,
+            exercise_id=ex.id,
+            score=100.0,
+        )
+
+    return {"status": "success", "message": "Lesson completed."}

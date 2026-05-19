@@ -54,6 +54,8 @@ class LessonUpdate(BaseModel):
 class LessonResponse(LessonBase):
     id: int
     created_at: Optional[datetime] = None
+    total_exercises: int = 0
+    completed_exercises: int = 0
 
     model_config = {"from_attributes": True}
 
