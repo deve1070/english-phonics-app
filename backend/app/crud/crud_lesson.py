@@ -41,7 +41,10 @@ class CRUDLesson(CRUDBase[Lesson, LessonCreate, LessonUpdate]):
     ) -> List[Lesson]:
         query = (
             select(Lesson)
-            .options(selectinload(Lesson.exercises))
+            .options(
+                selectinload(Lesson.phonemes),
+                selectinload(Lesson.exercises),
+            )
             .order_by(Lesson.level, Lesson.order)
         )
         if level is not None:

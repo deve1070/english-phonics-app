@@ -32,7 +32,7 @@ router = APIRouter(prefix="/lessons", tags=["lessons"])
 # Public: list all lessons, optionally filtered by level.
 # Returns flat LessonResponse list (no nested children) for speed.
 # ----------------------------------------------------------------------
-@router.get("/", response_model=List[LessonResponse])
+@router.get("/", response_model=List[LessonDetailResponse])
 async def list_lessons(
     level: Optional[Level] = Query(
         default=None,
@@ -59,13 +59,21 @@ async def list_lessons(
     )
     completed_exercise_ids = set(result.scalars().all())
     
-    for lesson in lessons:
-        lesson.total_exercises = len(lesson.exercises)
-        lesson.completed_exercises = sum(
-            1 for e in lesson.exercises if e.id in completed_exercise_ids
+    return [
+        LessonDetailResponse(
+            id=lesson.id,
+            order=lesson.order,
+            level=lesson.level,
+            created_at=lesson.created_at,
+            phonemes=sorted(lesson.phonemes, key=lambda p: p.order),
+            exercise_count=len(lesson.exercises),
+            total_exercises=len(lesson.exercises),
+            completed_exercises=sum(
+                1 for e in lesson.exercises if e.id in completed_exercise_ids
+            ),
         )
-        
-    return lessons
+        for lesson in lessons
+    ]
 
 
 # ----------------------------------------------------------------------
