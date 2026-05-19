@@ -1,0 +1,106 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../constants/app_constants.dart';
+
+class TokenStorage {
+  final FlutterSecureStorage _storage;
+
+  TokenStorage()
+      : _storage = const FlutterSecureStorage(
+          aOptions: AndroidOptions(encryptedSharedPreferences: true),
+        );
+
+  // ── Access / Refresh tokens (existing) ───────────────────────
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await Future.wait([
+      _storage.write(key: StorageKeys.accessToken, value: accessToken),
+      _storage.write(key: StorageKeys.refreshToken, value: refreshToken),
+    ]);
+  }
+
+  Future<String?> getAccessToken() =>
+      _storage.read(key: StorageKeys.accessToken);
+
+  Future<String?> getRefreshToken() =>
+      _storage.read(key: StorageKeys.refreshToken);
+
+  Future<bool> hasValidToken() async {
+    final token = await getAccessToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  Future<String?> getSubscriptionStatus() =>
+      _storage.read(key: StorageKeys.subscriptionStatus);
+
+  Future<void> saveSubscriptionStatus(String status) =>
+      _storage.write(key: StorageKeys.subscriptionStatus, value: status);
+
+  Future<void> clearTokens() async {
+    await Future.wait([
+      _storage.delete(key: StorageKeys.accessToken),
+      _storage.delete(key: StorageKeys.refreshToken),
+      _storage.delete(key: StorageKeys.userId),
+      _storage.delete(key: StorageKeys.userRole),
+      _storage.delete(key: StorageKeys.subscriptionStatus),
+      _storage.delete(key: StorageKeys.childToken),
+      _storage.delete(key: StorageKeys.parentAccessToken),
+      _storage.delete(key: StorageKeys.biometricToken),
+      _storage.delete(key: StorageKeys.biometricUnlockEnabled),
+    ]);
+  }
+
+  /// Call whenever the app holds a known parent JWT (phone signup, OTP login, biometric).
+  Future<void> saveParentAccessToken(String token) =>
+      _storage.write(key: StorageKeys.parentAccessToken, value: token);
+
+  Future<String?> getParentAccessToken() =>
+      _storage.read(key: StorageKeys.parentAccessToken);
+
+  Future<void> clearParentAccessToken() =>
+      _storage.delete(key: StorageKeys.parentAccessToken);
+
+  Future<void> clearAll() => _storage.deleteAll();
+
+  // ── User role (NEW) ───────────────────────────────────────────
+  Future<void> saveUserRole(String role) =>
+      _storage.write(key: StorageKeys.userRole, value: role.toUpperCase());
+
+  Future<String?> getUserRole() => _storage.read(key: StorageKeys.userRole);
+
+  Future<bool> get isParent async {
+    final role = await getUserRole();
+    return role == 'PARENT';
+  }
+
+  // ── Biometric token (NEW) ─────────────────────────────────────
+  /// Stored encrypted. Retrieved only after device biometric passes.
+  Future<void> saveBiometricToken(String token) =>
+      _storage.write(key: StorageKeys.biometricToken, value: token);
+
+  Future<String?> getBiometricToken() =>
+      _storage.read(key: StorageKeys.biometricToken);
+
+  Future<void> clearBiometricToken() =>
+      _storage.delete(key: StorageKeys.biometricToken);
+
+  Future<void> setBiometricUnlockEnabled(bool enabled) => _storage.write(
+        key: StorageKeys.biometricUnlockEnabled,
+        value: enabled ? '1' : '0',
+      );
+
+  Future<bool> get isBiometricUnlockEnabled async =>
+      (await _storage.read(key: StorageKeys.biometricUnlockEnabled)) == '1';
+
+  // ── Child token (NEW) ─────────────────────────────────────────
+  /// Preserved when parent temporarily switches to their dashboard.
+  /// Restored when parent exits back to child view.
+  Future<void> saveChildToken(String token) =>
+      _storage.write(key: StorageKeys.childToken, value: token);
+
+  Future<String?> getChildToken() => _storage.read(key: StorageKeys.childToken);
+
+  Future<void> clearChildToken() =>
+      _storage.delete(key: StorageKeys.childToken);
+}
