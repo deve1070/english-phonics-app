@@ -30,7 +30,7 @@ class AppRouter {
   AppRouter(this.tokenStorage);
 
   late final GoRouter router = GoRouter(
-    initialLocation: AppRoutes.splash,
+    initialLocation: AppRoutes.home,
     debugLogDiagnostics: true,
     redirect: _guard,
     routes: _routes,
@@ -39,38 +39,56 @@ class AppRouter {
   // ── Route guard ───────────────────────────────────────────────
   Future<String?> _guard(BuildContext context, GoRouterState state) async {
     final location = state.matchedLocation;
-    final isAuthenticated = await tokenStorage.hasValidToken();
-
+    
     // Always allow public routes
     const publicPaths = {
       AppRoutes.splash,
       AppRoutes.onboarding,
+      AppRoutes.phoneLogin,
       AppRoutes.login,
       AppRoutes.register,
       AppRoutes.phoneRegister,
-      AppRoutes.phoneLogin,
       AppRoutes.joinInvite,
     };
-    if (publicPaths.contains(location)) return null;
 
-    // Unauthenticated → phone login
-    if (!isAuthenticated) return AppRoutes.phoneLogin;
+    if (publicPaths.contains(location)) {
+        // Prevent authenticated users from going to login again
+        if (location == AppRoutes.phoneLogin || location == AppRoutes.login) {
+            final isAuthenticated = await tokenStorage.hasValidToken();
+            if (isAuthenticated) {
+                final role = await tokenStorage.getUserRole();
+                if (role == 'PARENT') return AppRoutes.parentDashboard;
+                if (role == 'STUDENT') return AppRoutes.home;
+            }
+        }
+        return null;
+    }
 
-    // On login/register screens while authenticated → route by role
-    if (location == AppRoutes.login ||
-        location == AppRoutes.register ||
-        location == AppRoutes.phoneLogin ||
-        location == AppRoutes.phoneRegister) {
+    final isAuthenticated = await tokenStorage.hasValidToken();
+    if (!isAuthenticated) {
+      // Students and parents must be registered/logged in to access any protected material.
+      return AppRoutes.phoneLogin;
+    }
+
+    // Determine if this is a parent-only route
+    final isParentRoute = location.startsWith(AppRoutes.parentDashboard) || 
+                          location.startsWith(AppRoutes.inviteLinks);
+
+    if (isParentRoute) {
       final role = await tokenStorage.getUserRole();
-      return (role == 'PARENT') ? AppRoutes.parentDashboard : AppRoutes.home;
+      if (role != 'PARENT') {
+        return AppRoutes.phoneLogin;
+      }
     }
-
-    // Parent accessing child-only routes → redirect to parent dashboard
-    final role = await tokenStorage.getUserRole();
-    if (role == 'PARENT' && _isChildOnlyRoute(location)) {
-      return AppRoutes.parentDashboard;
+    
+    // Prevent parents from accessing child-only routes
+    if (_isChildOnlyRoute(location)) {
+      final role = await tokenStorage.getUserRole();
+      if (role == 'PARENT') {
+        return AppRoutes.parentDashboard;
+      }
     }
-
+    
     return null;
   }
 
@@ -87,14 +105,6 @@ class AppRouter {
         GoRoute(
             path: AppRoutes.onboarding,
             builder: (_, __) => const OnboardingScreen()),
-        GoRoute(
-          path: AppRoutes.login,
-          builder: (_, __) => const LoginScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.register,
-          builder: (_, __) => const RegisterScreen(),
-        ),
 
         // ── Phone auth ────────────────────────────────────────────
         GoRoute(

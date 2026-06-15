@@ -149,13 +149,26 @@ class ParentDashboardCubit extends Cubit<ParentDashboardState> {
         refreshToken: '',
       );
       await _tokenStorage.saveUserRole('STUDENT');
+    } on DioException catch (e) {
+      emit(ParentDashboardError(
+        e.response?.data?['detail'] ?? 'Failed to switch to child session',
+      ));
     } catch (e) {
-      // Non-fatal — show error
+      emit(ParentDashboardError('Failed to switch to child session: ${e.toString()}'));
     }
   }
 
   Future<void> logout() async {
     await _tokenStorage.clearTokens();
+  }
+
+  Future<String?> generateLink() async {
+    try {
+      final response = await _dio.post('/auth/generate-child-link');
+      return response.data['link'] as String;
+    } catch (e) {
+      return null;
+    }
   }
 }
 
@@ -235,6 +248,24 @@ class _LoadedView extends StatelessWidget {
               await context.read<ParentDashboardCubit>().logout();
               if (context.mounted) context.go(AppRoutes.login);
             },
+            onGenerateLink: () async {
+              final link = await context.read<ParentDashboardCubit>().generateLink();
+              if (link != null && context.mounted) {
+                showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Invite Link'),
+                    content: SelectableText(link),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close'),
+                      )
+                    ],
+                  )
+                );
+              }
+            },
           ),
         ),
 
@@ -281,12 +312,14 @@ class _ParentHeader extends StatelessWidget {
   final VoidCallback onAdd;
   final VoidCallback onSettings;
   final VoidCallback onLogout;
+  final VoidCallback onGenerateLink;
 
   const _ParentHeader({
     required this.parentName,
     required this.onAdd,
     required this.onSettings,
     required this.onLogout,
+    required this.onGenerateLink,
   });
 
   @override
@@ -343,8 +376,16 @@ class _ParentHeader extends StatelessWidget {
                       if (v == 'add') onAdd();
                       if (v == 'settings') onSettings();
                       if (v == 'logout') onLogout();
+                      if (v == 'link') onGenerateLink();
                     },
                     itemBuilder: (_) => [
+                      const PopupMenuItem(
+                          value: 'link',
+                          child: ListTile(
+                            leading: Icon(Icons.link_rounded),
+                            title: Text('Copy invite link'),
+                            contentPadding: EdgeInsets.zero,
+                          )),
                       const PopupMenuItem(
                           value: 'add',
                           child: ListTile(
@@ -374,31 +415,36 @@ class _ParentHeader extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               // Add child button
-              GestureDetector(
-                onTap: onAdd,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.sm,
+              Wrap(
+                spacing: AppSpacing.md,
+                children: [
+                  GestureDetector(
+                    onTap: onAdd,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                        border: Border.all(
+                            color: Colors.white.withOpacity(0.4), width: 1.5),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.add_rounded,
+                              color: Colors.white, size: 16),
+                          const SizedBox(width: 6),
+                          Text('Add another child',
+                              style: AppTextStyles.label
+                                  .copyWith(color: Colors.white)),
+                        ],
+                      ),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                    border: Border.all(
-                        color: Colors.white.withOpacity(0.4), width: 1.5),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.add_rounded,
-                          color: Colors.white, size: 16),
-                      const SizedBox(width: 6),
-                      Text('Add another child',
-                          style: AppTextStyles.label
-                              .copyWith(color: Colors.white)),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ],
           ),

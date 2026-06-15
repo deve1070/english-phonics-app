@@ -4,7 +4,7 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
+  sdk: "^3.3.0"
 
 dependencies:
   flutter:
@@ -47,17 +47,21 @@ dependencies:
   cached_network_image: ^3.4.1
   flutter_svg: ^2.0.10+1
   google_fonts: ^6.2.1
-  gap: ^3.0.1 # Clean spacing widget
-  shimmer: ^3.0.0 # Loading skeletons
+  gap: ^3.0.1
+  shimmer: ^3.0.0
 
   # ── Functional / Utils ────────────────────────────────────────
-  dartz: ^0.10.1 # Either for error handling
+  dartz: ^0.10.1
   intl: ^0.19.0
   local_auth: ^3.0.1
   app_links: ^7.0.0
   share_plus: ^12.0.2
   qr_flutter: ^4.1.0
   device_info_plus: ^12.4.0
+
+  # ── Firebase ──────────────────────────────────────────────────
+  firebase_core: ^3.15.2
+  firebase_app_installations: ^0.3.3
 
 dev_dependencies:
   flutter_test:
@@ -70,13 +74,6 @@ dev_dependencies:
   json_serializable: ^6.8.0
   injectable_generator: ^2.6.2
 
-# flutter:
-#   uses-material-design: true
-
-#   assets:
-#     - assets/images/
-#     - assets/animations/
-#     - assets/audio/
 flutter:
   uses-material-design: true
   assets:

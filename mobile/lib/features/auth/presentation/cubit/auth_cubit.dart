@@ -9,6 +9,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/network/token_storage.dart';
 import '../../../../core/auth/biometric_auth_service.dart';
 import 'auth_state.dart';
+import '../../domain/entities/user_entity.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final LoginUseCase _loginUseCase;
@@ -45,26 +46,73 @@ class AuthCubit extends Cubit<AuthState> {
     required String phoneNumber,
   }) async {
     emit(const AuthLoading());
-    final result = await _loginUseCase(phoneNumber: phoneNumber);
-    result.fold(
-      (failure) => emit(AuthFailureState(failure.message)),
-      (user) => emit(AuthSuccess(user)),
-    );
+    try {
+      final dio = getIt<Dio>();
+      final tokenStorage = getIt<TokenStorage>();
+      
+      final res1 = await dio.post('/auth/phone-login', data: {'phone_number': phoneNumber});
+      final status = res1.data['status'];
+      
+      String? bioToken;
+      if (status == 'registered') {
+        bioToken = res1.data['biometric_token'];
+        await tokenStorage.saveBiometricToken(bioToken!);
+      } else {
+        bioToken = await tokenStorage.getBiometricToken();
+        if (bioToken == null || bioToken.isEmpty) {
+           bioToken = 'device-token-${DateTime.now().millisecondsSinceEpoch}';
+           await tokenStorage.saveBiometricToken(bioToken);
+        }
+      }
+
+      final hasBio = await _biometricAuthService.canUseBiometrics();
+      if (hasBio) {
+        final authenticated = await _biometricAuthService.authenticate(
+          reason: 'Please authenticate to access the Parent Dashboard',
+        );
+        if (!authenticated) {
+          emit(const AuthFailureState('Biometric authentication failed.'));
+          return;
+        }
+      }
+
+      final res2 = await dio.post('/auth/verify-biometric', data: {
+         'phone_number': phoneNumber,
+         'biometric_token': bioToken,
+      });
+      
+      final access = res2.data['access_token'];
+      await tokenStorage.saveTokens(accessToken: access, refreshToken: access);
+      await tokenStorage.saveUserRole('PARENT');
+      
+      // Fetch real user data from backend
+      final userRes = await dio.get('/users/me');
+      final userData = userRes.data;
+      
+      emit(AuthSuccess(UserEntity(
+        id: userData['id'] as int,
+        name: userData['name'] as String,
+        email: userData['email'] as String? ?? '',
+        phoneNumber: userData['phone_number'] as String? ?? '',
+        ageGroup: userData['age_group'] as int? ?? 0,
+        role: userData['role'] as String,
+        userName: userData['user_name'] as String? ?? '',
+      )));
+    } catch (e) {
+      if (e is DioException) {
+         emit(AuthFailureState(e.response?.data?['detail'] ?? e.message ?? 'Login failed'));
+      } else {
+         emit(AuthFailureState(e.toString()));
+      }
+    }
   }
 
   Future<void> register({
     required String name,
     required String phoneNumber,
   }) async {
-    emit(const AuthLoading());
-    final result = await _registerUseCase(
-      name: name,
-      phoneNumber: phoneNumber,
-    );
-    result.fold(
-      (failure) => emit(AuthFailureState(failure.message)),
-      (user) => emit(AuthSuccess(user)),
-    );
+    // Unused in new flow, handled implicitly by login
+    emit(const AuthFailureState('Registration is handled by login.'));
   }
 
   Future<void> attemptPasskeyLogin() async {

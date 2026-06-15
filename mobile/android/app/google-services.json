@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "754949628581",
+    "project_id": "phonics-ethiopia",
+    "storage_bucket": "phonics-ethiopia.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:754949628581:android:1385a3838221038ca7a34c",
+        "android_client_info": {
+          "package_name": "com.phonicsfriends.phonics_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmfYvN2GrjYzdE_eBp986_lXErf6o1idk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

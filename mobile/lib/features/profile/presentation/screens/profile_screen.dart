@@ -107,6 +107,15 @@ class _LoadedView extends StatelessWidget {
                     onTap: () {},
                   ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
 
+                  const SizedBox(height: AppSpacing.md),
+
+                  _SettingsItem(
+                    icon: Icons.family_restroom_rounded,
+                    label: 'Parent Dashboard',
+                    color: AppColors.teal,
+                    onTap: () => context.push(AppRoutes.parentDashboard),
+                  ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
+
                   const SizedBox(height: AppSpacing.xl),
 
                   // ── Logout button ──────────────────────────────

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
 
@@ -28,7 +29,48 @@ class TokenStorage {
 
   Future<bool> hasValidToken() async {
     final token = await getAccessToken();
-    return token != null && token.isNotEmpty;
+    if (token == null || token.isEmpty) {
+      return false;
+    }
+    
+    // Decode JWT and check expiry
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) {
+        return false; // Invalid JWT format
+      }
+      
+      // Decode payload (second part)
+      final payload = _decodeBase64(parts[1]);
+      final payloadMap = json.decode(payload) as Map<String, dynamic>;
+      
+      // Check expiry time (exp is in seconds since epoch)
+      final exp = payloadMap['exp'] as int?;
+      if (exp == null) {
+        return true; // No expiry claim, assume valid
+      }
+      
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      return now < exp;
+    } catch (e) {
+      // If decoding fails, assume token is invalid
+      return false;
+    }
+  }
+  
+  String _decodeBase64(String str) {
+    String output = str.replaceAll('-', '+').replaceAll('_', '/');
+    switch (str.length % 4) {
+      case 0:
+        break;
+      case 2:
+        output += '==';
+        break;
+      case 3:
+        output += '=';
+        break;
+    }
+    return utf8.decode(base64.decode(output));
   }
 
   Future<String?> getSubscriptionStatus() =>
