@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/token_storage.dart';
 import '../../../../core/router/app_routes.dart';
@@ -51,38 +52,52 @@ class ParentRegisterCubit extends Cubit<ParentRegisterState> {
         getIt<TokenStorage>(),
       );
 
+  /// `POST /parents/register` takes exactly
+  /// `{name, phone_number, child: {name, user_name, nickname?}}`.
+  /// Auth here is fully passwordless — there is no email, no password and
+  /// no age field on either the parent or the child.
   Future<void> register({
     required String parentName,
-    required String parentEmail,
-    required String parentPassword,
+    required String parentPhone,
     required String childName,
     required String childUserName,
-    required String childPassword,
-    int? childAge,
+    String? childNickname,
   }) async {
     emit(const ParentRegisterLoading());
     try {
       final response = await _dio.post(
-        '/parents/register',
+        ApiConstants.parentRegister,
         data: {
           'name': parentName,
-          'email': parentEmail,
-          'password': parentPassword,
+          'phone_number': parentPhone,
           'child': {
             'name': childName,
             'user_name': childUserName,
-            'password': childPassword,
-            'age_group': childAge ?? 7,
+            if (childNickname != null && childNickname.trim().isNotEmpty)
+              'nickname': childNickname.trim(),
           },
         },
       );
 
-      await _tokenStorage.saveTokens(
-        accessToken: response.data['access_token'] as String,
-        refreshToken: '',
-      );
-      // Save role so router knows this is a parent session
-      await _tokenStorage.saveSubscriptionStatus('TRIAL');
+      final accessToken = (response.data['access_token'] ?? '').toString();
+      if (accessToken.isEmpty) {
+        emit(const ParentRegisterError('Registration failed. Please try again.'));
+        return;
+      }
+      await _tokenStorage.saveTokens(accessToken: accessToken);
+
+      // Registration returns a parent session, so stash it under the parent
+      // key too — parent-scoped calls read that even once the active token
+      // has been swapped for a child's session token.
+      await _tokenStorage.saveParentAccessToken(accessToken);
+      await _tokenStorage.saveUserRole('PARENT');
+
+      // Keeps "stay signed in" working on next launch. The server rotates
+      // this on every use, so it must be persisted, not derived.
+      final biometricToken = (response.data['biometric_token'] ?? '').toString();
+      if (biometricToken.isNotEmpty) {
+        await _tokenStorage.saveBiometricToken(biometricToken);
+      }
 
       emit(const ParentRegisterSuccess());
     } on DioException catch (e) {
@@ -120,23 +135,20 @@ class _ParentRegisterViewState extends State<_ParentRegisterView> {
 
   // Parent controllers
   final _parentNameCtrl = TextEditingController();
-  final _parentEmailCtrl = TextEditingController();
-  final _parentPasswordCtrl = TextEditingController();
+  final _parentPhoneCtrl = TextEditingController();
 
   // Child controllers
   final _childNameCtrl = TextEditingController();
   final _childUserNameCtrl = TextEditingController();
-  final _childPasswordCtrl = TextEditingController();
-  int _childAge = 7;
+  final _childNicknameCtrl = TextEditingController();
 
   @override
   void dispose() {
     _parentNameCtrl.dispose();
-    _parentEmailCtrl.dispose();
-    _parentPasswordCtrl.dispose();
+    _parentPhoneCtrl.dispose();
     _childNameCtrl.dispose();
     _childUserNameCtrl.dispose();
-    _childPasswordCtrl.dispose();
+    _childNicknameCtrl.dispose();
     super.dispose();
   }
 
@@ -150,12 +162,10 @@ class _ParentRegisterViewState extends State<_ParentRegisterView> {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<ParentRegisterCubit>().register(
             parentName: _parentNameCtrl.text.trim(),
-            parentEmail: _parentEmailCtrl.text.trim(),
-            parentPassword: _parentPasswordCtrl.text,
+            parentPhone: _parentPhoneCtrl.text.trim(),
             childName: _childNameCtrl.text.trim(),
             childUserName: _childUserNameCtrl.text.trim(),
-            childPassword: _childPasswordCtrl.text,
-            childAge: _childAge,
+            childNickname: _childNicknameCtrl.text.trim(),
           );
     }
   }
@@ -199,17 +209,14 @@ class _ParentRegisterViewState extends State<_ParentRegisterView> {
                     ? _ParentStep(
                         key: const ValueKey('parent'),
                         nameCtrl: _parentNameCtrl,
-                        emailCtrl: _parentEmailCtrl,
-                        passwordCtrl: _parentPasswordCtrl,
+                        phoneCtrl: _parentPhoneCtrl,
                         onNext: _next,
                       )
                     : _ChildStep(
                         key: const ValueKey('child'),
                         nameCtrl: _childNameCtrl,
                         userNameCtrl: _childUserNameCtrl,
-                        passwordCtrl: _childPasswordCtrl,
-                        age: _childAge,
-                        onAgeChanged: (v) => setState(() => _childAge = v),
+                        nicknameCtrl: _childNicknameCtrl,
                         onSubmit: _submit,
                       ),
               ),
@@ -224,15 +231,13 @@ class _ParentRegisterViewState extends State<_ParentRegisterView> {
 // ── Step 1: Parent info ───────────────────────────────────────────
 class _ParentStep extends StatelessWidget {
   final TextEditingController nameCtrl;
-  final TextEditingController emailCtrl;
-  final TextEditingController passwordCtrl;
+  final TextEditingController phoneCtrl;
   final VoidCallback onNext;
 
   const _ParentStep({
     super.key,
     required this.nameCtrl,
-    required this.emailCtrl,
-    required this.passwordCtrl,
+    required this.phoneCtrl,
     required this.onNext,
   });
 
@@ -260,17 +265,17 @@ class _ParentStep extends StatelessWidget {
             label: 'Your full name',
             icon: Icons.person_rounded),
         const SizedBox(height: AppSpacing.md),
+        // Phone number is the whole credential — there is no password.
         _Field(
-            ctrl: emailCtrl,
-            label: 'Email address',
-            icon: Icons.email_rounded,
-            isEmail: true),
-        const SizedBox(height: AppSpacing.md),
-        _Field(
-            ctrl: passwordCtrl,
-            label: 'Create a password',
-            icon: Icons.lock_rounded,
-            isPassword: true),
+            ctrl: phoneCtrl,
+            label: 'Phone number',
+            icon: Icons.phone_rounded,
+            isPhone: true),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          "This is how you'll sign in — no password to remember.",
+          style: AppTextStyles.bodySmall,
+        ),
 
         const SizedBox(height: AppSpacing.xl),
 
@@ -310,18 +315,14 @@ class _ParentStep extends StatelessWidget {
 class _ChildStep extends StatelessWidget {
   final TextEditingController nameCtrl;
   final TextEditingController userNameCtrl;
-  final TextEditingController passwordCtrl;
-  final int age;
-  final ValueChanged<int> onAgeChanged;
+  final TextEditingController nicknameCtrl;
   final VoidCallback onSubmit;
 
   const _ChildStep({
     super.key,
     required this.nameCtrl,
     required this.userNameCtrl,
-    required this.passwordCtrl,
-    required this.age,
-    required this.onAgeChanged,
+    required this.nicknameCtrl,
     required this.onSubmit,
   });
 
@@ -337,7 +338,7 @@ class _ChildStep extends StatelessWidget {
             style: AppTextStyles.displayMedium.copyWith(color: AppColors.teal)),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          "Your child will use this to log in and learn.",
+          "You'll switch into their account from your dashboard.",
           style: AppTextStyles.bodyMedium,
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -353,48 +354,10 @@ class _ChildStep extends StatelessWidget {
             icon: Icons.badge_rounded),
         const SizedBox(height: AppSpacing.md),
         _Field(
-            ctrl: passwordCtrl,
-            label: "Child's password",
-            icon: Icons.lock_outline_rounded,
-            isPassword: true),
-
-        const SizedBox(height: AppSpacing.lg),
-
-        // Age selector
-        Text("Child's age", style: AppTextStyles.label),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: List.generate(8, (i) {
-            final ageVal = i + 4; // ages 4-11
-            final isSelected = age == ageVal;
-            return GestureDetector(
-              onTap: () => onAgeChanged(ageVal),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 40,
-                height: 40,
-                margin: const EdgeInsets.only(right: AppSpacing.sm),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected ? AppColors.teal : AppColors.surfaceVariant,
-                  border: Border.all(
-                    color: isSelected ? AppColors.teal : AppColors.border,
-                    width: 1.5,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    '$ageVal',
-                    style: AppTextStyles.label.copyWith(
-                      color:
-                          isSelected ? Colors.white : AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
+            ctrl: nicknameCtrl,
+            label: 'Nickname (optional)',
+            icon: Icons.favorite_rounded,
+            isOptional: true),
 
         const SizedBox(height: AppSpacing.xl),
 
@@ -469,23 +432,22 @@ class _Field extends StatelessWidget {
   final TextEditingController ctrl;
   final String label;
   final IconData icon;
-  final bool isPassword;
-  final bool isEmail;
+  final bool isPhone;
+  final bool isOptional;
 
   const _Field({
     required this.ctrl,
     required this.label,
     required this.icon,
-    this.isPassword = false,
-    this.isEmail = false,
+    this.isPhone = false,
+    this.isOptional = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: ctrl,
-      obscureText: isPassword,
-      keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
+      keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: AppColors.textSecondary),
@@ -502,10 +464,13 @@ class _Field extends StatelessWidget {
         ),
       ),
       validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'This field is required';
-        if (isEmail && !v.contains('@')) return 'Enter a valid email';
-        if (isPassword && v.length < 6)
-          return 'Password must be at least 6 characters';
+        final value = v?.trim() ?? '';
+        if (value.isEmpty) {
+          return isOptional ? null : 'This field is required';
+        }
+        if (isPhone && value.replaceAll(RegExp(r'[^0-9]'), '').length < 9) {
+          return 'Enter a valid phone number';
+        }
         return null;
       },
     );
