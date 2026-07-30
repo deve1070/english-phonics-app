@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for every network call. Previously declared ONLY in the
+         debug and profile manifests, which meant release builds shipped
+         with no network access at all. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Pronunciation recording (the `record` package). Without this the
+         mic permission request is denied outright and every exercise fails. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <application
         android:label="Phonics ኢትዮጵያ"

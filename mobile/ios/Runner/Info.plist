@@ -6,6 +6,11 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Unlock your parent account with Face ID.</string>
+	<!-- Not optional: iOS terminates the app on the first microphone
+	     permission request when this key is absent, instead of showing
+	     the permission dialog. -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We use the microphone so your child can practise saying sounds and words out loud.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
