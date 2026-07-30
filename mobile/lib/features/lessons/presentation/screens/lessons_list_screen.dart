@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -10,9 +12,6 @@ import '../../../phonics/data/datasources/lessons_remote_datasource.dart';
 import '../../../phonics/domain/entities/lesson_entity.dart';
 import '../../../home/presentation/widgets/lesson_card.dart';
 import '../../../home/presentation/widgets/level_style.dart';
-import 'package:dio/dio.dart';
-import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 // ── State ─────────────────────────────────────────────────────────
 abstract class LessonsListState extends Equatable {
