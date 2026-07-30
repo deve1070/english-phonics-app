@@ -528,7 +528,7 @@ async def start_child_session(
 # ── POST /parents/children/{id}/end-session ──────────────────────
 @router.post("/children/{child_id}/end-session", status_code=200)
 async def end_child_session(
-    body: SessionEndRequest,
+    body: SessionEndRequest | None = None,
     child: User = Depends(get_child_for_parent_switch),
     db: AsyncSession = Depends(get_db),
 ):

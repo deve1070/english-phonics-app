@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 # ── Child registration (by parent) ───────────────────────────────
@@ -63,15 +63,27 @@ class SessionStartRequest(BaseModel):
 
 
 class SessionStartResponse(BaseModel):
-    session_id: int
+    # ScreenTimeLog's primary key is `id`; this response exposes it as
+    # `session_id`. Without the alias the field could never be populated
+    # from the ORM object and every start-session call raised
+    # ResponseValidationError (HTTP 500).
+    session_id: int = Field(validation_alias="id")
     session_start: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class SessionEndRequest(BaseModel):
-    child_id: int
-    session_start: datetime  # sent from Flutter
+    """Body is entirely optional.
+
+    `child_id` is already in the path, and `session_start` is not used to
+    identify the session — end_child_session closes whichever session is
+    currently open for the child. Requiring either meant a client had to
+    send redundant (and, for session_start, ignored) data or get a 422.
+    """
+
+    child_id: Optional[int] = None
+    session_start: Optional[datetime] = None
 
 
 class ScreenTimeTodayResponse(BaseModel):
