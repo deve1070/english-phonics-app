@@ -4,301 +4,423 @@
       "id": 1,
       "symbol": "a",
       "description": "Short vowel sound /æ/ as in 'apple', written with the letter A.",
-      "audio_url": "sound_a.mp3",
+      "audio_url": "/static/phoneme_a_short.mp3",
       "lesson_id": 1,
       "type": "alphabet",
       "unit": "UNIT1",
-      "exercises": ["apple", "ax", "ant", "alligator"],
+      "exercises": [
+        "apple",
+        "ax",
+        "ant",
+        "alligator"
+      ],
       "lesson": 1
     },
     {
       "id": 2,
       "symbol": "b",
       "description": "Voiced bilabial plosive /b/ as in 'bear', written with the letter B.",
-      "audio_url": "sound_b.mp3",
+      "audio_url": "/static/phoneme_b.mp3",
       "lesson_id": 2,
       "type": "alphabet",
       "unit": "UNIT1",
-      "exercises": ["bear", "bird", "bed", "banana"],
-      "lesson": 2
+      "exercises": [
+        "bear",
+        "bird",
+        "bed",
+        "banana"
+      ],
+      "lesson": 1
     },
     {
       "id": 3,
-      "symbol": "k",
+      "symbol": "C",
       "description": "Voiceless velar plosive /k/ as in 'cat', written with the letter C.",
-      "audio_url": "sound_c.mp3",
+      "audio_url": "/static/phoneme_k.mp3",
       "lesson_id": 3,
       "type": "alphabet",
       "unit": "UNIT1",
-      "exercises": ["cat", "cup", "car", "computer"],
-      "lesson": 3
+      "exercises": [
+        "cat",
+        "cup",
+        "car",
+        "computer"
+      ],
+      "lesson": 1
     },
-
     {
       "id": 4,
       "symbol": "d",
       "description": "Voiced alveolar plosive /d/ as in 'dog', written with the letter D.",
-      "audio_url": "sound_d.mp3",
+      "audio_url": "/static/phoneme_d.mp3",
       "lesson_id": 1,
       "type": "alphabet",
       "unit": "UNIT2",
-      "exercises": ["dog", "desk", "doll", "duck"],
+      "exercises": [
+        "dog",
+        "desk",
+        "doll",
+        "duck"
+      ],
       "lesson": 1
     },
     {
       "id": 5,
       "symbol": "e",
       "description": "Short vowel sound /e/ as in 'egg', written with the letter E.",
-      "audio_url": "sound_e.mp3",
+      "audio_url": "/static/phoneme_e_short.mp3",
       "lesson_id": 2,
       "type": "alphabet",
       "unit": "UNIT2",
-      "exercises": ["egg", "elbow", "envelope", "elephant"],
+      "exercises": [
+        "egg",
+        "elbow",
+        "envelope",
+        "elephant"
+      ],
       "lesson": 2
     },
     {
       "id": 6,
       "symbol": "f",
       "description": "Voiceless labiodental fricative /f/ as in 'fish', written with the letter F.",
-      "audio_url": "sound_f.mp3",
+      "audio_url": "/static/phoneme_f.mp3",
       "lesson_id": 3,
       "type": "alphabet",
       "unit": "UNIT2",
-      "exercises": ["fish", "fan", "farm", "fork"],
+      "exercises": [
+        "fish",
+        "fan",
+        "farm",
+        "fork"
+      ],
       "lesson": 3
     },
-
     {
       "id": 7,
       "symbol": "g",
       "description": "Hard /g/ sound, voiced velar plosive as in 'gorilla', written with G.",
-      "audio_url": "sound_g.mp3",
+      "audio_url": "/static/phoneme_g.mp3",
       "lesson_id": 1,
       "type": "alphabet",
       "unit": "UNIT3",
-      "exercises": ["gorilla", "goat", "gift", "girl"],
+      "exercises": [
+        "gorilla",
+        "goat",
+        "gift",
+        "girl"
+      ],
       "lesson": 1
     },
     {
       "id": 8,
       "symbol": "h",
       "description": "Glottal fricative /h/ as in 'horse', written with the letter H.",
-      "audio_url": "sound_h.mp3",
+      "audio_url": "/static/phoneme_h.mp3",
       "lesson_id": 2,
       "type": "alphabet",
       "unit": "UNIT3",
-      "exercises": ["horse", "hat", "house", "hot dog"],
+      "exercises": [
+        "horse",
+        "hat",
+        "house",
+        "hot dog"
+      ],
       "lesson": 2
     },
     {
       "id": 9,
       "symbol": "ɪ",
       "description": "Short vowel sound /ɪ/ as in 'insect', written with I.",
-      "audio_url": "sound_i.mp3",
+      "audio_url": "/static/phoneme_i_short.mp3",
       "lesson_id": 3,
       "type": "alphabet",
       "unit": "UNIT3",
-      "exercises": ["insect", "ink", "igloo", "iguana"],
+      "exercises": [
+        "insect",
+        "ink",
+        "igloo",
+        "iguana"
+      ],
       "lesson": 3
     },
-
     {
       "id": 10,
       "symbol": "dʒ",
       "description": "Affricate /dʒ/ as in 'jet', written with J.",
-      "audio_url": "sound_j.mp3",
+      "audio_url": "/static/phoneme_j.mp3",
       "lesson_id": 1,
       "type": "alphabet",
       "unit": "UNIT4",
-      "exercises": ["jet", "jam", "juice", "jacket"],
+      "exercises": [
+        "jet",
+        "jam",
+        "juice",
+        "jacket"
+      ],
       "lesson": 1
     },
     {
       "id": 11,
       "symbol": "kʰ",
       "description": "Hard /k/ sound as in 'kangaroo', written with K.",
-      "audio_url": "sound_k.mp3",
+      "audio_url": "/static/phoneme_k.mp3",
       "lesson_id": 2,
       "type": "alphabet",
       "unit": "UNIT4",
-      "exercises": ["kangaroo", "key", "king", "kite"],
+      "exercises": [
+        "kangaroo",
+        "key",
+        "king",
+        "kite"
+      ],
       "lesson": 2
     },
     {
       "id": 12,
       "symbol": "l",
       "description": "Lateral approximant /l/ as in 'lion', written with L.",
-      "audio_url": "sound_l.mp3",
+      "audio_url": "/static/phoneme_l.mp3",
       "lesson_id": 3,
       "type": "alphabet",
       "unit": "UNIT4",
-      "exercises": ["lion", "lamp", "leaf", "lemon"],
+      "exercises": [
+        "lion",
+        "lamp",
+        "leaf",
+        "lemon"
+      ],
       "lesson": 3
     },
-
     {
       "id": 13,
       "symbol": "m",
       "description": "Bilabial nasal /m/ as in 'monkey', written with M.",
-      "audio_url": "sound_m.mp3",
+      "audio_url": "/static/phoneme_m.mp3",
       "lesson_id": 1,
       "type": "alphabet",
       "unit": "UNIT5",
-      "exercises": ["monkey", "milk", "money", "mouse"],
+      "exercises": [
+        "monkey",
+        "milk",
+        "money",
+        "mouse"
+      ],
       "lesson": 1
     },
     {
       "id": 14,
       "symbol": "n",
       "description": "Alveolar nasal /n/ as in 'nut', written with N.",
-      "audio_url": "sound_n.mp3",
+      "audio_url": "/static/phoneme_n.mp3",
       "lesson_id": 2,
       "type": "alphabet",
       "unit": "UNIT5",
-      "exercises": ["nut", "net", "nest", "nose"],
+      "exercises": [
+        "nut",
+        "net",
+        "nest",
+        "nose"
+      ],
       "lesson": 2
     },
     {
       "id": 15,
       "symbol": "ɒ/ɔ",
       "description": "Short o vowel as in 'octopus', written with O.",
-      "audio_url": "sound_o.mp3",
+      "audio_url": "/static/phoneme_o_short.mp3",
       "lesson_id": 3,
       "type": "alphabet",
       "unit": "UNIT5",
-      "exercises": ["octopus", "ox", "olive", "ostrich"],
+      "exercises": [
+        "octopus",
+        "ox",
+        "olive",
+        "ostrich"
+      ],
       "lesson": 3
     },
-
     {
       "id": 16,
       "symbol": "p",
       "description": "Voiceless bilabial plosive /p/ as in 'peach', written with P.",
-      "audio_url": "sound_p.mp3",
+      "audio_url": "/static/phoneme_p.mp3",
       "lesson_id": 1,
       "type": "alphabet",
       "unit": "UNIT6",
-      "exercises": ["peach", "pen", "panda", "pineapple"],
+      "exercises": [
+        "peach",
+        "pen",
+        "panda",
+        "pineapple"
+      ],
       "lesson": 1
     },
     {
       "id": 17,
       "symbol": "kw",
       "description": "Consonant cluster /kw/ as in 'queen', written with Q.",
-      "audio_url": "sound_q.mp3",
+      "audio_url": "/static/phoneme_qu.mp3",
       "lesson_id": 2,
       "type": "alphabet",
       "unit": "UNIT6",
-      "exercises": ["queen", "quiz", "quilt", "question"],
+      "exercises": [
+        "queen",
+        "quiz",
+        "quilt",
+        "question"
+      ],
       "lesson": 2
     },
     {
       "id": 18,
       "symbol": "r",
       "description": "Approximant /r/ as in 'rabbit', written with R.",
-      "audio_url": "sound_r.mp3",
+      "audio_url": "/static/phoneme_r.mp3",
       "lesson_id": 3,
       "type": "alphabet",
       "unit": "UNIT6",
-      "exercises": ["rabbit", "rose", "rice", "robot"],
+      "exercises": [
+        "rabbit",
+        "rose",
+        "rice",
+        "robot"
+      ],
       "lesson": 3
     },
-
     {
       "id": 19,
       "symbol": "s",
       "description": "Voiceless alveolar fricative /s/ as in 'seal', written with S.",
-      "audio_url": "sound_s.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 1,
       "type": "alphabet",
       "unit": "UNIT7",
-      "exercises": ["seal", "sun", "soap", "socks"],
+      "exercises": [
+        "seal",
+        "sun",
+        "soap",
+        "socks"
+      ],
       "lesson": 1
     },
     {
       "id": 20,
       "symbol": "t",
       "description": "Voiceless alveolar plosive /t/ as in 'turtle', written with T.",
-      "audio_url": "sound_t.mp3",
+      "audio_url": "/static/phoneme_t.mp3",
       "lesson_id": 2,
       "type": "alphabet",
       "unit": "UNIT7",
-      "exercises": ["turtle", "tent", "tiger", "teacher"],
+      "exercises": [
+        "turtle",
+        "tent",
+        "tiger",
+        "teacher"
+      ],
       "lesson": 2
     },
     {
       "id": 21,
       "symbol": "ʌ/ə",
       "description": "Short u sound as in 'umbrella', written with U.",
-      "audio_url": "sound_u.mp3",
+      "audio_url": "/static/phoneme_u_short.mp3",
       "lesson_id": 3,
       "type": "alphabet",
       "unit": "UNIT7",
-      "exercises": ["umbrella", "up", "uncle", "umpire"],
+      "exercises": [
+        "umbrella",
+        "up",
+        "uncle",
+        "umpire"
+      ],
       "lesson": 3
     },
     {
       "id": 22,
       "symbol": "v",
       "description": "Voiced labiodental fricative /v/ as in 'van', written with V.",
-      "audio_url": "sound_v.mp3",
+      "audio_url": "/static/phoneme_v.mp3",
       "lesson_id": 4,
       "type": "alphabet",
       "unit": "UNIT7",
-      "exercises": ["van", "vet", "vest", "violin"],
+      "exercises": [
+        "van",
+        "vet",
+        "vest",
+        "violin"
+      ],
       "lesson": 4
     },
-
     {
       "id": 23,
       "symbol": "w",
       "description": "Approximant /w/ as in 'wolf', written with W.",
-      "audio_url": "sound_w.mp3",
+      "audio_url": "/static/phoneme_w.mp3",
       "lesson_id": 1,
       "type": "alphabet",
       "unit": "UNIT8",
-      "exercises": ["wolf", "web", "water", "watch"],
+      "exercises": [
+        "wolf",
+        "web",
+        "water",
+        "watch"
+      ],
       "lesson": 1
     },
     {
       "id": 24,
       "symbol": "ks",
       "description": "Consonant cluster /ks/ as in 'fox', written with X.",
-      "audio_url": "sound_x.mp3",
+      "audio_url": "/static/phoneme_x.mp3",
       "lesson_id": 2,
       "type": "alphabet",
       "unit": "UNIT8",
-      "exercises": ["fox", "box", "six", "wax"],
+      "exercises": [
+        "fox",
+        "box",
+        "six",
+        "wax"
+      ],
       "lesson": 2
     },
     {
       "id": 25,
       "symbol": "j",
       "description": "Palatal approximant /j/ as in 'yo-yo', written with Y.",
-      "audio_url": "sound_y.mp3",
+      "audio_url": "/static/phoneme_y.mp3",
       "lesson_id": 3,
       "type": "alphabet",
       "unit": "UNIT8",
-      "exercises": ["yo-yo", "yak", "yogurt", "yacht"],
+      "exercises": [
+        "yo-yo",
+        "yak",
+        "yogurt",
+        "yacht"
+      ],
       "lesson": 3
     },
     {
       "id": 26,
       "symbol": "z",
       "description": "Voiced alveolar fricative /z/ as in 'zebra', written with Z.",
-      "audio_url": "sound_z.mp3",
+      "audio_url": "/static/phoneme_z.mp3",
       "lesson_id": 4,
       "type": "alphabet",
       "unit": "UNIT8",
-      "exercises": ["zipper", "zero", "zoo", "zebra"],
+      "exercises": [
+        "zipper",
+        "zero",
+        "zoo",
+        "zebra"
+      ],
       "lesson": 4
     },
-
     {
       "id": 27,
       "symbol": "eɪ (a_e)",
       "description": "Long A sound /eɪ/ spelled a_e as in 'tape' and 'cake'.",
-      "audio_url": "sound_a_e.mp3",
+      "audio_url": "/static/phoneme_a_long.mp3",
       "lesson_id": 1,
       "type": "long vowel",
       "unit": "UNIT1",
@@ -322,7 +444,7 @@
       "id": 28,
       "symbol": "aɪ (i_e)",
       "description": "Long I sound /aɪ/ spelled i_e as in 'kite' and 'time'.",
-      "audio_url": "sound_i_e.mp3",
+      "audio_url": "/static/phoneme_ie.mp3",
       "lesson_id": 1,
       "type": "long vowel",
       "unit": "UNIT2",
@@ -346,18 +468,23 @@
       "id": 29,
       "symbol": "oʊ (o_e)",
       "description": "Long O sound /oʊ/ spelled o_e as in 'home' and 'rope'.",
-      "audio_url": "sound_o_e.mp3",
+      "audio_url": "/static/phoneme_o_long.mp3",
       "lesson_id": 1,
       "type": "long vowel",
       "unit": "UNIT3",
-      "exercises": ["home", "bone", "cone", "rope"],
+      "exercises": [
+        "home",
+        "bone",
+        "cone",
+        "rope"
+      ],
       "lesson": 1
     },
     {
       "id": 30,
       "symbol": "uː (u_e)",
       "description": "Long U sound /juː/ or /uː/ spelled u_e as in 'cube' and 'mule'.",
-      "audio_url": "sound_u_e.mp3",
+      "audio_url": "/static/phoneme_u_long.mp3",
       "lesson_id": 2,
       "type": "long vowel",
       "unit": "UNIT3",
@@ -377,29 +504,43 @@
       "id": 31,
       "symbol": "eɪ (ai)",
       "description": "Long A sound /eɪ/ spelled ai as in 'rain' and 'tail'.",
-      "audio_url": "sound_ai.mp3",
+      "audio_url": "/static/phoneme_ai.mp3",
       "lesson_id": 1,
       "type": "long vowel",
       "unit": "UNIT4",
-      "exercises": ["rain", "nail", "tail", "wait"],
+      "exercises": [
+        "rain",
+        "nail",
+        "tail",
+        "wait"
+      ],
       "lesson": 1
     },
     {
       "id": 32,
       "symbol": "eɪ (ay)",
       "description": "Long A sound /eɪ/ spelled ay as in 'day' and 'bay'.",
-      "audio_url": "sound_ay.mp3",
+      "audio_url": "/static/phoneme_ai.mp3",
       "lesson_id": 2,
       "type": "long vowel",
       "unit": "UNIT4",
-      "exercises": ["bay", "day", "say", "pay", "sail", "mail", "hay", "May"],
+      "exercises": [
+        "bay",
+        "day",
+        "say",
+        "pay",
+        "sail",
+        "mail",
+        "hay",
+        "May"
+      ],
       "lesson": 2
     },
     {
       "id": 33,
       "symbol": "iː (ee/ea)",
       "description": "Long E sound /iː/ spelled ee/ea as in 'feet' and 'leaf'.",
-      "audio_url": "sound_long_e.mp3",
+      "audio_url": "/static/phoneme_ee.mp3",
       "lesson_id": 1,
       "type": "long vowel",
       "unit": "UNIT5",
@@ -415,528 +556,687 @@
       ],
       "lesson": 1
     },
-
     {
       "id": 34,
       "symbol": "bl",
       "description": "Consonant blend /bl/ where /b/ and /l/ are pronounced together at the start of a syllable, as in 'black' and 'blanket'.",
-      "audio_url": "sound_bl.mp3",
+      "audio_url": "/static/phoneme_bl.mp3",
       "lesson_id": 1,
       "type": "consonant blend",
       "unit": "UNIT4",
-      "exercises": ["black", "blanket", "blue", "block", "blow"],
+      "exercises": [
+        "black",
+        "blanket",
+        "blue",
+        "block",
+        "blow"
+      ],
       "lesson": 1
     },
     {
       "id": 35,
       "symbol": "cl",
       "description": "Consonant blend /kl/ combining /k/ and /l/ at the beginning of a word, as in 'clock' and 'club'.",
-      "audio_url": "sound_cl.mp3",
+      "audio_url": "/static/phoneme_cl.mp3",
       "lesson_id": 2,
       "type": "consonant blend",
       "unit": "UNIT4",
-      "exercises": ["clock", "club", "clue", "clean"],
+      "exercises": [
+        "clock",
+        "club",
+        "clue",
+        "clean"
+      ],
       "lesson": 2
     },
     {
       "id": 36,
       "symbol": "br",
       "description": "Consonant blend /br/ combining /b/ and /r/ at the start of a word, as in 'broom'.",
-      "audio_url": "sound_br.mp3",
+      "audio_url": "/static/phoneme_br.mp3",
       "lesson_id": 3,
       "type": "consonant blend",
       "unit": "UNIT4",
-      "exercises": ["broom", "bride"],
+      "exercises": [
+        "broom",
+        "bride"
+      ],
       "lesson": 3
     },
     {
       "id": 37,
       "symbol": "cr",
       "description": "Consonant blend /kr/ combining /k/ and /r/, as in 'crab' and 'crocodile'.",
-      "audio_url": "sound_cr.mp3",
+      "audio_url": "/static/phoneme_cr.mp3",
       "lesson_id": 4,
       "type": "consonant blend",
       "unit": "UNIT4",
-      "exercises": ["crab", "crocodile"],
+      "exercises": [
+        "crab",
+        "crocodile"
+      ],
       "lesson": 4
     },
     {
       "id": 38,
       "symbol": "fl",
       "description": "Consonant blend /fl/ combining /f/ and /l/, as in 'fly' and 'flag'.",
-      "audio_url": "sound_fl.mp3",
+      "audio_url": "/static/phoneme_fl.mp3",
       "lesson_id": 5,
       "type": "consonant blend",
       "unit": "UNIT4",
-      "exercises": ["fly", "flag"],
+      "exercises": [
+        "fly",
+        "flag"
+      ],
       "lesson": 5
     },
     {
       "id": 39,
       "symbol": "gl",
       "description": "Consonant blend /gl/ combining /g/ and /l/, as in 'globe' and 'glass'.",
-      "audio_url": "sound_gl.mp3",
+      "audio_url": "/static/phoneme_gl.mp3",
       "lesson_id": 6,
       "type": "consonant blend",
       "unit": "UNIT4",
-      "exercises": ["globe", "glass"],
+      "exercises": [
+        "globe",
+        "glass"
+      ],
       "lesson": 6
     },
-
     {
       "id": 40,
       "symbol": "fr",
       "description": "Consonant blend /fr/ as in 'frog' and 'Friday'.",
-      "audio_url": "sound_fr.mp3",
+      "audio_url": "/static/phoneme_fr.mp3",
       "lesson_id": 1,
       "type": "consonant blend",
       "unit": "UNIT2",
-      "exercises": ["frog", "Friday"],
+      "exercises": [
+        "frog",
+        "Friday"
+      ],
       "lesson": 1
     },
     {
       "id": 41,
       "symbol": "gr",
       "description": "Consonant blend /gr/ as in 'green' and 'grass'.",
-      "audio_url": "sound_gr.mp3",
+      "audio_url": "/static/phoneme_gr.mp3",
       "lesson_id": 2,
       "type": "consonant blend",
       "unit": "UNIT2",
-      "exercises": ["green", "grass"],
+      "exercises": [
+        "green",
+        "grass"
+      ],
       "lesson": 2
     },
     {
       "id": 42,
       "symbol": "pl",
       "description": "Consonant blend /pl/ as in 'plate' and 'play'.",
-      "audio_url": "sound_pl.mp3",
+      "audio_url": "/static/phoneme_pl.mp3",
       "lesson_id": 3,
       "type": "consonant blend",
       "unit": "UNIT2",
-      "exercises": ["plate", "play"],
+      "exercises": [
+        "plate",
+        "play"
+      ],
       "lesson": 3
     },
     {
       "id": 43,
       "symbol": "sl",
       "description": "Consonant blend /sl/ as in 'slide' and 'sleep'.",
-      "audio_url": "sound_sl.mp3",
+      "audio_url": "/static/phoneme_sl.mp3",
       "lesson_id": 4,
       "type": "consonant blend",
       "unit": "UNIT2",
-      "exercises": ["slide", "sleep"],
+      "exercises": [
+        "slide",
+        "sleep"
+      ],
       "lesson": 4
     },
     {
       "id": 44,
       "symbol": "dr",
       "description": "Consonant blend /dr/ as in 'drum' and 'dress'.",
-      "audio_url": "sound_dr.mp3",
+      "audio_url": "/static/phoneme_dr.mp3",
       "lesson_id": 5,
       "type": "consonant blend",
       "unit": "UNIT2",
-      "exercises": ["drum", "dress"],
+      "exercises": [
+        "drum",
+        "dress"
+      ],
       "lesson": 5
     },
     {
       "id": 45,
       "symbol": "tr",
       "description": "Consonant blend /tr/ as in 'truck' and 'tree'.",
-      "audio_url": "sound_tr.mp3",
+      "audio_url": "/static/phoneme_tr.mp3",
       "lesson_id": 6,
       "type": "consonant blend",
       "unit": "UNIT2",
-      "exercises": ["truck", "tree"],
+      "exercises": [
+        "truck",
+        "tree"
+      ],
       "lesson": 6
     },
-
     {
       "id": 46,
       "symbol": "sm",
       "description": "Consonant blend /sm/ as in 'smile' and 'smoke'.",
-      "audio_url": "sound_sm.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 1,
       "type": "consonant blend",
       "unit": "UNIT3",
-      "exercises": ["smile", "smoke"],
+      "exercises": [
+        "smile",
+        "smoke"
+      ],
       "lesson": 1
     },
     {
       "id": 47,
       "symbol": "sn",
       "description": "Consonant blend /sn/ as in 'snake' and 'snow'.",
-      "audio_url": "sound_sn.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 2,
       "type": "consonant blend",
       "unit": "UNIT3",
-      "exercises": ["snake", "snow"],
+      "exercises": [
+        "snake",
+        "snow"
+      ],
       "lesson": 2
     },
     {
       "id": 48,
       "symbol": "sp",
       "description": "Consonant blend /sp/ as in 'spoon' and 'spot'.",
-      "audio_url": "sound_sp.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 3,
       "type": "consonant blend",
       "unit": "UNIT3",
-      "exercises": ["spoon", "spot"],
+      "exercises": [
+        "spoon",
+        "spot"
+      ],
       "lesson": 3
     },
     {
       "id": 49,
       "symbol": "sw",
       "description": "Consonant blend /sw/ as in 'swing' and 'swim'.",
-      "audio_url": "sound_sw.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 4,
       "type": "consonant blend",
       "unit": "UNIT3",
-      "exercises": ["swing", "swim"],
+      "exercises": [
+        "swing",
+        "swim"
+      ],
       "lesson": 4
     },
     {
       "id": 50,
       "symbol": "st",
       "description": "Consonant blend /st/ as in 'stop' and 'stamp'.",
-      "audio_url": "sound_st.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 5,
       "type": "consonant blend",
       "unit": "UNIT3",
-      "exercises": ["stop", "stamp", "test", "fast"],
+      "exercises": [
+        "stop",
+        "stamp",
+        "test",
+        "fast"
+      ],
       "lesson": 5
     },
-
     {
       "id": 51,
       "symbol": "ʃ (sh)",
       "description": "Consonant digraph /ʃ/ as in 'shell' and 'fish', spelled sh.",
-      "audio_url": "sound_sh.mp3",
+      "audio_url": "/static/phoneme_sh.mp3",
       "lesson_id": 1,
       "type": "letter combination",
       "unit": "UNIT4",
-      "exercises": ["shell", "fish", "ship", "brush"],
+      "exercises": [
+        "shell",
+        "fish",
+        "ship",
+        "brush"
+      ],
       "lesson": 1
     },
     {
       "id": 52,
       "symbol": "tʃ (ch)",
       "description": "Affricate /tʃ/ as in 'chick' and 'catch', spelled ch or tch.",
-      "audio_url": "sound_ch.mp3",
+      "audio_url": "/static/phoneme_ch.mp3",
       "lesson_id": 2,
       "type": "letter combination",
       "unit": "UNIT4",
-      "exercises": ["chick", "lunch", "watch", "catch"],
+      "exercises": [
+        "chick",
+        "lunch",
+        "watch",
+        "catch"
+      ],
       "lesson": 2
     },
     {
       "id": 53,
       "symbol": "f (ph)",
       "description": "Ph digraph pronounced /f/ as in 'phone' and 'dolphin'.",
-      "audio_url": "sound_ph.mp3",
+      "audio_url": "/static/phoneme_f.mp3",
       "lesson_id": 3,
       "type": "letter combination",
       "unit": "UNIT4",
-      "exercises": ["phone", "dolphin"],
+      "exercises": [
+        "phone",
+        "dolphin"
+      ],
       "lesson": 3
     },
     {
       "id": 54,
       "symbol": "w (wh)",
       "description": "Digraph wh usually pronounced /w/ as in 'whale' and 'white'.",
-      "audio_url": "sound_wh.mp3",
+      "audio_url": "/static/phoneme_w.mp3",
       "lesson_id": 4,
       "type": "letter combination",
       "unit": "UNIT4",
-      "exercises": ["whale", "white"],
+      "exercises": [
+        "whale",
+        "white"
+      ],
       "lesson": 4
     },
     {
       "id": 55,
       "symbol": "ð (voiced th)",
       "description": "Voiced dental fricative /ð/ as in 'this' and 'mother'.",
-      "audio_url": "sound_th_voiced.mp3",
+      "audio_url": "/static/phoneme_thh.mp3",
       "lesson_id": 1,
       "type": "letter combination",
       "unit": "UNIT5",
-      "exercises": ["this", "that", "mother", "father"],
+      "exercises": [
+        "this",
+        "that",
+        "mother",
+        "father"
+      ],
       "lesson": 1
     },
     {
       "id": 56,
       "symbol": "θ (unvoiced th)",
       "description": "Voiceless dental fricative /θ/ as in 'three' and 'think'.",
-      "audio_url": "sound_th_unvoiced.mp3",
+      "audio_url": "/static/phoneme_th.mp3",
       "lesson_id": 2,
       "type": "letter combination",
       "unit": "UNIT5",
-      "exercises": ["three", "teeth", "think", "bath"],
+      "exercises": [
+        "three",
+        "teeth",
+        "think",
+        "bath"
+      ],
       "lesson": 2
     },
     {
       "id": 57,
       "symbol": "ck",
       "description": "Letter combination ck representing /k/ at the end of a syllable as in 'duck' and 'rock'.",
-      "audio_url": "sound_ck.mp3",
+      "audio_url": "/static/phoneme_ck.mp3",
       "lesson_id": 3,
       "type": "letter combination",
       "unit": "UNIT5",
-      "exercises": ["duck", "rocket"],
+      "exercises": [
+        "duck",
+        "rocket"
+      ],
       "lesson": 3
     },
     {
       "id": 58,
       "symbol": "qu",
       "description": "Letter combination qu representing /kw/ as in 'queen' and 'quilt'.",
-      "audio_url": "sound_qu.mp3",
+      "audio_url": "/static/phoneme_qu.mp3",
       "lesson_id": 4,
       "type": "letter combination",
       "unit": "UNIT5",
-      "exercises": ["queen", "quilt"],
+      "exercises": [
+        "queen",
+        "quilt"
+      ],
       "lesson": 4
     },
-
     {
       "id": 59,
       "symbol": "ŋ (ng)",
       "description": "Nasal /ŋ/ as in 'king' and 'long', spelled ng.",
-      "audio_url": "sound_ng.mp3",
+      "audio_url": "/static/phoneme_ng.mp3",
       "lesson_id": 1,
       "type": "letter combination",
       "unit": "UNIT6",
-      "exercises": ["king", "long"],
+      "exercises": [
+        "king",
+        "long"
+      ],
       "lesson": 1
     },
     {
       "id": 60,
       "symbol": "nk",
       "description": "Final consonant cluster /ŋk/ as in 'bank' and 'pink'.",
-      "audio_url": "sound_nk.mp3",
+      "audio_url": "/static/phoneme_ng.mp3",
       "lesson_id": 2,
       "type": "letter combination",
       "unit": "UNIT6",
-      "exercises": ["bank", "pink"],
+      "exercises": [
+        "bank",
+        "pink"
+      ],
       "lesson": 2
     },
     {
       "id": 61,
       "symbol": "nd",
       "description": "Final consonant cluster /nd/ as in 'wind' and 'hand'.",
-      "audio_url": "sound_nd.mp3",
+      "audio_url": "/static/phoneme_n.mp3",
       "lesson_id": 3,
       "type": "letter combination",
       "unit": "UNIT6",
-      "exercises": ["wind", "hand"],
+      "exercises": [
+        "wind",
+        "hand"
+      ],
       "lesson": 3
     },
     {
       "id": 62,
       "symbol": "nt",
       "description": "Final consonant cluster /nt/ as in 'tent' and 'paint'.",
-      "audio_url": "sound_nt.mp3",
+      "audio_url": "/static/phoneme_n.mp3",
       "lesson_id": 4,
       "type": "letter combination",
       "unit": "UNIT6",
-      "exercises": ["tent", "paint"],
+      "exercises": [
+        "tent",
+        "paint"
+      ],
       "lesson": 4
     },
     {
       "id": 63,
       "symbol": "lt",
       "description": "Final consonant cluster /lt/ as in 'belt'.",
-      "audio_url": "sound_lt.mp3",
+      "audio_url": "/static/phoneme_l.mp3",
       "lesson_id": 5,
       "type": "letter combination",
       "unit": "UNIT6",
-      "exercises": ["belt"],
+      "exercises": [
+        "belt"
+      ],
       "lesson": 5
     },
     {
       "id": 64,
       "symbol": "mp",
       "description": "Final consonant cluster /mp/ as in 'lamp' and 'camp'.",
-      "audio_url": "sound_mp.mp3",
+      "audio_url": "/static/phoneme_m.mp3",
       "lesson_id": 6,
       "type": "letter combination",
       "unit": "UNIT6",
-      "exercises": ["lamp", "camp"],
+      "exercises": [
+        "lamp",
+        "camp"
+      ],
       "lesson": 6
     },
-
     {
       "id": 65,
       "symbol": "sk",
       "description": "Consonant blend /sk/ as in 'skunk' and 'desk'.",
-      "audio_url": "sound_sk.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 1,
       "type": "consonant blend",
       "unit": "UNIT7",
-      "exercises": ["skunk", "desk"],
+      "exercises": [
+        "skunk",
+        "desk"
+      ],
       "lesson": 1
     },
     {
       "id": 66,
       "symbol": "sc",
       "description": "Blend sc pronounced /sk/ as in 'scale' and 'school'.",
-      "audio_url": "sound_sc.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 2,
       "type": "consonant blend",
       "unit": "UNIT7",
-      "exercises": ["scale", "school"],
+      "exercises": [
+        "scale",
+        "school"
+      ],
       "lesson": 2
     },
     {
       "id": 67,
       "symbol": "spr",
       "description": "Consonant blend /spr/ as in 'spray' and 'spring'.",
-      "audio_url": "sound_spr.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 3,
       "type": "consonant blend",
       "unit": "UNIT7",
-      "exercises": ["spray", "spring"],
+      "exercises": [
+        "spray",
+        "spring"
+      ],
       "lesson": 3
     },
     {
       "id": 68,
       "symbol": "str",
       "description": "Consonant blend /str/ as in 'string' and 'strong'.",
-      "audio_url": "sound_str.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 4,
       "type": "consonant blend",
       "unit": "UNIT7",
-      "exercises": ["string", "strong"],
+      "exercises": [
+        "string",
+        "strong"
+      ],
       "lesson": 4
     },
     {
       "id": 69,
       "symbol": "spl",
       "description": "Consonant blend /spl/ as in 'splash' and 'splint'.",
-      "audio_url": "sound_spl.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 5,
       "type": "consonant blend",
       "unit": "UNIT7",
-      "exercises": ["splash", "splint"],
+      "exercises": [
+        "splash",
+        "splint"
+      ],
       "lesson": 5
     },
     {
       "id": 70,
       "symbol": "skw (squ)",
       "description": "Consonant blend /skw/ spelled squ as in 'squid' and 'square'.",
-      "audio_url": "sound_squ.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 6,
       "type": "consonant blend",
       "unit": "UNIT7",
-      "exercises": ["squid", "square"],
+      "exercises": [
+        "squid",
+        "square"
+      ],
       "lesson": 6
     },
-
     {
       "id": 71,
       "symbol": "s (voiced)",
       "description": "Voiced /z/ sound spelled s in words like 'rose' and 'jeans'.",
-      "audio_url": "sound_voiced_s.mp3",
+      "audio_url": "/static/phoneme_z.mp3",
       "lesson_id": 3,
       "type": "letter combination",
       "unit": "UNIT8",
-      "exercises": ["rose", "jeans", "cheese", "legs"],
+      "exercises": [
+        "rose",
+        "jeans",
+        "cheese",
+        "legs"
+      ],
       "lesson": 3
     },
-
     {
       "id": 72,
       "symbol": "ar",
       "description": "R-controlled vowel /ɑːr/ as in 'car' and 'farm'.",
-      "audio_url": "sound_ar.mp3",
+      "audio_url": "/static/phoneme_ar.mp3",
       "lesson_id": 1,
       "type": "r-controlled vowel",
       "unit": "UNIT1",
-      "exercises": ["car", "farm", "park", "star"],
+      "exercises": [
+        "car",
+        "farm",
+        "park",
+        "star"
+      ],
       "lesson": 1
     },
     {
       "id": 73,
       "symbol": "ɜːr (ir/ur)",
       "description": "R-controlled vowel /ɜːr/ spelled ir/ur as in 'bird' and 'nurse'.",
-      "audio_url": "sound_ir_ur.mp3",
+      "audio_url": "/static/phoneme_er.mp3",
       "lesson_id": 2,
       "type": "r-controlled vowel",
       "unit": "UNIT1",
-      "exercises": ["bird", "girl", "nurse", "purple"],
+      "exercises": [
+        "bird",
+        "girl",
+        "nurse",
+        "purple"
+      ],
       "lesson": 2
     },
     {
       "id": 74,
       "symbol": "ər (er/or)",
       "description": "R-controlled vowel spelled er/or as in 'teacher' and 'doctor'.",
-      "audio_url": "sound_er_or.mp3",
+      "audio_url": "/static/phoneme_er.mp3",
       "lesson_id": 3,
       "type": "r-controlled vowel",
       "unit": "UNIT1",
-      "exercises": ["teacher", "sister", "doctor", "tractor"],
+      "exercises": [
+        "teacher",
+        "sister",
+        "doctor",
+        "tractor"
+      ],
       "lesson": 3
     },
-
     {
       "id": 75,
       "symbol": "aʊ (ou/ow)",
       "description": "Diphthong /aʊ/ spelled ou/ow as in 'mouse' and 'cow'.",
-      "audio_url": "sound_ou_ow.mp3",
+      "audio_url": "/static/phoneme_ou.mp3",
       "lesson_id": 1,
       "type": "diphthong",
       "unit": "UNIT2",
-      "exercises": ["mouse", "house", "cow", "brown"],
+      "exercises": [
+        "mouse",
+        "house",
+        "cow",
+        "brown"
+      ],
       "lesson": 1
     },
     {
       "id": 76,
       "symbol": "ɔɪ (oi/oy)",
       "description": "Diphthong /ɔɪ/ spelled oi/oy as in 'coin' and 'boy'.",
-      "audio_url": "sound_oi_oy.mp3",
+      "audio_url": "/static/phoneme_oi.mp3",
       "lesson_id": 2,
       "type": "diphthong",
       "unit": "UNIT2",
-      "exercises": ["coin", "soil", "toy", "boy"],
+      "exercises": [
+        "coin",
+        "soil",
+        "toy",
+        "boy"
+      ],
       "lesson": 2
     },
     {
       "id": 77,
       "symbol": "ʊ/ʌ (oo/u)",
       "description": "Short vowel /ʊ/ or /ʌ/ in words like 'book', 'foot', and 'bush'.",
-      "audio_url": "sound_oo_u.mp3",
+      "audio_url": "/static/phoneme_oo.mp3",
       "lesson_id": 3,
       "type": "letter combination",
       "unit": "UNIT2",
-      "exercises": ["book", "foot", "bush", "pull"],
+      "exercises": [
+        "book",
+        "foot",
+        "bush",
+        "pull"
+      ],
       "lesson": 3
     },
-
     {
       "id": 78,
       "symbol": "ɔː (au/aw)",
       "description": "Vowel /ɔː/ spelled au/aw as in 'sauce' and 'prawn'.",
-      "audio_url": "sound_au_aw.mp3",
+      "audio_url": "/static/phoneme_au.mp3",
       "lesson_id": 1,
       "type": "letter combination",
       "unit": "UNIT3",
-      "exercises": ["sauce", "August", "prawn", "draw"],
+      "exercises": [
+        "sauce",
+        "August",
+        "prawn",
+        "draw"
+      ],
       "lesson": 1
     },
     {
       "id": 79,
       "symbol": "ɔː (or/oar)",
       "description": "R-colored /ɔːr/ spelled or/oar as in 'horse' and 'board'.",
-      "audio_url": "sound_or_oar.mp3",
+      "audio_url": "/static/phoneme_or.mp3",
       "lesson_id": 3,
       "type": "r-controlled vowel",
       "unit": "UNIT3",
-      "exercises": ["horse", "fork", "roar", "board"],
+      "exercises": [
+        "horse",
+        "fork",
+        "roar",
+        "board"
+      ],
       "lesson": 3
     },
-
     {
       "id": 80,
       "symbol": "ə (schwa)",
       "description": "Schwa /ə/, the unstressed vowel in many English words such as 'panda' and 'banana'.",
-      "audio_url": "sound_schwa.mp3",
+      "audio_url": "/static/phoneme_e_short.mp3",
       "lesson_id": 1,
       "type": "schwa",
       "unit": "UNIT6",
@@ -956,116 +1256,146 @@
       ],
       "lesson": 1
     },
-
     {
       "id": 81,
       "symbol": "kn- (silent k)",
       "description": "Silent k in kn at the start of words, pronounced /n/ as in 'knife' and 'knee'.",
-      "audio_url": "sound_kn.mp3",
+      "audio_url": "/static/phoneme_n.mp3",
       "lesson_id": 1,
       "type": "silent letters",
       "unit": "UNIT7",
-      "exercises": ["knife", "knee"],
+      "exercises": [
+        "knife",
+        "knee"
+      ],
       "lesson": 1
     },
     {
       "id": 82,
       "symbol": "wr- (silent w)",
       "description": "Silent w in wr at the start of words, pronounced /r/ as in 'write' and 'wrong'.",
-      "audio_url": "sound_wr.mp3",
+      "audio_url": "/static/phoneme_r.mp3",
       "lesson_id": 2,
       "type": "silent letters",
       "unit": "UNIT7",
-      "exercises": ["write", "wrong"],
+      "exercises": [
+        "write",
+        "wrong"
+      ],
       "lesson": 2
     },
     {
       "id": 83,
       "symbol": "mb (silent b)",
       "description": "Final mb where b is silent, pronounced /m/ as in 'lamb' and 'comb'.",
-      "audio_url": "sound_mb.mp3",
+      "audio_url": "/static/phoneme_m.mp3",
       "lesson_id": 3,
       "type": "silent letters",
       "unit": "UNIT7",
-      "exercises": ["lamb", "comb"],
+      "exercises": [
+        "lamb",
+        "comb"
+      ],
       "lesson": 3
     },
     {
       "id": 84,
       "symbol": "rh- (silent h)",
       "description": "Initial rh pronounced /r/, h silent, as in 'rhino' and 'rhubarb'.",
-      "audio_url": "sound_rh.mp3",
+      "audio_url": "/static/phoneme_r.mp3",
       "lesson_id": 4,
       "type": "silent letters",
       "unit": "UNIT7",
-      "exercises": ["rhino", "rhubarb"],
+      "exercises": [
+        "rhino",
+        "rhubarb"
+      ],
       "lesson": 4
     },
     {
       "id": 85,
       "symbol": "st (silent t in some words)",
       "description": "Silent t in some st words like 'castle', where the t is not pronounced.",
-      "audio_url": "sound_st_silent_t.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 5,
       "type": "silent letters",
       "unit": "UNIT7",
-      "exercises": ["castle", "whistle"],
+      "exercises": [
+        "castle",
+        "whistle"
+      ],
       "lesson": 5
     },
-
     {
       "id": 86,
       "symbol": "tʃər (ture)",
       "description": "Ending -ture pronounced /tʃər/ as in 'picture' and 'nature'.",
-      "audio_url": "sound_ture.mp3",
+      "audio_url": "/static/phoneme_ch.mp3",
       "lesson_id": 1,
       "type": "suffix",
       "unit": "UNIT8",
-      "exercises": ["picture", "nature"],
+      "exercises": [
+        "picture",
+        "nature"
+      ],
       "lesson": 1
     },
     {
       "id": 87,
       "symbol": "ʒər (sure)",
       "description": "Ending -sure pronounced /ʒər/ as in 'treasure' and 'measure'.",
-      "audio_url": "sound_sure.mp3",
+      "audio_url": "/static/phoneme_sh.mp3",
       "lesson_id": 2,
       "type": "suffix",
       "unit": "UNIT8",
-      "exercises": ["treasure", "measure"],
+      "exercises": [
+        "treasure",
+        "measure"
+      ],
       "lesson": 2
     },
     {
       "id": 88,
       "symbol": "ʃən (tion/sion)",
       "description": "Endings -tion/-sion pronounced /ʃən/ as in 'station' and 'television'.",
-      "audio_url": "sound_tion_sion.mp3",
+      "audio_url": "/static/phoneme_sh.mp3",
       "lesson_id": 3,
       "type": "suffix",
       "unit": "UNIT8",
-      "exercises": ["station", "competition", "television", "excursion"],
+      "exercises": [
+        "station",
+        "competition",
+        "television",
+        "excursion"
+      ],
       "lesson": 3
     },
     {
       "id": 89,
       "symbol": "əs (ous)",
       "description": "Suffix -ous pronounced /əs/ as in 'dangerous' and 'famous'.",
-      "audio_url": "sound_ous.mp3",
+      "audio_url": "/static/phoneme_s.mp3",
       "lesson_id": 4,
       "type": "suffix",
       "unit": "UNIT8",
-      "exercises": ["famous", "dangerous"],
+      "exercises": [
+        "famous",
+        "dangerous"
+      ],
       "lesson": 4
     },
     {
       "id": 90,
       "symbol": "fəl (ful)",
       "description": "Suffix -ful pronounced /fəl/ as in 'beautiful' and 'helpful'.",
-      "audio_url": "sound_ful.mp3",
+      "audio_url": "/static/phoneme_f.mp3",
       "lesson_id": 5,
       "type": "suffix",
       "unit": "UNIT8",
-      "exercises": ["beautiful", "helpful"],
+      "exercises": [
+        "beautiful",
+        "helpful"
+      ],
       "lesson": 5
     }
   ]

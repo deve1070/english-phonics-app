@@ -1,7 +1,7 @@
 """
 cleanup_invalid_exercises.py
 ==============================
-Deletes seeded WORD-type exercises that violate the phoneme ordering rule:
+Deletes exercises that violate the phoneme ordering rule:
   "All phonemes in an exercise for phoneme N must have order <= N"
 
 For example, the exercise "apple" seeded for phoneme /a/ (order=1) is
@@ -155,14 +155,22 @@ async def cleanup() -> None:
         # Build a map: phoneme_id → symbol
         phoneme_symbol_map = {p.id: p.symbol for p in all_phonemes}
 
-        # Load all WORD-type exercises with their phoneme links
+        # Load all generated/seeded text exercises with their phoneme links
         exercise_result = await db.execute(
             select(Exercise)
             .options(selectinload(Exercise.phonemes))
-            .where(Exercise.type == ExerciseType.WORD)
+            .where(
+                Exercise.type.in_(
+                    [
+                        ExerciseType.WORD,
+                        ExerciseType.SENTENCE,
+                        ExerciseType.PHARAGRAPH,
+                    ]
+                )
+            )
         )
         exercises: list[Exercise] = exercise_result.scalars().all()
-        log.info("Loaded %d WORD-type exercises to check", len(exercises))
+        log.info("Loaded %d text exercises to check", len(exercises))
 
         to_delete: list[int] = []
         violations: list[str] = []
