@@ -1,4 +1,5 @@
 import io
+import logging
 import re
 from typing import Optional
 
@@ -10,6 +11,8 @@ from app.utils.pronunciation_assessor import assess_pronunciation
 from fastapi import HTTPException
 from pydub import AudioSegment
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 
 def split_into_sentences(text: str) -> list[str]:
@@ -87,10 +90,19 @@ async def assess_student_pronunciation(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        # pydub raises CouldntDecodeError with ffmpeg's entire stderr
+        # attached. Interpolating that into `detail` sent a wall of codec
+        # output to a child's screen, so log it and return something a
+        # kid can actually act on.
+        logger.exception(
+            "Audio decode/assessment failed for exercise_id=%s user_id=%s",
+            exercise.id,
+            user_id,
+        )
         raise HTTPException(
             status_code=400,
-            detail=f"Could not process audio: {str(e)}. Please try again.",
+            detail="We couldn't hear that clearly. Please record again.",
         )
 
     # Save score — include phoneme_id if this exercise targets a specific phoneme
@@ -159,10 +171,15 @@ async def assess_student_phoneme_pronunciation(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "Audio decode/assessment failed for phoneme_id=%s user_id=%s",
+            phoneme.id,
+            user_id,
+        )
         raise HTTPException(
             status_code=400,
-            detail=f"Could not process audio: {str(e)}. Please try again.",
+            detail="We couldn't hear that clearly. Please record again.",
         )
 
     return {
