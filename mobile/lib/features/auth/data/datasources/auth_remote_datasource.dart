@@ -28,10 +28,7 @@ class AuthRemoteDataSource {
       );
     }
 
-    await _tokenStorage.saveTokens(
-      accessToken: accessToken,
-      refreshToken: (response.data['refresh_token'] ?? '').toString(),
-    );
+    await _tokenStorage.saveTokens(accessToken: accessToken);
 
     final biometricToken = (response.data['biometric_token'] ?? '').toString();
     if (biometricToken.isNotEmpty) {
@@ -58,7 +55,7 @@ class AuthRemoteDataSource {
     final biometricToken = (response.data['biometric_token'] ?? '').toString();
     
     if (accessToken.isNotEmpty) {
-      await _tokenStorage.saveTokens(accessToken: accessToken, refreshToken: '');
+      await _tokenStorage.saveTokens(accessToken: accessToken);
     }
     if (biometricToken.isNotEmpty) {
       await _tokenStorage.saveBiometricToken(biometricToken);
@@ -81,7 +78,7 @@ class AuthRemoteDataSource {
     final newBiometricToken = (response.data['biometric_token'] ?? '').toString();
 
     if (accessToken.isNotEmpty) {
-      await _tokenStorage.saveTokens(accessToken: accessToken, refreshToken: '');
+      await _tokenStorage.saveTokens(accessToken: accessToken);
     }
     if (newBiometricToken.isNotEmpty) {
       await _tokenStorage.saveBiometricToken(newBiometricToken);

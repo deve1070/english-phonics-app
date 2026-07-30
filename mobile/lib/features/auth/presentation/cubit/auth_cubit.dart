@@ -7,25 +7,25 @@ import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/token_storage.dart';
-import '../../../../core/auth/biometric_auth_service.dart';
 import 'auth_state.dart';
 import '../../domain/entities/user_entity.dart';
 
+/// Owns the passwordless auth flow. Deliberately holds no
+/// BiometricAuthService: the device biometric prompt gates entry to the
+/// *parent dashboard* (see ParentDashboardButton), not sign-in itself.
+/// Gating sign-in on biometrics locked out devices without the hardware.
 class AuthCubit extends Cubit<AuthState> {
   final LoginUseCase _loginUseCase;
   final RegisterUseCase _registerUseCase;
   final PasskeyLoginUseCase _passkeyLoginUseCase;
-  final BiometricAuthService _biometricAuthService;
 
   AuthCubit({
     required LoginUseCase loginUseCase,
     required RegisterUseCase registerUseCase,
     required PasskeyLoginUseCase passkeyLoginUseCase,
-    required BiometricAuthService biometricAuthService,
   })  : _loginUseCase = loginUseCase,
         _registerUseCase = registerUseCase,
         _passkeyLoginUseCase = passkeyLoginUseCase,
-        _biometricAuthService = biometricAuthService,
         super(const AuthInitial());
 
   factory AuthCubit.create() {
@@ -33,86 +33,54 @@ class AuthCubit extends Cubit<AuthState> {
     final dio = getIt<Dio>();
     final dataSource = AuthRemoteDataSource(dio, tokenStorage);
     final repo = AuthRepositoryImpl(dataSource, tokenStorage);
-    final biometricAuthService = BiometricAuthService(dio, tokenStorage);
     return AuthCubit(
       loginUseCase: LoginUseCase(repo),
       registerUseCase: RegisterUseCase(repo),
       passkeyLoginUseCase: PasskeyLoginUseCase(repo),
-      biometricAuthService: biometricAuthService,
     );
   }
 
+  /// Passwordless login: phone number only. `POST /auth/login` returns the
+  /// access_token and biometric_token in one shot — there is no OTP step
+  /// and no separate biometric verification call.
   Future<void> login({
     required String phoneNumber,
   }) async {
     emit(const AuthLoading());
-    try {
-      final dio = getIt<Dio>();
-      final tokenStorage = getIt<TokenStorage>();
-      
-      final res1 = await dio.post('/auth/phone-login', data: {'phone_number': phoneNumber});
-      final status = res1.data['status'];
-      
-      String? bioToken;
-      if (status == 'registered') {
-        bioToken = res1.data['biometric_token'];
-        await tokenStorage.saveBiometricToken(bioToken!);
-      } else {
-        bioToken = await tokenStorage.getBiometricToken();
-        if (bioToken == null || bioToken.isEmpty) {
-           bioToken = 'device-token-${DateTime.now().millisecondsSinceEpoch}';
-           await tokenStorage.saveBiometricToken(bioToken);
-        }
-      }
-
-      final hasBio = await _biometricAuthService.canUseBiometrics();
-      if (hasBio) {
-        final authenticated = await _biometricAuthService.authenticate(
-          reason: 'Please authenticate to access the Parent Dashboard',
-        );
-        if (!authenticated) {
-          emit(const AuthFailureState('Biometric authentication failed.'));
-          return;
-        }
-      }
-
-      final res2 = await dio.post('/auth/verify-biometric', data: {
-         'phone_number': phoneNumber,
-         'biometric_token': bioToken,
-      });
-      
-      final access = res2.data['access_token'];
-      await tokenStorage.saveTokens(accessToken: access, refreshToken: access);
-      await tokenStorage.saveUserRole('PARENT');
-      
-      // Fetch real user data from backend
-      final userRes = await dio.get('/users/me');
-      final userData = userRes.data;
-      
-      emit(AuthSuccess(UserEntity(
-        id: userData['id'] as int,
-        name: userData['name'] as String,
-        email: userData['email'] as String? ?? '',
-        phoneNumber: userData['phone_number'] as String? ?? '',
-        ageGroup: userData['age_group'] as int? ?? 0,
-        role: userData['role'] as String,
-        userName: userData['user_name'] as String? ?? '',
-      )));
-    } catch (e) {
-      if (e is DioException) {
-         emit(AuthFailureState(e.response?.data?['detail'] ?? e.message ?? 'Login failed'));
-      } else {
-         emit(AuthFailureState(e.toString()));
-      }
-    }
+    final result = await _loginUseCase(phoneNumber: phoneNumber);
+    await result.fold(
+      (failure) async => emit(AuthFailureState(failure.message)),
+      (user) async => _onAuthenticated(user),
+    );
   }
 
   Future<void> register({
     required String name,
     required String phoneNumber,
   }) async {
-    // Unused in new flow, handled implicitly by login
-    emit(const AuthFailureState('Registration is handled by login.'));
+    emit(const AuthLoading());
+    final result = await _registerUseCase(name: name, phoneNumber: phoneNumber);
+    await result.fold(
+      (failure) async => emit(AuthFailureState(failure.message)),
+      (user) async => _onAuthenticated(user),
+    );
+  }
+
+  /// Persists the role and, for parents, stashes the JWT under a dedicated
+  /// key so parent-scoped APIs keep working after the app switches the
+  /// active token to a child's short-lived session token.
+  Future<void> _onAuthenticated(UserEntity user) async {
+    final tokenStorage = getIt<TokenStorage>();
+    await tokenStorage.saveUserRole(user.role);
+
+    if (user.role.toUpperCase() == 'PARENT') {
+      final accessToken = await tokenStorage.getAccessToken();
+      if (accessToken != null && accessToken.isNotEmpty) {
+        await tokenStorage.saveParentAccessToken(accessToken);
+      }
+    }
+
+    emit(AuthSuccess(user));
   }
 
   Future<void> attemptPasskeyLogin() async {
@@ -123,21 +91,17 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
 
-    final hasBiometrics = await _biometricAuthService.canUseBiometrics();
-    if (hasBiometrics) {
-      // Could use biometric prompt here if desired, 
-      // but for simple app launch we just try passing the token.
-      final result = await _passkeyLoginUseCase(biometricToken: bioToken);
-      result.fold(
-        (failure) {
-          // Fall back to normal login
-          emit(const AuthInitial());
-        },
-        (user) => emit(AuthSuccess(user)),
-      );
-    } else {
-      emit(const AuthInitial());
-    }
+    // Silent auto-login. Deliberately not gated on canUseBiometrics(): the
+    // biometric_token is a device "stay signed in" credential and works on
+    // devices with no biometric hardware at all. Gating it here meant those
+    // devices could never auto-login. The biometric prompt belongs on the
+    // parent-dashboard gate, not on app launch.
+    final result = await _passkeyLoginUseCase(biometricToken: bioToken);
+    await result.fold(
+      // Token rejected or expired — fall back to the normal login screen.
+      (failure) async => emit(const AuthInitial()),
+      (user) async => _onAuthenticated(user),
+    );
   }
 
   void reset() => emit(const AuthInitial());

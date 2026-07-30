@@ -146,7 +146,6 @@ class ParentDashboardCubit extends Cubit<ParentDashboardState> {
       final token = response.data['access_token'] as String;
       await _tokenStorage.saveTokens(
         accessToken: token,
-        refreshToken: '',
       );
       await _tokenStorage.saveUserRole('STUDENT');
     } on DioException catch (e) {

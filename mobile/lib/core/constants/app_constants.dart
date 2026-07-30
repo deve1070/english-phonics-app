@@ -3,21 +3,20 @@ abstract class ApiConstants {
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 15);
 
-  // ── Auth (existing) ───────────────────────────────────────────
+  // ── Auth ──────────────────────────────────────────────────────
+  // Passwordless: phone number only. Two tokens, no refresh token —
+  // a 7-day access_token (JWT) plus a biometric_token redeemed via
+  // passkeyLogin, which rotates it on every use.
   static const String login = '/auth/login';
   static const String register = '/auth/register';
-  static const String refreshToken =
-      '/auth/refresh'; // keep — AuthInterceptor uses this
+  static const String passkeyLogin = '/auth/passkey-login';
   static const String me = '/users/me';
 
-  // ── Auth (phone number — NEW) ─────────────────────────────────
-  static const String sendOTP = '/auth/send-otp';
-  static const String verifyOTP = '/auth/verify-otp';
-  static const String registerPhone = '/auth/register-phone';
-  static const String biometricLogin = '/auth/biometric-login';
+  // ── Invite links ──────────────────────────────────────────────
+  // WARNING: the backend has an InviteLink model but exposes NO
+  // endpoints for it. Every route below 404s today — JoinScreen and
+  // InviteLinksScreen are dead UI until the backend side is built.
   static const String joinWithInvite = '/auth/join';
-
-  // ── Invite links (NEW) ────────────────────────────────────────
   static const String generateInviteLink = '/auth/invite-link';
   static const String listInviteLinks = '/auth/me/invite-links';
   static String revokeInviteLink(int id) => '/auth/invite-links/$id';
@@ -43,28 +42,17 @@ abstract class ApiConstants {
   static String referenceAudio(int id) => '/exercises/$id/reference-audio';
   static const String generateExercises = '/exercises/generate';
 
-  // ── Progress ──────────────────────────────────────────────────
-  static const String recommended = '/progress/me/recommended';
-  static const String feedback = '/progress/me/feedback';
-
-  // ── Gamification ──────────────────────────────────────────────
-  static const String badges = '/gamification/badges';
-  static const String myAchievements =
-      '/gamification/me/achievements'; // keep — used by gamification datasource
-  static const String achievements = '/gamification/me/achievements';
-  static const String awardPoints = '/gamification/me/award-points';
-
-  // ── Friends ───────────────────────────────────────────────────
-  static const String friendRequest = '/friends/request';
-  static const String pendingRequests = '/friends/requests/pending';
-  static const String myFriends = '/friends/friends';
-  static const String friendRecommend = '/friends/recommend';
+  // NOTE: /progress, /gamification, /friends and /subscriptions
+  // constants used to live here. Those backend features were
+  // deliberately deleted, so the routes no longer exist — the
+  // constants are gone with them. Don't reintroduce them.
 
   // ── TTS ───────────────────────────────────────────────────────
   static const String ttsSynthesize = '/tts/synthesize';
   static const String ttsPhonemeWithVisemes = '/tts/phoneme-with-visemes';
 
   // ── Parent management ─────────────────────────────────────────
+  static const String parentRegister = '/parents/register';
   static const String parentDashboard = '/parents/dashboard';
   static const String parentChildren = '/parents/children';
   static String parentChildProgress(int id) => '/parents/children/$id/progress';
@@ -74,14 +62,16 @@ abstract class ApiConstants {
   static String parentChildLogin(int id) => '/parents/child-login/$id';
   static String parentChildScreenTime(int id) =>
       '/parents/children/$id/screen-time';
-
-  // ── Subscription ──────────────────────────────────────────────
-  static const String subscriptions = '/subscriptions/';
-  static const String mySubscription = '/subscriptions/me';
+  static String parentChildStartSession(int id) =>
+      '/parents/children/$id/start-session';
+  static String parentChildEndSession(int id) =>
+      '/parents/children/$id/end-session';
 }
 
 abstract class StorageKeys {
   static const String accessToken = 'access_token';
+  /// Legacy. Nothing writes this any more — kept only so clearTokens()
+  /// still wipes it from installs that predate the two-token model.
   static const String refreshToken = 'refresh_token';
   static const String userId = 'user_id';
   static const String userRole = 'user_role';

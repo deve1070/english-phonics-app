@@ -10,22 +10,14 @@ class TokenStorage {
           aOptions: AndroidOptions(encryptedSharedPreferences: true),
         );
 
-  // ── Access / Refresh tokens (existing) ───────────────────────
-  Future<void> saveTokens({
-    required String accessToken,
-    required String refreshToken,
-  }) async {
-    await Future.wait([
-      _storage.write(key: StorageKeys.accessToken, value: accessToken),
-      _storage.write(key: StorageKeys.refreshToken, value: refreshToken),
-    ]);
-  }
+  // ── Access token ──────────────────────────────────────────────
+  // No refresh token: this backend issues a 7-day access_token plus a
+  // separate biometric_token (below) and has no /auth/refresh endpoint.
+  Future<void> saveTokens({required String accessToken}) =>
+      _storage.write(key: StorageKeys.accessToken, value: accessToken);
 
   Future<String?> getAccessToken() =>
       _storage.read(key: StorageKeys.accessToken);
-
-  Future<String?> getRefreshToken() =>
-      _storage.read(key: StorageKeys.refreshToken);
 
   Future<bool> hasValidToken() async {
     final token = await getAccessToken();

@@ -73,7 +73,6 @@ class _ParentDashboardButtonState extends State<ParentDashboardButton> {
       // Swap to parent token
       await _tokenStorage.saveTokens(
         accessToken: parentToken,
-        refreshToken: '',
       );
       await _tokenStorage.saveParentAccessToken(parentToken);
       await _tokenStorage.saveUserRole('PARENT');

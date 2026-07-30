@@ -61,8 +61,7 @@ class JoinCubit extends Cubit<JoinState> {
       );
 
       final accessToken = response.data['access_token'] as String;
-      await _tokenStorage.saveTokens(
-          accessToken: accessToken, refreshToken: '');
+      await _tokenStorage.saveTokens(accessToken: accessToken);
       await _tokenStorage.saveUserRole('STUDENT');
       await _tokenStorage.saveSubscriptionStatus('TRIAL');
 
