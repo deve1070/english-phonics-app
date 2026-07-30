@@ -151,11 +151,14 @@ mobile/android/local.properties
 mobile/android/gradlew
 mobile/android/gradlew.bat
 
-# End of file
-cat >> backend/.gitignore << EOF
+# Python
 __pycache__/
 *.pyc
 *.pyo
 venv/
 .venv/
-EOF
+
+# Database dumps — data artifacts, not source
+*.dump
+
+# End of file
