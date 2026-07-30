@@ -3,15 +3,14 @@ app/api/v1/endpoints/tts.py
 ===========================
 TTS endpoints:
   POST /tts/synthesize          → plain text → audio bytes
-  POST /tts/phoneme-with-visemes → IPA → audio bytes + viseme sequence
+  POST /tts/phoneme-with-visemes → symbol → pre-recorded audio + mock visemes
 
-The viseme endpoint is what the Flutter mouth animation uses.
-Azure Speech SDK VisemeReceived events fire during synthesis with:
-  - viseme_id: int (0-21, Microsoft's 22-shape system)
-  - audio_offset: int (100-nanosecond ticks from start of audio)
-
-We collect these during synthesis on the backend and return them
-alongside the audio as a JSON response.
+The viseme endpoint is what the Flutter mouth animation uses. For now it
+only serves pre-recorded human audio (admin-uploaded via /phonemes) and
+returns a fixed open/close mouth animation alongside it — it does not
+synthesize audio or collect real Azure viseme events. Real lip-synced
+visemes from synthesized audio would need Azure's VisemeReceived event
+during synthesis; that's a future-version feature, not implemented here.
 """
 
 import asyncio
@@ -22,14 +21,21 @@ from typing import List
 
 import azure.cognitiveservices.speech as speechsdk
 from app.core.config import settings
+from app.core.security import get_current_active_user
+from app.models.user import User
 from app.utils.tts_synthesizer import (
     PHONEME_IPA_MAP,
     generate_phoneme_sound_ssml,
     generate_ssml,
 )
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from pathlib import Path
+from app.api.deps import get_db
+from app.models.phoneme import Phoneme
 
 router = APIRouter(prefix="/tts", tags=["tts"])
 
@@ -51,9 +57,20 @@ class PhonemeAudioWithVisemes(BaseModel):
     visemes: List[VisemeEvent]
 
 
+def _resolve_audio_file_path(audio_url: str) -> Path | None:
+    url_path = audio_url.lstrip("/")
+    candidate = Path("uploads") / url_path
+    if candidate.exists():
+        return candidate
+    return None
+
+
 # ── Plain TTS ─────────────────────────────────────────────────────
 @router.post("/synthesize")
-async def synthesize(body: TTSRequest):
+async def synthesize(
+    body: TTSRequest,
+    _: User = Depends(get_current_active_user),
+):
     """
     Synthesize plain text to speech.
     Returns audio/mpeg stream.
@@ -68,30 +85,47 @@ async def synthesize(body: TTSRequest):
 
 # ── Phoneme audio + visemes ───────────────────────────────────────
 @router.post("/phoneme-with-visemes", response_model=PhonemeAudioWithVisemes)
-async def phoneme_with_visemes(body: TTSRequest):
+async def phoneme_with_visemes(
+    body: TTSRequest,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_active_user),
+):
     """
     Synthesize a phoneme symbol (e.g. "a", "ʃ (sh)") to audio
     and return both the MP3 bytes AND the viseme sequence.
-
-    Flutter uses the viseme sequence to animate the mouth widget
-    in sync with audio playback.
-
-    The phoneme symbol is looked up in PHONEME_IPA_MAP to get the
-    IPA string, then synthesized using the isolated-sound SSML.
+    
+    Now updated to serve pre-recorded human audio if available in the database,
+    returning mock generic visemes so the UI still animates.
     """
-    ipa = PHONEME_IPA_MAP.get(body.text)
-    if ipa:
-        ssml = generate_phoneme_sound_ssml(ipa, repeat=3)
-    else:
-        ssml = generate_ssml(body.text, blending=False)
+    # 1. Try to fetch pre-recorded audio from the database
+    result = await db.execute(select(Phoneme).filter(Phoneme.symbol == body.text))
+    phoneme = result.scalars().first()
+    
+    if phoneme and phoneme.audio_url:
+        file_path = _resolve_audio_file_path(phoneme.audio_url)
+        if file_path:
+            with open(file_path, "rb") as f:
+                audio_bytes = f.read()
+            
+            # Create a mock open/close mouth animation for human audio
+            # 0 = closed, 1 = wide open, 0 = closed
+            viseme_events = [
+                VisemeEvent(viseme_id=0, offset_ms=0),
+                VisemeEvent(viseme_id=1, offset_ms=100),
+                VisemeEvent(viseme_id=0, offset_ms=500),
+            ]
+            
+            return PhonemeAudioWithVisemes(
+                audio_b64=base64.b64encode(audio_bytes).decode(),
+                visemes=viseme_events,
+            )
 
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, partial(_synthesize_with_visemes, ssml))
-    audio_bytes, viseme_events = result
-
-    return PhonemeAudioWithVisemes(
-        audio_b64=base64.b64encode(audio_bytes).decode(),
-        visemes=viseme_events,
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=(
+            "No pre-recorded phoneme audio found. "
+            "Phoneme TTS endpoint is configured to use pre-recorded audio only."
+        ),
     )
 
 
@@ -111,39 +145,3 @@ def _synthesize_plain(text: str) -> bytes:
     if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
         return result.audio_data
     raise ValueError("TTS synthesis failed")
-
-
-def _synthesize_with_visemes(ssml: str):
-    """
-    Synthesize SSML and collect VisemeReceived events.
-    Returns (audio_bytes, [VisemeEvent, ...]).
-
-    Azure fires VisemeReceived events synchronously before returning
-    the synthesis result, so we collect them in a list.
-    """
-    cfg = speechsdk.SpeechConfig(
-        subscription=settings.AZURE_SPEECH_KEY,
-        region=settings.AZURE_SPEECH_REGION,
-    )
-    cfg.set_speech_synthesis_output_format(
-        speechsdk.SpeechSynthesisOutputFormat.Audio24Khz160KBitRateMonoMp3
-    )
-    synth = speechsdk.SpeechSynthesizer(speech_config=cfg, audio_config=None)
-
-    viseme_events: list[VisemeEvent] = []
-
-    def on_viseme(evt: speechsdk.SpeechSynthesisVisemeEventArgs):
-        # audio_offset is in 100-nanosecond ticks → convert to ms
-        offset_ms = evt.audio_offset / 10_000
-        viseme_events.append(VisemeEvent(viseme_id=evt.viseme_id, offset_ms=offset_ms))
-
-    synth.viseme_received.connect(on_viseme)
-    result = synth.speak_ssml_async(ssml).get()
-
-    if result.reason != speechsdk.ResultReason.SynthesizingAudioCompleted:
-        cancellation = speechsdk.CancellationDetails(result)
-        raise ValueError(
-            f"TTS failed: {cancellation.error_code} — {cancellation.error_details}"
-        )
-
-    return result.audio_data, viseme_events

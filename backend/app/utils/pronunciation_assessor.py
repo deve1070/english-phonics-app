@@ -1,3 +1,7 @@
+import asyncio
+import tempfile
+from pathlib import Path
+
 import azure.cognitiveservices.speech as speechsdk
 from app.core.config import settings
 
@@ -22,44 +26,51 @@ def create_speech_config():
     return speech_config
 
 
-async def assess_pronunciation(local_audio_path: str, reference_text: str) -> dict:
+async def assess_pronunciation(audio_wav_bytes: bytes, reference_text: str) -> dict:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+        temp_path = Path(temp_file.name)
+        temp_file.write(audio_wav_bytes)
 
-    audio_format = speechsdk.audio.AudioStreamFormat(
-        samples_per_second=16000,
-        bits_per_sample=16,
-        channels=1,
-    )
-    audio_config = speechsdk.AudioConfig(filename=local_audio_path)
-    # rest of the function unchanged...
-    audio_config = speechsdk.AudioConfig(filename=local_audio_path)
+    try:
+        audio_config = speechsdk.AudioConfig(filename=str(temp_path))
 
-    pron_config = speechsdk.PronunciationAssessmentConfig(
-        reference_text=reference_text.strip(),
-        grading_system=speechsdk.PronunciationAssessmentGradingSystem.HundredMark,
-        granularity=speechsdk.PronunciationAssessmentGranularity.Phoneme,
-        enable_miscue=True,
-    )
-    pron_config.phoneme_alphabet = "IPA"
-    pron_config.nbest_phonemes_count = 5
-    pron_config.enable_prosody_assessment()
+        pron_config = speechsdk.PronunciationAssessmentConfig(
+            reference_text=reference_text.strip(),
+            grading_system=speechsdk.PronunciationAssessmentGradingSystem.HundredMark,
+            granularity=speechsdk.PronunciationAssessmentGranularity.Phoneme,
+            enable_miscue=True,
+        )
+        pron_config.phoneme_alphabet = "IPA"
+        pron_config.nbest_phonemes_count = 5
+        pron_config.enable_prosody_assessment()
 
-    recognizer = speechsdk.SpeechRecognizer(
-        speech_config=create_speech_config(), audio_config=audio_config
-    )
-    pron_config.apply_to(recognizer)
+        recognizer = speechsdk.SpeechRecognizer(
+            speech_config=create_speech_config(), audio_config=audio_config
+        )
+        pron_config.apply_to(recognizer)
 
-    result = recognizer.recognize_once()
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(None, recognizer.recognize_once)
+    finally:
+        temp_path.unlink(missing_ok=True)
 
     if result.reason == speechsdk.ResultReason.RecognizedSpeech:
         pron_result = speechsdk.PronunciationAssessmentResult(result)
-        overall_score = round(
-            pron_result.pronunciation_score or pron_result.accuracy_score
+        # NOTE: use an explicit None check, not `or` — a legitimate score of 0
+        # would otherwise be silently replaced by accuracy_score.
+        raw_score = (
+            pron_result.pronunciation_score
+            if pron_result.pronunciation_score is not None
+            else pron_result.accuracy_score
         )
+        overall_score = round(raw_score)
 
         if overall_score >= 90:
             feedback = "Amazing! You're a phonics superstar! 🌟"
-        elif overall_score >= 70:
-            feedback = "Great effort! You're getting better! 😊"
+        elif overall_score >= 80:
+            feedback = "Great job! Keep it up! 👏"
+        elif overall_score >= 60:
+            feedback = "Good try — let's practice once more."
         else:
             feedback = "Nice try! Let's practice this one more. 👍"
 
@@ -73,7 +84,7 @@ async def assess_pronunciation(local_audio_path: str, reference_text: str) -> di
     elif result.reason == speechsdk.ResultReason.NoMatch:
         return {
             "score": 0,
-            "feedback": "No sppech heard - try recording louder!",
+            "feedback": "No speech heard — try recording louder!",
             "transcription": "",
         }
     else:

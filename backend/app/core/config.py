@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     AZURE_OPENAI_API_KEY: Optional[str] = None
     AZURE_OPENAI_ENDPOINT: Optional[str] = None
     AZURE_OPENAI_DEPLOYMENT_NAME: Optional[str] = None
+    AZURE_OPENAI_API_VERSION: str = "2024-08-01-preview"
     AZURE_SPEECH_KEY: Optional[str] = None
     AZURE_SPEECH_REGION: Optional[str] = None
 

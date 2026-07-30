@@ -19,7 +19,26 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.mount("/static", StaticFiles(directory="uploads/audio"), name="audio")
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mounted at "/audio" (not "/static") because save_audio_file() in
+# app/utils/audio.py returns URLs like "/audio/<filename>" — this was
+# previously mismatched, so any client hitting the audio_url directly
+# (rather than through a dedicated streaming endpoint) would 404.
+app.mount("/audio", StaticFiles(directory="uploads/audio"), name="audio")
+app.mount(
+    "/audio_standardized",
+    StaticFiles(directory="uploads/audio_standardized"),
+    name="audio_standardized",
+)
 app.include_router(api_router, prefix="/api/v1")
 
 

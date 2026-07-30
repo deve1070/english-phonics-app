@@ -1,10 +1,16 @@
 from typing import List, Optional
 
 from app.api.deps import get_db
-from app.core.security import get_current_active_user, get_current_admin
+from app.core.security import (
+    get_current_active_user,
+    get_current_admin,
+    get_current_student,
+)
 from app.crud.crud_lesson import crud_lesson
+from app.crud.crud_progress import crud_progress
 from app.models.enums import Level
 from app.models.user import User
+from app.models.exercise import Exercise
 from app.schemas.lesson import (
     ExerciseSummary,
     LessonCreate,
@@ -14,6 +20,7 @@ from app.schemas.lesson import (
     LessonUpdate,
 )
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/lessons", tags=["lessons"])
@@ -25,7 +32,7 @@ router = APIRouter(prefix="/lessons", tags=["lessons"])
 # Public: list all lessons, optionally filtered by level.
 # Returns flat LessonResponse list (no nested children) for speed.
 # ----------------------------------------------------------------------
-@router.get("/", response_model=List[LessonResponse])
+@router.get("/", response_model=List[LessonDetailResponse])
 async def list_lessons(
     level: Optional[Level] = Query(
         default=None,
@@ -34,14 +41,38 @@ async def list_lessons(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_active_user),  # must be logged in
+    current_user: User = Depends(get_current_active_user),  # must be logged in
 ):
     """
     Returns all lessons ordered by level then order index.
     Optionally filter by a specific level.
     """
     lessons = await crud_lesson.get_by_level(db, level=level, skip=skip, limit=limit)
-    return lessons
+    
+    # Fetch all completed exercise IDs for the current user
+    from app.models.progress import Progress
+    from sqlalchemy import select
+    
+    result = await db.execute(
+        select(Progress.exercise_id)
+        .where(Progress.user_id == current_user.id, Progress.completed == True)
+    )
+    completed_exercise_ids = set(result.scalars().all())
+    
+    return [
+        LessonDetailResponse(
+            id=lesson.id,
+            order=lesson.order,
+            level=lesson.level,
+            created_at=lesson.created_at,
+            phonemes=sorted(lesson.phonemes, key=lambda p: p.order),
+            total_exercises=len(lesson.exercises),
+            completed_exercises=sum(
+                1 for e in lesson.exercises if e.id in completed_exercise_ids
+            ),
+        )
+        for lesson in lessons
+    ]
 
 
 # ----------------------------------------------------------------------
@@ -66,14 +97,14 @@ async def get_lesson(
             detail=f"Lesson with id {lesson_id} not found.",
         )
 
-    # Build the response manually to inject the derived exercise_count field
+    # Build the response manually to inject the derived total_exercises field
     return LessonDetailResponse(
         id=lesson.id,
         order=lesson.order,
         level=lesson.level,
         created_at=lesson.created_at,
         phonemes=sorted(lesson.phonemes, key=lambda p: p.order),
-        exercise_count=len(lesson.exercises),
+        total_exercises=len(lesson.exercises),
     )
 
 
@@ -113,6 +144,42 @@ async def get_lesson_exercises(
             for ex in lesson.exercises
         ],
     )
+
+
+# ----------------------------------------------------------------------
+# POST /lessons/{lesson_id}/complete  (Student)
+# Mark all exercises in a lesson as completed for the current student.
+# Used when the kid taps "Finish Lesson" so the next lesson unlocks.
+# ----------------------------------------------------------------------
+@router.post("/{lesson_id}/complete", status_code=status.HTTP_200_OK)
+async def complete_lesson(
+    lesson_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_student),
+):
+    lesson = await crud_lesson.get_exercises(db, lesson_id=lesson_id)
+    if not lesson:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lesson with id {lesson_id} not found.",
+        )
+
+    result = await db.execute(select(Exercise).where(Exercise.lesson_id == lesson_id))
+    exercises = result.scalars().all()
+    if not exercises:
+        return {"lesson_id": lesson_id, "completed_exercises": 0}
+
+    # Mark every exercise as completed with a passing score.
+    for ex in exercises:
+        await crud_progress.upsert_after_attempt(
+            db,
+            user_id=current_user.id,
+            lesson_id=lesson_id,
+            exercise_id=ex.id,
+            score=100.0,
+        )
+
+    return {"lesson_id": lesson_id, "completed_exercises": len(exercises)}
 
 
 # ----------------------------------------------------------------------
@@ -174,3 +241,4 @@ async def delete_lesson(
             detail=f"Lesson with id {lesson_id} not found.",
         )
     await crud_lesson.remove(db, id=lesson_id)
+

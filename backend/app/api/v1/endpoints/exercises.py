@@ -7,10 +7,10 @@ GET  /exercises/{exercise_id}/reference-audio      — stream reference audio
 POST /exercises/generate                    — generate exercises for a phoneme (NEW)
 """
 
-from typing import List
+from typing import List, Optional
 
 from app.api.deps import get_db
-from app.core.security import get_current_active_user, get_current_student
+from app.core.security import get_current_active_user, get_current_admin, get_current_student
 from app.crud.crud_exercise import crud_exercise
 from app.models.phoneme import Phoneme
 from app.models.user import User
@@ -18,11 +18,15 @@ from app.schemas.exercise import ExerciseResponse
 from app.services.exercise_generation_service import generate_exercises_for_phoneme
 from app.services.pronunciation_service import assess_student_pronunciation
 from app.services.reference_audio_service import get_reference_audio_stream
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from app.utils.audio import read_audio_bounded
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
+import logging
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import AsyncSessionLocal
 
 router = APIRouter(prefix="/exercises", tags=["exercises"])
+logger = logging.getLogger(__name__)
 
 
 # ------------------------------------------------------------------
@@ -51,12 +55,10 @@ async def get_exercise(
 async def submit_pronunciation(
     exercise_id: int,
     audio: UploadFile = File(...),
+    sentence_index: Optional[int] = Form(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_student),
 ):
-    # Change line 57 from:
-
-    # To:
     exercise = await crud_exercise.get_with_phonemes(db, exercise_id=exercise_id)
     if not exercise:
         raise HTTPException(
@@ -65,7 +67,7 @@ async def submit_pronunciation(
         )
 
     # Read raw bytes from the uploaded file — pronunciation_service expects bytes
-    audio_content = await audio.read()
+    audio_content = await read_audio_bounded(audio)
     if not audio_content:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -77,6 +79,7 @@ async def submit_pronunciation(
         exercise=exercise,
         audio_content=audio_content,
         user_id=current_user.id,
+        sentence_index=sentence_index,
     )
     return result
 
@@ -92,7 +95,7 @@ async def get_reference_audio(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_active_user),
 ):
-    exercise = await crud_exercise.get(db, exercise_id)
+    exercise = await crud_exercise.get_with_phonemes(db, exercise_id=exercise_id)
     if not exercise:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -108,27 +111,53 @@ async def get_reference_audio(
 #   all allowed phonemes (order <= target.order) are fetched and
 #   passed to the generation service so the AI prompt is constrained.
 # ------------------------------------------------------------------
+
+async def background_generate_exercises(phoneme_id: int):
+    """
+    Background worker that runs the LLM generation.
+    It creates its own DB session so it doesn't crash when the request closes.
+    """
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Phoneme).filter(Phoneme.id == phoneme_id))
+        target_phoneme = result.scalar_one_or_none()
+        if not target_phoneme:
+            return
+
+        allowed_result = await db.execute(
+            select(Phoneme).filter(
+                Phoneme.lesson_id == target_phoneme.lesson_id,
+                Phoneme.order <= target_phoneme.order,
+            )
+        )
+        allowed_phonemes = allowed_result.scalars().all()
+
+        try:
+            await generate_exercises_for_phoneme(
+                db,
+                target_phoneme=target_phoneme,
+                allowed_phonemes=allowed_phonemes,
+            )
+        except Exception:
+            logger.exception(
+                "Background exercise generation failed for phoneme_id=%s", phoneme_id
+            )
+
+
 @router.post(
     "/generate",
-    response_model=List[ExerciseResponse],
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_202_ACCEPTED,
 )
 async def generate_exercises(
     phoneme_id: int,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_student),
+    _: User = Depends(get_current_admin),
 ):
     """
-    Generate phonics exercises for the given phoneme.
-
-    - Fetches the target phoneme by ID.
-    - Fetches all phonemes in the same lesson with order <= target.order
-      (these are the sounds the child has already been taught).
-    - Passes both to Azure OpenAI to generate exercises that only use
-      allowed phonemes — enforcing the sequencing rule.
-    - Saves the generated exercises to the DB and returns them.
+    Admin only. Trigger generation of phonics exercises for the given phoneme.
+    Returns 202 Accepted while generation happens in the background.
     """
-    # Fetch target phoneme
+    # Verify the phoneme exists before kicking off the task
     result = await db.execute(select(Phoneme).filter(Phoneme.id == phoneme_id))
     target_phoneme = result.scalar_one_or_none()
     if not target_phoneme:
@@ -137,31 +166,7 @@ async def generate_exercises(
             detail=f"Phoneme {phoneme_id} not found.",
         )
 
-    # Fetch all allowed phonemes: same lesson, order <= target order
-    # This is the core of the sequencing rule.
-    allowed_result = await db.execute(
-        select(Phoneme).filter(
-            Phoneme.lesson_id == target_phoneme.lesson_id,
-            Phoneme.order <= target_phoneme.order,
-        )
-    )
-    allowed_phonemes = allowed_result.scalars().all()
+    # Queue the task
+    background_tasks.add_task(background_generate_exercises, phoneme_id)
 
-    try:
-        exercises = await generate_exercises_for_phoneme(
-            db,
-            target_phoneme=target_phoneme,
-            allowed_phonemes=allowed_phonemes,
-        )
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(exc),
-        )
-    except RuntimeError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(exc),
-        )
-
-    return exercises
+    return {"message": "Exercise generation started in the background."}

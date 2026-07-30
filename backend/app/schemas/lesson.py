@@ -54,15 +54,16 @@ class LessonUpdate(BaseModel):
 class LessonResponse(LessonBase):
     id: int
     created_at: Optional[datetime] = None
+    total_exercises: int = 0
+    completed_exercises: int = 0
 
     model_config = {"from_attributes": True}
 
 
 # Detail response — used by GET /lessons/{id}
-# Includes phonemes (sorted by order) and a derived exercise count.
+# Includes phonemes (sorted by order) and the inherited total_exercises count.
 class LessonDetailResponse(LessonResponse):
     phonemes: List[PhonemeSummary] = []
-    exercise_count: int = 0
 
 
 # Exercises response — used by GET /lessons/{id}/exercises

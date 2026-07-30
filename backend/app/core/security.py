@@ -8,38 +8,50 @@ from app.models.user import User
 from argon2 import PasswordHasher
 from argon2.exceptions import HashingError, VerifyMismatchError
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    OAuth2PasswordBearer,
+)
 from jose import JWTError, jwt
+from passlib.context import CryptContext
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-ph = PasswordHasher()
+oauth_scheme = OAuth2PasswordBearer(tokenUrl="token")
 bearer_scheme = HTTPBearer()
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    try:
-        ph.verify(hashed_password, plain_password)
-        return True
-    except VerifyMismatchError:
-        return False
-    except Exception:
-        return False
+def create_access_token(
+    subject: str | None = None,
+    data: dict | None = None,
+    expires_delta: Optional[timedelta] = None,
+) -> str:
+    """
+    Create a JWT access token.
 
+    The 'sub' field is always the user's integer ID as a string.
+    If `data` is provided, its keys are merged into the payload (after setting sub).
+    `subject` takes priority for setting `sub`.
+    """
+    if subject is not None:
+        to_encode: dict = {"sub": str(subject)}
+    elif data is not None and "sub" in data:
+        to_encode = dict(data)
+    else:
+        raise ValueError("subject must be provided (or data must contain 'sub')")
 
-def get_password_hash(password: str) -> str:
-    try:
-        return ph.hash(password)
-    except HashingError as e:
-        raise ValueError("Password hashing failed") from e
+    # Merge extra data (role hints etc.) without overwriting sub
+    if data:
+        for k, v in data.items():
+            if k != "sub":
+                to_encode[k] = v
 
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    to_encode = data.copy()
-    default_delta = timedelta(
-        minutes=getattr(settings, "ACCESS_TOKEN_EXPIRE_MINUTES", 15)
+    expire = datetime.now(UTC) + (
+        expires_delta
+        or timedelta(minutes=getattr(settings, "ACCESS_TOKEN_EXPIRE_MINUTES", 10080))
     )
-    expire = datetime.now(UTC) + (expires_delta or default_delta)
-    to_encode.update({"exp": expire})
+    to_encode["exp"] = expire
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
@@ -53,19 +65,21 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        email: str = payload.get("sub")
-        if email is None:
+        sub: str = payload.get("sub")
+        if sub is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
-    from app.crud.users import get_user_by_email
+    # Look up by user ID
+    result = await db.execute(select(User).where(User.id == int(sub)))
+    user = result.scalar_one_or_none()
 
-    user = await get_user_by_email(db, email)
     if user is None:
         raise credentials_exception
     return user
@@ -81,15 +95,27 @@ async def get_current_active_user(
 
 async def get_current_admin(
     current_user: User = Depends(get_current_active_user),
-) -> User:
+):
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
     return current_user
 
 
-async def get_current_student(
+async def get_current_parent(
     current_user: User = Depends(get_current_active_user),
 ) -> User:
+    """Requires the authenticated user to have role=PARENT."""
+    if current_user.role != UserRole.PARENT:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access restricted to parent accounts.",
+        )
+    return current_user
+
+
+async def get_current_student(
+    current_user: User = Depends(get_current_active_user),
+):
     if current_user.role != UserRole.STUDENT:
         raise HTTPException(status_code=403, detail="Student access only")
     return current_user

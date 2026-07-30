@@ -39,7 +39,14 @@ class CRUDLesson(CRUDBase[Lesson, LessonCreate, LessonUpdate]):
         skip: int = 0,
         limit: int = 100,
     ) -> List[Lesson]:
-        query = select(Lesson).order_by(Lesson.level, Lesson.order)
+        query = (
+            select(Lesson)
+            .options(
+                selectinload(Lesson.phonemes),
+                selectinload(Lesson.exercises),
+            )
+            .order_by(Lesson.level, Lesson.order)
+        )
         if level is not None:
             query = query.filter(Lesson.level == level)
         query = query.offset(skip).limit(limit)

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, func
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, UniqueConstraint, func
 from sqlalchemy.orm import relationship
 
 from ..db.base import Base
@@ -6,6 +6,13 @@ from ..db.base import Base
 
 class Progress(Base):
     __tablename__ = "progress"
+    __table_args__ = (
+        # Prevents the race where two concurrent submissions for the same
+        # (user, exercise) each see "no existing row" and both insert —
+        # the upsert in crud_progress.py relies on this constraint to do
+        # a single atomic INSERT ... ON CONFLICT DO UPDATE instead.
+        UniqueConstraint("user_id", "exercise_id", name="uq_progress_user_exercise"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)

@@ -4,6 +4,7 @@ from enum import Enum
 class UserRole(str, Enum):
     STUDENT = "student"
     ADMIN = "admin"
+    PARENT = "parent"
 
 
 class StudentLevel(str, Enum):
@@ -16,7 +17,7 @@ class ExerciseType(str, Enum):
     WORD = "word"
     SENTENCE = "sentence"
     PHONEME = "phoneme"
-    PHARAGRAPH = "paragraph"
+    PARAGRAPH = "paragraph"
 
 
 class Level(str, Enum):
@@ -25,12 +26,6 @@ class Level(str, Enum):
     LEVEL3 = "level_3"
     LEVEL4 = "level_4"
     LEVEL5 = "level_5"
-
-
-class FriendRequestStatus(str, Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
 
 
 class PhonemeType(str, Enum):
@@ -50,9 +45,3 @@ class LessonStatus(str, Enum):
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
-
-
-class NotificationType(str, Enum):
-    FRIEND_REQUEST = "friend_request"
-    MESSAGE = "message"
-    SYSTEM_ALERT = "system_alert"

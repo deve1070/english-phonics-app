@@ -1,31 +1,36 @@
 from datetime import datetime
+from enum import Enum as PyEnum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from pydantic_settings import SettingsConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class UserBase(BaseModel):
     name: str
-    email: EmailStr
-    age_group: int
+    phone_number: Optional[str] = None
     is_active: bool = True
     role: Optional[str] = "STUDENT"
     created_at: Optional[datetime] = None
     user_name: Optional[str] = None
-    grade_level: Optional[int] = None
-    school_name: Optional[str] = None
-    city: Optional[str] = None
-    country: Optional[str] = None
+
+    @field_validator("role", mode="before")
+    @classmethod
+    def role_to_str(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, PyEnum):
+            return v.value
+        return v
 
 
-class UserCreate(UserBase):
-    password: str = Field(..., min_length=8)
+class UserRegister(UserBase):
+    """Phone sign-up."""
+    phone_number: str = Field(..., min_length=9)
 
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    phone_number: Optional[str] = None
 
 
 class UserResponse(UserBase):
@@ -36,4 +41,4 @@ class UserResponse(UserBase):
 
 class User(UserBase):
     id: int
-    model_config = SettingsConfigDict({"from_attributes": True})
+    model_config = ConfigDict(from_attributes=True)
