@@ -63,6 +63,7 @@ from app.schemas.schemas_parent import (
     SessionStartResponse,
     WeeklyReportResponse,
 )
+from app.services.mastery_service import is_mastered
 from app.services.streak_service import current_streak
 from app.services.weekly_report_service import generate_weekly_report
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -360,7 +361,11 @@ async def child_progress(
                 phoneme_id=p.id,
                 symbol=p.symbol,
                 order=p.order,
-                is_mastered=bool(avg and avg >= 80),
+                # Deferred to mastery_service so this agrees with the
+                # collectible the child is shown for the same sound. It
+                # used to be inlined as `avg >= 80`, which awarded mastery
+                # on a single lucky attempt.
+                is_mastered=is_mastered(avg, len(attempts_scores)),
                 avg_score=round(avg, 1) if avg else None,
                 attempts=len(attempts_scores),
             )
