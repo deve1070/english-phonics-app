@@ -84,6 +84,11 @@ abstract class StorageKeys {
   static const String childToken = 'child_token';
   /// Parent JWT retained while the active [accessToken] is the child's session.
   static const String parentAccessToken = 'parent_access_token';
+
+  /// Which child's learning session is currently open. Needed to close the
+  /// screen-time session later, since end-session is addressed by child id
+  /// and the child's own token may already be gone by then.
+  static const String activeChildId = 'active_child_id';
   static const String onboardingDone = 'onboarding_done';
 }
 

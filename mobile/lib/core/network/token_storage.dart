@@ -82,6 +82,7 @@ class TokenStorage {
       _storage.delete(key: StorageKeys.parentAccessToken),
       _storage.delete(key: StorageKeys.biometricToken),
       _storage.delete(key: StorageKeys.biometricUnlockEnabled),
+      _storage.delete(key: StorageKeys.activeChildId),
     ]);
   }
 
@@ -137,4 +138,17 @@ class TokenStorage {
 
   Future<void> clearChildToken() =>
       _storage.delete(key: StorageKeys.childToken);
+
+  // ── Active child (screen-time session) ────────────────────────
+  Future<void> saveActiveChildId(int childId) =>
+      _storage.write(key: StorageKeys.activeChildId, value: '$childId');
+
+  Future<int?> getActiveChildId() async {
+    final raw = await _storage.read(key: StorageKeys.activeChildId);
+    if (raw == null || raw.isEmpty) return null;
+    return int.tryParse(raw);
+  }
+
+  Future<void> clearActiveChildId() =>
+      _storage.delete(key: StorageKeys.activeChildId);
 }

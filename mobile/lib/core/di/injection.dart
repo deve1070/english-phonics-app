@@ -5,6 +5,7 @@ import '../auth/biometric_unlock_service.dart';
 import '../constants/app_constants.dart';
 import '../network/auth_interceptor.dart';
 import '../network/token_storage.dart';
+import '../screen_time/screen_time_service.dart';
 
 // ── Uncomment after: flutter pub add local_auth ───────────────────
 // import 'package:local_auth/local_auth.dart';
@@ -43,6 +44,10 @@ Future<void> configureDependencies() async {
 
   getIt.registerLazySingleton<BiometricUnlockService>(
     () => BiometricUnlockService(),
+  );
+
+  getIt.registerLazySingleton<ScreenTimeService>(
+    () => ScreenTimeService(dio, tokenStorage),
   );
 
   // ── LocalAuthentication (biometric) ───────────────────────────

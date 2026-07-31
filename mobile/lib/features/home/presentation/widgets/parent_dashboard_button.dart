@@ -4,6 +4,7 @@ import '../../../../core/auth/biometric_auth_service.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/token_storage.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/screen_time/screen_time_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -63,6 +64,12 @@ class _ParentDashboardButtonState extends State<ParentDashboardButton> {
         }
         return;
       }
+
+      // Stop counting screen time before swapping tokens: the child has
+      // left the learning view. Runs while the child's own token is still
+      // the active one, and the parent JWT returned above is already
+      // stashed, so either credential can authorize the call.
+      await getIt<ScreenTimeService>().endSession();
 
       // Preserve child token so we can restore it when parent exits
       final childToken = await _tokenStorage.getAccessToken();

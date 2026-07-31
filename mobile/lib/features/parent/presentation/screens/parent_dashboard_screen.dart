@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/token_storage.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/screen_time/screen_time_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -148,6 +149,11 @@ class ParentDashboardCubit extends Cubit<ParentDashboardState> {
         accessToken: token,
       );
       await _tokenStorage.saveUserRole('STUDENT');
+
+      // Start counting screen time now that the child is actually in.
+      // Must run after the parent JWT is stashed above: the interceptor
+      // sends the parent token for /parents/* calls.
+      await getIt<ScreenTimeService>().startSession(childId);
     } on DioException catch (e) {
       emit(ParentDashboardError(
         e.response?.data?['detail'] ?? 'Failed to switch to child session',
@@ -158,6 +164,9 @@ class ParentDashboardCubit extends Cubit<ParentDashboardState> {
   }
 
   Future<void> logout() async {
+    // Close any open session before the tokens go away — afterwards there is
+    // no credential left to authorize the call.
+    await getIt<ScreenTimeService>().endSession();
     await _tokenStorage.clearTokens();
   }
 
