@@ -15,7 +15,6 @@ Flow:
 
 import json
 import logging
-import re
 from typing import List
 
 from app.core.config import settings
@@ -23,6 +22,7 @@ from app.crud.crud_exercise import crud_exercise
 from app.models.enums import ExerciseType
 from app.models.exercise import Exercise
 from app.models.phoneme import Phoneme
+from app.utils.graphemes import build_allowed_graphemes, content_is_decodable
 from openai import AsyncAzureOpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -61,46 +61,6 @@ DEFAULT_COUNTS = {
     ExerciseType.SENTENCE: 0,
     ExerciseType.PARAGRAPH: 0,
 }
-
-
-def _build_allowed_graphemes(allowed_phonemes: List[Phoneme]) -> set[str]:
-    """
-    Convert allowed phoneme symbols into a coarse grapheme allow-list.
-    This is a lightweight guardrail to filter obvious LLM hallucinations.
-    """
-    graphemes: set[str] = set()
-    for phoneme in allowed_phonemes:
-        symbol = (phoneme.symbol or "").strip().lower()
-        normalized = re.sub(r"[^a-z]", "", symbol)
-        if not normalized:
-            continue
-        graphemes.add(normalized)
-        for char in normalized:
-            graphemes.add(char)
-    return graphemes
-
-
-def _content_respects_allowed_graphemes(content: str, allowed_graphemes: set[str]) -> bool:
-    # Split into alphabetic words and greedily match longest known graphemes.
-    words = re.findall(r"[a-z]+", content.lower())
-    if not words:
-        return True
-
-    max_len = max((len(g) for g in allowed_graphemes), default=1)
-    for word in words:
-        idx = 0
-        while idx < len(word):
-            matched = False
-            max_window = min(max_len, len(word) - idx)
-            for size in range(max_window, 0, -1):
-                chunk = word[idx : idx + size]
-                if chunk in allowed_graphemes:
-                    idx += size
-                    matched = True
-                    break
-            if not matched:
-                return False
-    return True
 
 
 def _build_prompt(
@@ -170,7 +130,7 @@ def _parse_response(
         raise ValueError("Expected a JSON array from exercise generation.")
 
     parsed = []
-    allowed_graphemes = _build_allowed_graphemes(allowed_phonemes)
+    allowed_graphemes = build_allowed_graphemes(allowed_phonemes)
     for item in items:
         raw_type = item.get("type", "").upper()
         content = item.get("content", "").strip()
@@ -188,7 +148,7 @@ def _parse_response(
             ExerciseType.WORD.value,
             ExerciseType.SENTENCE.value,
             ExerciseType.PARAGRAPH.value,
-        } and not _content_respects_allowed_graphemes(content, allowed_graphemes):
+        } and not content_is_decodable(content, allowed_graphemes):
             logger.warning(
                 "Skipping generated content with out-of-scope graphemes: %s", content
             )

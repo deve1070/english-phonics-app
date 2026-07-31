@@ -16,6 +16,11 @@ class Phoneme(Base):
     audio_url = Column(String)
     lesson_id = Column(Integer, ForeignKey("lessons.id"), nullable=False, index=True)
     order = Column(Integer, nullable=False, default=0)
+    # Comma-separated spellings this sound may be written as, e.g. "c,k,ck"
+    # for /k/. `symbol` is the sound; this is how it appears on the page.
+    # Decodability checks need the spellings, and cannot reliably guess
+    # them from an IPA symbol — see app/utils/graphemes.py.
+    graphemes = Column(String, nullable=True)
     type = Column(SQLEnum(PhonemeType), default=PhonemeType.ALPHABET)
     created_at = Column(DateTime, default=func.now())
 
