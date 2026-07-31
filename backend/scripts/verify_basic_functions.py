@@ -153,15 +153,59 @@ print("SCREEN TIME")
 print("=" * 70)
 
 r = requests.post(f"{B}/parents/children/{CHILD_ID}/start-session", headers=H)
-check("start screen-time session", r.status_code in (200, 201), f"HTTP {r.status_code} {jd(r)}")
+first = jd(r)
+check("start screen-time session", r.status_code in (200, 201), f"HTTP {r.status_code} {first}")
+
+# start-session is idempotent: calling it again while one is open must reuse
+# the existing session rather than stacking a second, otherwise a resumed app
+# would leak a row per resume.
+again = jd(requests.post(f"{B}/parents/children/{CHILD_ID}/start-session", headers=H))
+check("repeat start reuses the open session",
+      isinstance(again, dict) and again.get("session_id") == first.get("session_id"),
+      f"{first.get('session_id')} vs {again.get('session_id')}")
 
 r = requests.get(f"{B}/parents/children/{CHILD_ID}/screen-time", headers=H)
 check("read screen-time", r.status_code == 200, f"HTTP {r.status_code} {jd(r)}")
 
-r = requests.post(f"{B}/parents/children/{CHILD_ID}/end-session", headers=CH,
-                  json={"session_start": "2026-01-01T00:00:00Z"})
-check("child's own token can end the session", r.status_code in (200, 201),
+# The client sends no body — child_id is in the path and session_start is
+# unused. Requiring either would 422 the real app.
+# minutes_used_today is rounded to 0.1 (6 seconds), so the session has to
+# outlast that to be visible in the response at all.
+time.sleep(7)
+r = requests.post(f"{B}/parents/children/{CHILD_ID}/end-session", headers=CH)
+check("child's own token ends the session, no body", r.status_code in (200, 201),
       f"HTTP {r.status_code} {jd(r)}")
+
+st = jd(requests.get(f"{B}/parents/children/{CHILD_ID}/screen-time", headers=H))
+check("closed session is counted toward the daily total",
+      st.get("minutes_used_today", 0) > 0 and st.get("sessions_today", 0) >= 1,
+      f"{st}")
+
+r = requests.post(f"{B}/parents/children/{CHILD_ID}/end-session", headers=CH)
+check("ending with nothing open is not an error", r.status_code in (200, 201),
+      f"HTTP {r.status_code}")
+
+requests.put(f"{B}/parents/children/{CHILD_ID}/goals", headers=H,
+             json={"max_daily_minutes": 0})
+st = jd(requests.get(f"{B}/parents/children/{CHILD_ID}/screen-time", headers=H))
+check("daily limit trips once usage passes it", st.get("is_limit_reached") is True, f"{st}")
+requests.put(f"{B}/parents/children/{CHILD_ID}/goals", headers=H,
+             json={"max_daily_minutes": 45})
+
+print()
+print("=" * 70)
+print("STREAK")
+print("=" * 70)
+
+# A child who has never practised must read 0, not a placeholder.
+fresh = jd(requests.get(f"{B}/parents/children/{CHILD2}/progress", headers=H))
+check("streak is 0 before any practice", fresh.get("streak_days") == 0,
+      f"streak_days={fresh.get('streak_days')}")
+
+dash = jd(requests.get(f"{B}/parents/dashboard", headers=H))
+check("dashboard reports a streak field per child",
+      all("streak_days" in c for c in dash.get("children", [])),
+      f"children={len(dash.get('children', []))}")
 
 print()
 print("=" * 70)
