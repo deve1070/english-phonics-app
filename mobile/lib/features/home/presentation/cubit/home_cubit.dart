@@ -5,14 +5,17 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/network/token_storage.dart';
 import '../../../auth/data/datasources/auth_remote_datasource.dart';
 import '../../../auth/data/repositories/auth_repository_impl.dart';
+import '../../../engagement/data/engagement_models.dart';
+import '../../../engagement/data/engagement_remote_datasource.dart';
 import '../../../phonics/data/datasources/lessons_remote_datasource.dart';
 import 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final AuthRepositoryImpl _authRepo;
   final LessonsRemoteDataSource _lessonsDataSource;
+  final EngagementRemoteDataSource _engagement;
 
-  HomeCubit(this._authRepo, this._lessonsDataSource)
+  HomeCubit(this._authRepo, this._lessonsDataSource, this._engagement)
       : super(const HomeInitial());
 
   factory HomeCubit.create() {
@@ -21,7 +24,11 @@ class HomeCubit extends Cubit<HomeState> {
     final authDataSource = AuthRemoteDataSource(dio, tokenStorage);
     final authRepo = AuthRepositoryImpl(authDataSource, tokenStorage);
     final lessonsDataSource = LessonsRemoteDataSource(dio);
-    return HomeCubit(authRepo, lessonsDataSource);
+    return HomeCubit(
+      authRepo,
+      lessonsDataSource,
+      EngagementRemoteDataSource(dio),
+    );
   }
 
   Future<void> load() async {
@@ -31,10 +38,21 @@ class HomeCubit extends Cubit<HomeState> {
       final user = userResult.fold((f) => throw Exception(f.message), (u) => u);
       final lessons = await _lessonsDataSource.getLessons();
 
+      // Quest and streak are fetched together and after the lessons, not
+      // before: they decorate the home screen, and a child whose network
+      // is flaky must still get their lesson path. Both datasource calls
+      // fall back to an empty value rather than throwing, so neither can
+      // take the home screen down with it.
+      final results = await Future.wait([
+        _engagement.getTodaysQuest(),
+        _engagement.getStreak(),
+      ]);
+
       emit(HomeLoaded(
         user: user,
         lessons: lessons,
-        streakDays: 3, // TODO: wire from backend when streak endpoint is ready
+        quest: results[0] as DailyQuest,
+        streak: results[1] as StreakInfo,
       ));
     } on DioException catch (e) {
       emit(HomeError(e.message ?? 'Network error'));

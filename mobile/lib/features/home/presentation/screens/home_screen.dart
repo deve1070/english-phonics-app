@@ -5,10 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/pressable.dart';
+import '../../../../core/router/app_routes.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import '../widgets/home_greeting_header.dart';
 import '../widgets/lesson_card.dart';
+import '../../../engagement/presentation/widgets/quest_card.dart';
+import '../../../engagement/presentation/widgets/streak_badge.dart';
 import '../../../phonics/domain/entities/lesson_entity.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -93,6 +97,43 @@ class _LoadedView extends StatelessWidget {
                 streakDays: state.streakDays,
               ),
 
+              // The streak sits under the greeting rather than inside it,
+              // because below three days it renders nothing and the
+              // header must not be left with a hole in it.
+              if (state.streak.isWorthShowing)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: StreakBadge(streak: state.streak),
+                  ),
+                ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // Today's three things, above the lesson path: it is the
+              // one thing on this screen that can be finished.
+              if (!state.quest.isEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: QuestCard(
+                    quest: state.quest,
+                    onTapItem: (item) => context.push(
+                      '${AppRoutes.practice}/${item.exerciseId}',
+                      extra: {'content': item.content, 'type': item.type},
+                    ),
+                  ),
+                ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.06, end: 0),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: _ShelfLinks(),
+              ),
+
               const SizedBox(height: AppSpacing.lg),
 
               // Lessons header
@@ -141,6 +182,84 @@ class _LoadedView extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Two doors: the collection and the story shelf.
+///
+/// Both are rewards rather than tasks, so they sit between the quest and
+/// the lesson path — reachable in one tap from the first screen, but not
+/// competing with the thing the child is actually meant to do today.
+class _ShelfLinks extends StatelessWidget {
+  const _ShelfLinks();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ShelfLink(
+            icon: Icons.auto_awesome_rounded,
+            label: 'My Sounds',
+            colour: AppColors.honeyLight,
+            border: AppColors.honey,
+            onTap: () => context.push(AppRoutes.collection),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: _ShelfLink(
+            icon: Icons.menu_book_rounded,
+            label: 'My Stories',
+            colour: AppColors.skyLight,
+            border: AppColors.sky,
+            onTap: () => context.push(AppRoutes.stories),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ShelfLink extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color colour;
+  final Color border;
+  final VoidCallback onTap;
+
+  const _ShelfLink({
+    required this.icon,
+    required this.label,
+    required this.colour,
+    required this.border,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      color: colour,
+      borderColor: AppColors.border,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      semanticLabel: label,
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: border),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              label,
+              style: AppTextStyles.label.copyWith(color: AppColors.ink),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

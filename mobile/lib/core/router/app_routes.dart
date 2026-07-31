@@ -21,6 +21,19 @@ abstract class AppRoutes {
   static const String exercise             = '/lessons/:lessonId/exercise/:exerciseId';
   static const String pronunciationResult  = '/pronunciation-result';
 
+  // ── Engagement ────────────────────────────────────────────────
+  static const String collection = '/collection';
+  static const String stories    = '/stories';
+
+  /// Practise one exercise by id, with no lesson around it.
+  ///
+  /// [exercise] is nested under a lesson and needs a lessonId to build its
+  /// path. The quest card and the story reader both hold an exercise id
+  /// and nothing else — a quest item is deliberately drawn from wherever
+  /// in the curriculum it fits best, so there is no one lesson it belongs
+  /// to. This is that entry point.
+  static const String practice = '/practice';
+
   // ── Spelling Bee ──────────────────────────────────────────────
   static const String spellingBee     = '/spelling-bee';
   static const String spellingBeeGame = '/spelling-bee/game';

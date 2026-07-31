@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../engagement/data/engagement_models.dart';
 import '../../../phonics/domain/entities/lesson_entity.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 
@@ -19,13 +20,20 @@ class HomeLoading extends HomeState {
 class HomeLoaded extends HomeState {
   final UserEntity user;
   final List<LessonEntity> lessons;
-  final int streakDays;
+  final DailyQuest quest;
+  final StreakInfo streak;
 
   const HomeLoaded({
     required this.user,
     required this.lessons,
-    required this.streakDays,
+    this.quest = DailyQuest.empty,
+    this.streak = StreakInfo.none,
   });
+
+  /// Kept so the greeting header and anything else reading a plain count
+  /// still works. The display rule — hide it below three days — belongs
+  /// to StreakBadge, not here.
+  int get streakDays => streak.days;
 
   int get totalCompleted => lessons.where((l) => l.isCompleted).length;
 
@@ -42,7 +50,7 @@ class HomeLoaded extends HomeState {
           : null;
 
   @override
-  List<Object?> get props => [user, lessons, streakDays];
+  List<Object?> get props => [user, lessons, quest, streak];
 }
 
 class HomeError extends HomeState {

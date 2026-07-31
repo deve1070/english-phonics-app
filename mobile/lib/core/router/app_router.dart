@@ -14,6 +14,9 @@ import '../../features/spelling_bee/presentation/screens/spelling_bee_screen.dar
 import '../../features/progress/presentation/screens/progress_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/lessons/presentation/screens/lessons_list_screen.dart';
+// NEW: engagement — collectibles and the decodable story shelf
+import '../../features/engagement/presentation/screens/collection_screen.dart';
+import '../../features/engagement/presentation/screens/story_shelf_screen.dart';
 // NEW: phone auth screens
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -187,6 +190,29 @@ class AppRouter {
               ],
             ),
           ],
+        ),
+        // ── Engagement (full screen, outside shell) ───────────────
+        GoRoute(
+          path: AppRoutes.collection,
+          builder: (_, __) => const CollectionScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.stories,
+          builder: (_, __) => const StoryShelfScreen(),
+        ),
+        GoRoute(
+          // Practise a single exercise with no lesson context. See
+          // AppRoutes.practice for why this exists alongside the nested
+          // lesson route.
+          path: '${AppRoutes.practice}/:exerciseId',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            return PronunciationScreen(
+              exerciseId: int.parse(state.pathParameters['exerciseId']!),
+              exerciseContent: extra['content'] as String? ?? '',
+              exerciseType: extra['type'] as String? ?? 'WORD',
+            );
+          },
         ),
         GoRoute(
           path: AppRoutes.spellingBeeGame,
