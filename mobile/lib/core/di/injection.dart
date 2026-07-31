@@ -6,6 +6,7 @@ import '../constants/app_constants.dart';
 import '../network/auth_interceptor.dart';
 import '../network/token_storage.dart';
 import '../screen_time/screen_time_service.dart';
+import '../../features/lessons/presentation/widgets/session_summary_sheet.dart';
 
 // ── Uncomment after: flutter pub add local_auth ───────────────────
 // import 'package:local_auth/local_auth.dart';
@@ -49,6 +50,11 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<ScreenTimeService>(
     () => ScreenTimeService(dio, tokenStorage),
   );
+
+  // Accumulates the current sitting so the closing summary has something to
+  // report. A singleton because a session spans several exercise screens —
+  // scoping it to any one of them would reset the tally on every navigation.
+  getIt.registerLazySingleton<SessionTracker>(() => SessionTracker());
 
   // ── LocalAuthentication (biometric) ───────────────────────────
   // Enabled after: flutter pub add local_auth

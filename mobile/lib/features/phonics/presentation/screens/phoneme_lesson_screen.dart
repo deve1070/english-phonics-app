@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/di/injection.dart';
+import '../../../lessons/presentation/widgets/session_summary_sheet.dart';
 import '../../../home/presentation/widgets/level_style.dart';
 import '../cubit/phonics_cubit.dart';
 import '../cubit/phonics_state.dart';
@@ -44,8 +46,51 @@ class _PhonemeLessonViewState extends State<_PhonemeLessonView> {
 
   void _advanceTo(_LessonStage stage) => setState(() => _stage = stage);
 
+  /// Set once the summary has been shown, so the second pop goes through.
+  ///
+  /// Without it the pop inside [_leaveLesson] would be intercepted by this
+  /// same PopScope and loop forever.
+  bool _readyToLeave = false;
+
+  /// Closes the sitting with a summary instead of just vanishing.
+  ///
+  /// Hooked to leaving the lesson rather than to any one exercise, since a
+  /// session spans several. Skipped when nothing was attempted — a child
+  /// who opened a lesson and immediately backed out has nothing to
+  /// celebrate, and a summary of zero would cheapen every real one.
+  Future<void> _leaveLesson() async {
+    if (_readyToLeave) return;
+
+    final tracker = getIt<SessionTracker>();
+    final tally = tracker.build();
+
+    if (!tally.isEmpty) {
+      tracker.reset();
+      if (!mounted) return;
+      await SessionSummarySheet.show(context, tally: tally);
+    }
+
+    if (!mounted) return;
+    setState(() => _readyToLeave = true);
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Blocks the pop so the summary can run before the route is torn down.
+    // Covers the system back gesture, which on Android is how most children
+    // will actually leave; the app bar button calls _leaveLesson directly.
+    return PopScope(
+      canPop: _readyToLeave,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _leaveLesson();
+      },
+      child: _buildBody(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
     return BlocConsumer<PhonicsCubit, PhonicsState>(
       listener: (context, state) {
         // FIX: errors shown as snackbar — do NOT reset stage
@@ -94,6 +139,7 @@ class _PhonemeLessonViewState extends State<_PhonemeLessonView> {
             stage: _stage,
             mouthKey: _mouthKey,
             onAdvance: _advanceTo,
+            onLeave: _leaveLesson,
           );
         }
         return const _LoadingView();
@@ -109,11 +155,16 @@ class _LoadedView extends StatelessWidget {
   final GlobalKey<MouthAnimationWidgetState> mouthKey;
   final void Function(_LessonStage) onAdvance;
 
+  /// Routed through the parent so leaving always closes the session, rather
+  /// than depending on whether go_router's pop happens to consult PopScope.
+  final VoidCallback onLeave;
+
   const _LoadedView({
     required this.state,
     required this.stage,
     required this.mouthKey,
     required this.onAdvance,
+    required this.onLeave,
   });
 
   @override
@@ -143,7 +194,7 @@ class _LoadedView extends StatelessWidget {
                 child: const Icon(Icons.arrow_back_ios_rounded,
                     size: 18, color: AppColors.textPrimary),
               ),
-              onPressed: () => context.pop(),
+              onPressed: onLeave,
             ),
             title: Column(
               children: [

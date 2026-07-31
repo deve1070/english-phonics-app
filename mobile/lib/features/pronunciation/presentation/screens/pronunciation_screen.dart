@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/di/injection.dart';
+import '../../../lessons/presentation/widgets/session_summary_sheet.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -9,6 +11,7 @@ import '../cubit/pronunciation_cubit.dart';
 import '../cubit/pronunciation_state.dart';
 import '../widgets/mic_button.dart';
 import '../widgets/score_result_card.dart';
+import '../../../../core/theme/pressable.dart';
 
 class PronunciationScreen extends StatelessWidget {
   final int exerciseId;
@@ -72,7 +75,20 @@ class _PronunciationView extends StatelessWidget {
         title: Text('Pronunciation', style: AppTextStyles.headingSmall),
         centerTitle: true,
       ),
-      body: BlocBuilder<PronunciationCubit, PronunciationState>(
+      body: BlocConsumer<PronunciationCubit, PronunciationState>(
+        // Every scored attempt feeds the running tally the end-of-session
+        // summary reports. Done here rather than in the cubit so the
+        // session tracker stays out of the scoring logic.
+        listenWhen: (prev, next) =>
+            next is PronunciationScored && prev is! PronunciationScored,
+        listener: (context, state) {
+          if (state is PronunciationScored) {
+            getIt<SessionTracker>().recordAttempt(
+              score: state.score,
+              sound: exerciseContent,
+            );
+          }
+        },
         builder: (context, state) {
           if (state is PronunciationScored) {
             return _ScoredView(
@@ -122,35 +138,22 @@ class _RecordingView extends StatelessWidget {
           const SizedBox(height: AppSpacing.xl),
 
           // ── Exercise content card ─────────────────────────────
-          Container(
-            width: double.infinity,
+          PaperCard(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFE8FAF8), Color(0xFFF0FFF9)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(
-                color: AppColors.teal.withOpacity(0.3),
-                width: 1.5,
-              ),
-            ),
             child: Column(
               children: [
                 Text(
                   _labelForType(exerciseType),
-                  style: AppTextStyles.label.copyWith(color: AppColors.teal),
+                  style: AppTextStyles.label.copyWith(color: AppColors.leaf),
                 ),
                 const SizedBox(height: AppSpacing.md),
+                // The words the child has to decode. Set in readingText —
+                // canonical letterforms, generous tracking — not the
+                // handwriting face: this is the thing being taught, not
+                // decoration.
                 Text(
                   exerciseContent,
-                  style: AppTextStyles.displaySmall.copyWith(
-                    fontFamily: 'PatrickHand',
-                    fontSize: 36,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: AppTextStyles.readingText,
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -264,11 +267,11 @@ class _ReferenceAudioButton extends StatelessWidget {
           vertical: AppSpacing.sm + 4,
         ),
         decoration: BoxDecoration(
-          color: AppColors.teal.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(AppRadius.full),
+          color: AppColors.leafLight,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: AppColors.teal.withOpacity(0.4),
-            width: 1.5,
+            color: AppColors.leaf,
+            width: AppBorders.standard,
           ),
         ),
         child: Row(
@@ -276,7 +279,7 @@ class _ReferenceAudioButton extends StatelessWidget {
           children: [
             Icon(
               isPlaying ? Icons.graphic_eq_rounded : Icons.hearing_rounded,
-              color: AppColors.teal,
+              color: AppColors.leafDark,
               size: 20,
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -448,11 +451,11 @@ class _TipCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.yellow.withOpacity(0.12),
+        color: AppColors.honeyLight,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: AppColors.yellow.withOpacity(0.3),
-          width: 1,
+          color: AppColors.honey,
+          width: AppBorders.hairline,
         ),
       ),
       child: Row(
