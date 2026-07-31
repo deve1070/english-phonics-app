@@ -246,6 +246,79 @@ check("phoneme reference audio streams", r.status_code == 200 and len(r.content)
 
 print()
 print("=" * 70)
+print("ENGAGEMENT (as the child)")
+print("=" * 70)
+
+r = requests.get(f"{B}/me/quest/today", headers=CH)
+quest = jd(r)
+check("today's quest builds", r.status_code == 200 and "items" in quest,
+      f"HTTP {r.status_code} n={len(quest.get('items', []))} {jd(r) if r.status_code != 200 else ''}")
+
+slots = [i["slot"] for i in quest.get("items", [])]
+check("quest slots are the three distinct roles",
+      len(slots) == len(set(slots)) and set(slots) <= {"review", "current", "stretch"},
+      f"slots={slots}")
+
+ex_ids = [i["exercise_id"] for i in quest.get("items", [])]
+check("no exercise fills two slots", len(ex_ids) == len(set(ex_ids)), f"ids={ex_ids}")
+
+# The whole point of persisting the selection: asking twice must not
+# re-roll it, or the target moves while the child is working.
+again = jd(requests.get(f"{B}/me/quest/today", headers=CH))
+check("the quest is fixed for the day",
+      [i["exercise_id"] for i in again.get("items", [])] == ex_ids,
+      f"first={ex_ids} second={[i['exercise_id'] for i in again.get('items', [])]}")
+
+check("nothing is complete before the child has practised",
+      quest.get("completed_count") == 0 and quest.get("is_complete") is False,
+      f"completed={quest.get('completed_count')}/{quest.get('total_count')}")
+
+r = requests.get(f"{B}/me/streak", headers=CH)
+st = jd(r)
+check("child can read their own streak", r.status_code == 200 and st.get("days") == 0,
+      f"HTTP {r.status_code} {st}")
+check("a child who never practised has earned no freeze",
+      st.get("freezes_available") == 0 and st.get("frozen_dates") == [],
+      f"{st}")
+
+r = requests.get(f"{B}/me/collection", headers=CH)
+col = jd(r)
+check("collection lists every phoneme, locked included",
+      r.status_code == 200 and col.get("total") == len(phs),
+      f"HTTP {r.status_code} total={col.get('total')} phonemes={len(phs)}")
+check("nothing is unlocked before anything is mastered",
+      col.get("unlocked") == 0 and col.get("newly_unlocked") == [],
+      f"unlocked={col.get('unlocked')} new={col.get('newly_unlocked')}")
+check("each collectible carries what the client needs to draw it",
+      all({"phoneme_id", "symbol", "order", "phoneme_type", "is_unlocked"} <= set(c)
+          for c in col.get("items", [])),
+      f"keys={sorted(col['items'][0]) if col.get('items') else 'none'}")
+
+r = requests.post(f"{B}/me/collection/seen", headers=CH)
+check("acknowledging an empty collection is not an error",
+      r.status_code == 200 and jd(r).get("acknowledged") == 0,
+      f"HTTP {r.status_code} {jd(r)}")
+
+r = requests.get(f"{B}/me/stories", headers=CH)
+lib = jd(r)
+check("story shelf responds", r.status_code == 200 and "stories" in lib,
+      f"HTTP {r.status_code} total={lib.get('total')}")
+check("a child who has mastered nothing has no story unlocked",
+      lib.get("unlocked") == 0, f"unlocked={lib.get('unlocked')}/{lib.get('total')}")
+leaked = [s["title"] for s in lib.get("stories", [])
+          if not s["is_unlocked"] and s.get("content") is not None]
+check("locked stories withhold their text", not leaked,
+      f"leaked={leaked}" if leaked else f"{len(lib.get('stories', []))} locked, none leaked")
+check("a locked story names the sound that would open it",
+      all(s.get("blocking_phoneme") for s in lib.get("stories", []) if not s["is_unlocked"]),
+      f"blocking={[s.get('blocking_phoneme') for s in lib.get('stories', [])][:5]}")
+
+r = requests.get(f"{B}/me/quest/today", headers=H)
+check("a parent token cannot read a child's quest", r.status_code in (401, 403),
+      f"HTTP {r.status_code}")
+
+print()
+print("=" * 70)
 print("SUMMARY")
 print("=" * 70)
 passed = sum(1 for _, ok, _ in results if ok)
