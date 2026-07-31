@@ -10,7 +10,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../phonics/data/datasources/lessons_remote_datasource.dart';
 import '../../../phonics/domain/entities/lesson_entity.dart';
-import '../../../home/presentation/widgets/lesson_card.dart';
+import '../widgets/journey_map.dart';
 import '../../../home/presentation/widgets/level_style.dart';
 
 // ── State ─────────────────────────────────────────────────────────
@@ -233,30 +233,15 @@ class _LoadedView extends StatelessWidget {
                   AppSpacing.lg,
                   AppSpacing.xxl,
                 ),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: AppSpacing.md,
-                    mainAxisSpacing: AppSpacing.md,
-                    childAspectRatio: 0.82,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final lesson = filtered[index];
-                      // Global index for lock logic
-                      final globalIndex = state.lessons.indexOf(lesson);
-                      return LessonCard(
-                        lesson: lesson,
-                        index: globalIndex,
-                        onTap: () => context.push('/lessons/${lesson.id}'),
-                      )
-                          .animate(
-                            delay: Duration(milliseconds: index * 60),
-                          )
-                          .fadeIn(duration: 300.ms)
-                          .slideY(begin: 0.12, end: 0, duration: 300.ms);
-                    },
-                    childCount: filtered.length,
+                // A trail rather than a grid. Two columns of near-identical
+                // cards tell a child what exists; a path tells them where
+                // they are and what comes next, which is the only question
+                // they actually have.
+                sliver: SliverToBoxAdapter(
+                  child: JourneyMap(
+                    lessons: filtered,
+                    onTapLesson: (lesson) =>
+                        context.push('/lessons/${lesson.id}'),
                   ),
                 ),
               ),
