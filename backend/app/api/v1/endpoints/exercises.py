@@ -123,11 +123,18 @@ async def background_generate_exercises(phoneme_id: int):
         if not target_phoneme:
             return
 
+        # `order` is global across the whole curriculum (1..N over every
+        # lesson), so "everything the child has already learnt" is purely
+        # an order comparison. Scoping this to the target's own lesson —
+        # as this previously did — excluded every phoneme taught in
+        # earlier lessons, leaving a lesson-5 phoneme with only a handful
+        # of allowed graphemes to build words from. The generator would
+        # then have almost nothing to work with and the grapheme
+        # validator would reject most of what came back.
         allowed_result = await db.execute(
-            select(Phoneme).filter(
-                Phoneme.lesson_id == target_phoneme.lesson_id,
-                Phoneme.order <= target_phoneme.order,
-            )
+            select(Phoneme)
+            .filter(Phoneme.order <= target_phoneme.order)
+            .order_by(Phoneme.order)
         )
         allowed_phonemes = allowed_result.scalars().all()
 
