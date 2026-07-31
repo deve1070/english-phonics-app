@@ -4,6 +4,7 @@
 # Parent management dashboard
 from app.api.v1.endpoints import (
     auth,
+    engagement,
     exercises,
     lessons,
     parents,
@@ -22,3 +23,4 @@ api_router.include_router(phonemes.router)
 api_router.include_router(exercises.router)
 api_router.include_router(tts.router)
 api_router.include_router(parents.router)  # ← parent dashboard
+api_router.include_router(engagement.router)  # ← quest, streak, stickers, stories
