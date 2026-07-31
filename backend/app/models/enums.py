@@ -41,6 +41,20 @@ class PhonemeType(str, Enum):
     SUFFIX = "suffix"
 
 
+class QuestSlot(str, Enum):
+    """The three fixed rungs of a daily quest.
+
+    Ordered deliberately: something already met and shaky, something
+    being learnt now, something just past the edge. A quest is always
+    these three roles, never three arbitrary exercises — that is what
+    makes the review slot double as spaced repetition.
+    """
+
+    REVIEW = "review"
+    CURRENT = "current"
+    STRETCH = "stretch"
+
+
 class LessonStatus(str, Enum):
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"

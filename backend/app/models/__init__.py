@@ -8,10 +8,18 @@ from .parent import (  # noqa: F401
     WeeklyReport,
 )
 
+from .engagement import (  # noqa: F401
+    DailyQuest,
+    DailyQuestItem,
+    PhonemeUnlock,
+    StreakFreeze,
+)
+
 from .enums import (
     ExerciseType,
     Level,
     PhonemeType,
+    QuestSlot,
     UserRole,
 )
 from .exercise import Exercise
