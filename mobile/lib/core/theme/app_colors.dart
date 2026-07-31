@@ -1,71 +1,98 @@
 import 'package:flutter/material.dart';
 
-/// PhonicsFriends color palette — derived from the web app (phoneticsap.vercel.app)
+/// Palette derived from the Abyssinian lovebird (Agapornis taranta), the
+/// highland parrot this app's mascot is based on, and from the warm earth
+/// tones of the Ethiopian highlands.
+///
+/// Deliberately NOT the coral/teal/pastel-yellow set this replaced — that
+/// combination is the default "friendly kids app" palette and reads as
+/// stock. These colours are saturated and warm rather than washed out, and
+/// every surface is a flat fill: there are no gradients anywhere in the
+/// system.
+///
+/// One rule matters more than the rest: **red never means "wrong."** In an
+/// app where a child reads aloud and is scored, red marking failure teaches
+/// shame, and shame is what stops children practising. [honey] carries
+/// "try again". [crest] is reserved for the bird and for celebration.
 abstract class AppColors {
-  // ── Brand Primaries ──────────────────────────────────────────
-  static const Color coral = Color(0xFFFF6B6B);        // primary CTAs, headers
-  static const Color teal = Color(0xFF4ECDC4);          // secondary, success states
-  static const Color yellow = Color(0xFFFFE66D);        // accents, highlights
-  static const Color purple = Color(0xFFA855F7);        // Spelling Bee feature
+  // ── Core palette ──────────────────────────────────────────────
+  /// Her plumage. Primary actions, progress, success. Deep and saturated —
+  /// not mint, not teal.
+  static const Color leaf = Color(0xFF2E7D4F);
+  static const Color leafDark = Color(0xFF1F5C39);
+  static const Color leafLight = Color(0xFFDCEBE0);
+
+  /// The red forehead patch. Accent and celebration only — never failure.
+  static const Color crest = Color(0xFFC8102E);
+  static const Color crestLight = Color(0xFFF7DDE1);
+
+  /// Ochre. Replaces the neon yellow: warmer, and readable as a "keep
+  /// going" signal rather than an alarm.
+  static const Color honey = Color(0xFFE0A33E);
+  static const Color honeyLight = Color(0xFFFBEEDA);
+
+  /// Muted highland blue. Secondary and informational.
+  static const Color sky = Color(0xFF4A7FA5);
+  static const Color skyLight = Color(0xFFDDE8F0);
+
+  // ── Ground & surface ──────────────────────────────────────────
+  /// Warm paper, not white. White backgrounds glare on cheap screens and
+  /// read as clinical.
+  static const Color parchment = Color(0xFFF5EFE3);
+  static const Color surface = Color(0xFFFFFDF8);
+  static const Color surfaceSunken = Color(0xFFEBE3D4);
+
+  // ── Ink ───────────────────────────────────────────────────────
+  /// Warm brown-black. A neutral grey against warm paper looks dirty.
+  static const Color ink = Color(0xFF2B241E);
+  static const Color inkSoft = Color(0xFF6B5F52);
+  static const Color inkFaint = Color(0xFFA79683);
+  static const Color onInk = Color(0xFFFFFDF8);
 
   // ── Semantic ──────────────────────────────────────────────────
-  static const Color green = Color(0xFF6BCB77);         // correct answer
-  static const Color red = Color(0xFFFF6B6B);           // wrong answer (same coral)
-  static const Color orange = Color(0xFFFF9F43);        // warning / in-progress
+  /// Got it. The same green as the brand — success is the state we want
+  /// children to associate with the app by default.
+  static const Color correct = leaf;
 
-  // ── Background & Surface ─────────────────────────────────────
-  static const Color background = Color(0xFFFFF9F0);   // warm white — main bg
-  static const Color surface = Color(0xFFFFFFFF);      // cards, modals
-  static const Color surfaceVariant = Color(0xFFF5EFE6); // subtle card bg
+  /// Not yet. Deliberately amber rather than red: this is an invitation to
+  /// retry, and retries are free (the server always keeps the best score).
+  static const Color retry = honey;
 
-  // ── Text ──────────────────────────────────────────────────────
-  static const Color textPrimary = Color(0xFF2D2D2D);  // headings, labels
-  static const Color textSecondary = Color(0xFF7A7A8A); // subtitles, hints
-  static const Color textOnDark = Color(0xFFFFFFFF);   // text on coral/teal bg
+  /// Not attempted / locked.
+  static const Color dormant = Color(0xFFC9BCA9);
 
-  // ── Borders & Dividers ────────────────────────────────────────
-  static const Color border = Color(0xFFE8DFD0);
-  static const Color divider = Color(0xFFF0E8DC);
+  // ── Structure ─────────────────────────────────────────────────
+  static const Color border = Color(0xFF2B241E);
+  static const Color borderSoft = Color(0xFFD9CDB9);
 
-  // ── Shadows ───────────────────────────────────────────────────
-  static const Color shadowLight = Color(0x1A2D2D2D);
-  static const Color shadowMedium = Color(0x262D2D2D);
+  /// Hard offset shadow, no blur. See [AppShadows] for why.
+  static const Color shadow = Color(0xFF2B241E);
 
-  // ── Lesson Level Colors ───────────────────────────────────────
-  static const Color level1 = Color(0xFF4ECDC4); // teal
-  static const Color level2 = Color(0xFFFFE66D); // yellow
-  static const Color level3 = Color(0xFFFF6B6B); // coral
-  static const Color level4 = Color(0xFFA855F7); // purple
-  static const Color level5 = Color(0xFFFF9F43); // orange
+  // ── Lesson levels ─────────────────────────────────────────────
+  // Ordered as a journey that gets richer, not five unrelated hues.
+  static const Color level1 = leaf;
+  static const Color level2 = sky;
+  static const Color level3 = honey;
+  static const Color level4 = Color(0xFF8C5AA8); // highland iris
+  static const Color level5 = crest;
 
-  // ── Gradients ─────────────────────────────────────────────────
-  static const LinearGradient coralGradient = LinearGradient(
-    colors: [Color(0xFFFF6B6B), Color(0xFFFF8E8E)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient tealGradient = LinearGradient(
-    colors: [Color(0xFF4ECDC4), Color(0xFF38B2A9)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient yellowGradient = LinearGradient(
-    colors: [Color(0xFFFFE66D), Color(0xFFFFD93D)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient purpleGradient = LinearGradient(
-    colors: [Color(0xFFA855F7), Color(0xFF9333EA)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient backgroundGradient = LinearGradient(
-    colors: [Color(0xFFFFF9F0), Color(0xFFFFF3E0)],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
+  // ── Backwards-compatible aliases ──────────────────────────────
+  // The old names are still referenced by screens not yet restyled. They
+  // resolve into the new palette so nothing renders in the old stock
+  // colours during the migration. Prefer the names above in new code.
+  static const Color coral = crest;
+  static const Color teal = leaf;
+  static const Color yellow = honey;
+  static const Color purple = level4;
+  static const Color green = leaf;
+  static const Color red = crest;
+  static const Color orange = honey;
+  static const Color background = parchment;
+  static const Color surfaceVariant = surfaceSunken;
+  static const Color textPrimary = ink;
+  static const Color textSecondary = inkSoft;
+  static const Color textOnDark = onInk;
+  static const Color divider = borderSoft;
+  static const Color shadowLight = Color(0x142B241E);
+  static const Color shadowMedium = Color(0x1F2B241E);
 }

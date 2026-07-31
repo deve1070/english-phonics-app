@@ -1,18 +1,47 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Typography system for PhonicsFriends
-/// PatrickHand  → big phoneme letters, display headings (fun, hand-written feel)
-/// Nunito       → UI labels, body, buttons (clean, rounded, highly legible for kids)
+/// Typography system.
+///
+/// Nunito       → everything a child has to *read as language*, including
+///                the letterforms being taught.
+/// PatrickHand  → decorative headings only, for warmth.
+///
+/// The split matters pedagogically. Both faces happen to have the correct
+/// single-storey `a` and `g` — the shapes children are actually taught to
+/// write, rather than the double-storey `ɑ` most text faces use — so either
+/// is defensible for body text. But PatrickHand is a handwriting face with
+/// uneven stroke weight, and the giant phoneme letter is not decoration:
+/// it is the artifact being taught. That one needs to be canonical and
+/// perfectly consistent every time it appears, so it is set in Nunito
+/// Black.
+///
+/// Known caveat: Nunito draws capital `I` and lowercase `l` as the same
+/// bare stem. Phonics work here is overwhelmingly lowercase and the display
+/// pairs letters as "Aa", so this rarely bites — but avoid Nunito for any
+/// screen where a child must tell those two apart in isolation.
 abstract class AppTextStyles {
-  // ── Display — PatrickHand ────────────────────────────────────
-  /// Giant phoneme letter on lesson screen (e.g. "A")
+  // ── The letterforms being taught — Nunito Black ──────────────
+  /// Giant phoneme letter on the lesson screen (e.g. "Aa").
   static const TextStyle phonemeDisplay = TextStyle(
-    fontFamily: 'PatrickHand',
+    fontFamily: 'Nunito',
     fontSize: 120,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textPrimary,
+    fontWeight: FontWeight.w900,
+    color: AppColors.ink,
     height: 1.0,
+    letterSpacing: -1,
+  );
+
+  /// A word or sentence the child is being asked to read aloud. Same
+  /// reasoning as [phonemeDisplay]: this is the thing being decoded, so it
+  /// must be set in canonical letterforms, generously tracked.
+  static const TextStyle readingText = TextStyle(
+    fontFamily: 'Nunito',
+    fontSize: 34,
+    fontWeight: FontWeight.w800,
+    color: AppColors.ink,
+    height: 1.45,
+    letterSpacing: 0.5,
   );
 
   /// Section headers, screen titles
@@ -124,11 +153,22 @@ abstract class AppTextStyles {
   );
 
   // ── Score Display ─────────────────────────────────────────────
+  /// Numeric score. Parent-facing surfaces only — children see stars.
   static const TextStyle scoreDisplay = TextStyle(
-    fontFamily: 'PatrickHand',
-    fontSize: 72,
-    fontWeight: FontWeight.w400,
-    color: AppColors.coral,
+    fontFamily: 'Nunito',
+    fontSize: 56,
+    fontWeight: FontWeight.w900,
+    color: AppColors.leaf,
     height: 1.0,
+  );
+
+  /// Short celebratory lines from the mascot. PatrickHand earns its place
+  /// here: it is voice, not instruction.
+  static const TextStyle mascotSpeech = TextStyle(
+    fontFamily: 'PatrickHand',
+    fontSize: 26,
+    fontWeight: FontWeight.w400,
+    color: AppColors.ink,
+    height: 1.3,
   );
 }
