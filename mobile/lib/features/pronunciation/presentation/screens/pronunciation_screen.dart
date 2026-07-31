@@ -316,17 +316,21 @@ class _ScoredView extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // The prompt is repeated above the result so the child can see
+          // the words they read while looking at the breakdown. Set in the
+          // reading style, not the handwriting face: this is decodable
+          // text, not decoration.
           Text(
-            '"$exerciseContent"',
+            exerciseContent,
             style: AppTextStyles.headingSmall.copyWith(
-              fontFamily: 'PatrickHand',
-              color: AppColors.textSecondary,
+              color: AppColors.inkSoft,
             ),
             textAlign: TextAlign.center,
           ).animate().fadeIn(duration: 300.ms),
           const SizedBox(height: AppSpacing.xl),
           ScoreResultCard(
             state: state,
+            expectedText: exerciseContent,
             onTryAgain: onTryAgain,
             onNext: onNext,
           ),

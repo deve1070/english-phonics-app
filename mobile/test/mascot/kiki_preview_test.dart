@@ -5,7 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:phonics_app/core/mascot/kiki.dart';
 import 'package:phonics_app/core/theme/app_colors.dart';
 
+import '../support/preview_fonts.dart';
+
 void main() {
+  setUpAll(loadPreviewFonts);
+
   testWidgets('Kiki renders in every mood', (tester) async {
     await tester.binding.setSurfaceSize(const Size(760, 200));
     await tester.pumpWidget(
@@ -22,7 +26,7 @@ void main() {
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 400));
+    await settleAnimations(tester);
     await expectLater(
       find.byType(Row),
       matchesGoldenFile('kiki_moods.png'),

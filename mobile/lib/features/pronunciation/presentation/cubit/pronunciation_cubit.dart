@@ -19,6 +19,11 @@ class PronunciationCubit extends Cubit<PronunciationState> {
   Duration _elapsed = Duration.zero;
   String? _recordingPath;
 
+  /// Best score per exercise for this sitting, so a retry can be framed as
+  /// beating a record rather than repeating a failure. The server is the
+  /// permanent record; this only needs to survive the screen.
+  final Map<int, double> _bestByExercise = {};
+
   PronunciationCubit(this._dio, this._recorder, this._player)
       : super(const PronunciationInitial());
 
@@ -148,13 +153,27 @@ class PronunciationCubit extends Cubit<PronunciationState> {
         data: formData,
       );
 
-      print('Pronunciation submit response score=${response.data['score']}');
-
       final score = (response.data['score'] as num).toDouble();
+
+      // `your_speech` is what Azure actually transcribed. It drives the
+      // per-word feedback — the difference between telling a child "44" and
+      // showing them which word tripped them up.
+      final heard = (response.data['your_speech'] ?? '').toString();
+
+      // Best is tracked per exercise so switching exercises doesn't carry a
+      // stale record across.
+      final previousBest = _bestByExercise[exerciseId];
+      final isBest = previousBest == null || score > previousBest;
+      if (isBest) _bestByExercise[exerciseId] = score;
+
       emit(PronunciationScored(
         score: score,
         exerciseId: exerciseId,
         isCompleted: score >= ScoreThresholds.pass,
+        heardText: heard,
+        bestScore: _bestByExercise[exerciseId],
+        // Only celebrate a record when there was something to beat.
+        isPersonalBest: isBest && previousBest != null,
       ));
     } on DioException catch (e) {
       print('Pronunciation submit failed: ${e.message}');

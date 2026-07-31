@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/constants/app_constants.dart';
+
 abstract class PronunciationState extends Equatable {
   const PronunciationState();
   @override
@@ -42,27 +44,46 @@ class PronunciationScored extends PronunciationState {
   final int exerciseId;
   final bool isCompleted; // score >= 80
 
+  /// What the recognizer heard, used to show per-word feedback.
+  final String heardText;
+
+  /// Best score across attempts at this exercise in this sitting.
+  ///
+  /// The server already keeps the best score permanently (Progress upserts
+  /// with greatest()), so a retry can only ever help. Surfacing the best
+  /// makes that visible: it turns a repeat attempt from "I failed, do it
+  /// again" into "beat your record", which is the whole reason retries are
+  /// free.
+  final double bestScore;
+
+  /// True when this attempt beat everything before it in this sitting.
+  final bool isPersonalBest;
+
   const PronunciationScored({
     required this.score,
     required this.exerciseId,
     required this.isCompleted,
-  });
+    this.heardText = '',
+    double? bestScore,
+    this.isPersonalBest = false,
+  }) : bestScore = bestScore ?? score;
 
+  /// Encouragement, never a verdict.
+  ///
+  /// Nothing here names failure. The lowest band still points forward,
+  /// because the child has to want to press the button again — that is the
+  /// only thing that actually improves their reading.
   String get grade {
-    if (score >= 98) return 'Perfect!';
-    if (score >= 90) return 'Excellent!';
-    if (score >= 80) return 'Great job!';
-    if (score >= 60) return 'Keep trying!';
-    return 'Try again!';
-  }
-
-  String get mascotAsset {
-    if (score >= 80) return 'assets/images/popiE.png'; // excited
-    return 'assets/images/popi.png'; // normal
+    if (score >= ScoreThresholds.perfect) return 'Perfect!';
+    if (score >= ScoreThresholds.good) return 'Brilliant!';
+    if (score >= ScoreThresholds.pass) return 'You did it!';
+    if (score >= 55) return 'So close!';
+    return 'Good try!';
   }
 
   @override
-  List<Object?> get props => [score, exerciseId, isCompleted];
+  List<Object?> get props =>
+      [score, exerciseId, isCompleted, heardText, bestScore, isPersonalBest];
 }
 
 class PronunciationError extends PronunciationState {
