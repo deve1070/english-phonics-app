@@ -51,6 +51,15 @@ abstract class ApiConstants {
   static const String ttsSynthesize = '/tts/synthesize';
   static const String ttsPhonemeWithVisemes = '/tts/phoneme-with-visemes';
 
+  // ── Engagement (the child's own view) ─────────────────────────
+  // No child id in any of these: the server scopes them to whoever the
+  // token belongs to. A parent token gets 403, by design.
+  static const String questToday = '/me/quest/today';
+  static const String myStreak = '/me/streak';
+  static const String myCollection = '/me/collection';
+  static const String collectionSeen = '/me/collection/seen';
+  static const String myStories = '/me/stories';
+
   // ── Parent management ─────────────────────────────────────────
   static const String parentRegister = '/parents/register';
   static const String parentDashboard = '/parents/dashboard';

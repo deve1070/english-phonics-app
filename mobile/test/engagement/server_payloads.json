@@ -1,0 +1,93 @@
+{
+  "quest": {
+    "quest_date": "2026-07-31",
+    "items": [
+      {
+        "slot": "current",
+        "exercise_id": 1,
+        "content": "cat",
+        "type": "word",
+        "completed": false
+      },
+      {
+        "slot": "stretch",
+        "exercise_id": 55,
+        "content": "a",
+        "type": "phoneme",
+        "completed": false
+      }
+    ],
+    "completed_count": 0,
+    "total_count": 2,
+    "is_complete": false
+  },
+  "streak": {
+    "days": 0,
+    "freezes_available": 0,
+    "frozen_dates": []
+  },
+  "collection": {
+    "total": 90,
+    "unlocked": 0,
+    "items": [
+      {
+        "phoneme_id": 1,
+        "symbol": "Aa",
+        "order": 1,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false
+      },
+      {
+        "phoneme_id": 2,
+        "symbol": "Bb",
+        "order": 2,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false
+      },
+      {
+        "phoneme_id": 3,
+        "symbol": "Cc",
+        "order": 3,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false
+      }
+    ],
+    "newly_unlocked": []
+  },
+  "stories": {
+    "total": 6,
+    "unlocked": 0,
+    "stories": [
+      {
+        "exercise_id": 3,
+        "title": "The cat sat. It",
+        "word_count": 12,
+        "is_unlocked": false,
+        "blocking_phoneme": "Bb",
+        "content": null
+      },
+      {
+        "exercise_id": 50,
+        "title": "The cat sat on",
+        "word_count": 18,
+        "is_unlocked": false,
+        "blocking_phoneme": "Cc",
+        "content": null
+      },
+      {
+        "exercise_id": 51,
+        "title": "Dad has a red",
+        "word_count": 19,
+        "is_unlocked": false,
+        "blocking_phoneme": "Bb",
+        "content": null
+      }
+    ]
+  }
+}
