@@ -63,6 +63,7 @@ from app.schemas.schemas_parent import (
     SessionStartResponse,
     WeeklyReportResponse,
 )
+from app.services.streak_service import current_streak
 from app.services.weekly_report_service import generate_weekly_report
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
@@ -317,7 +318,7 @@ async def parent_dashboard(
                 minutes_today=screen.minutes_used_today,
                 max_daily_minutes=screen.max_daily_minutes,
                 is_limit_reached=screen.is_limit_reached,
-                streak_days=0,  # TODO: wire streak service
+                streak_days=await current_streak(db, child.id),
                 last_active=progress["last_active"],
             )
         )
@@ -377,7 +378,7 @@ async def child_progress(
         exercises_completed=summary["exercises_completed"],
         total_exercises=summary["total_exercises"],
         avg_pronunciation_score=round(avg_overall, 1) if avg_overall else None,
-        streak_days=0,
+        streak_days=await current_streak(db, child.id),
         minutes_this_week=screen,
         phoneme_progress=phoneme_progress,
         last_active=summary["last_active"],
