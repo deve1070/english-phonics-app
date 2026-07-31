@@ -20,7 +20,10 @@ void main() {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              for (final m in KikiMood.values) Kiki(size: 140, mood: m),
+              // blink off: its interval is random, so leaving it on makes this
+              // golden flaky.
+              for (final m in KikiMood.values)
+                Kiki(size: 140, mood: m, blink: false),
             ],
           ),
         ),

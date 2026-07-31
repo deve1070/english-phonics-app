@@ -2,6 +2,7 @@
 //   flutter test --update-goldens test/pronunciation/result_card_preview_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:phonics_app/core/mascot/kiki.dart';
 import 'package:phonics_app/core/theme/app_colors.dart';
 import 'package:phonics_app/core/theme/app_theme.dart';
 import 'package:phonics_app/features/pronunciation/presentation/cubit/pronunciation_state.dart';
@@ -39,7 +40,13 @@ void main() {
         ]),
       )),
     ));
-    await settleAnimations(tester);
+    // The card contains Kiki, whose blink interval is random. Settle
+    // everything the card animates but stop short of her first possible
+    // blink, or this golden drifts by a few hundred pixels at random.
+    await settleAnimations(
+      tester,
+      total: Kiki.minBlinkDelay - const Duration(milliseconds: 300),
+    );
     await expectLater(find.byType(Row).first,
         matchesGoldenFile('result_card.png'));
   });

@@ -44,7 +44,25 @@ class Kiki extends StatefulWidget {
   final double size;
   final KikiMood mood;
 
-  const Kiki({super.key, this.size = 120, this.mood = KikiMood.idle});
+  /// Blinking is deliberately irregular — the irregularity is what sells
+  /// her as alive — which makes any rendering of her non-deterministic.
+  /// Golden tests turn it off so their output is stable; nothing in the
+  /// app should.
+  final bool blink;
+
+  const Kiki({
+    super.key,
+    this.size = 120,
+    this.mood = KikiMood.idle,
+    this.blink = true,
+  });
+
+  /// Shortest possible gap before she blinks.
+  ///
+  /// Public so golden tests that contain her can settle their own
+  /// animations without crossing into blink territory and going flaky.
+  /// Every reaction she plays finishes well inside this.
+  static const Duration minBlinkDelay = Duration(milliseconds: 1800);
 
   @override
   State<Kiki> createState() => _KikiState();
@@ -77,7 +95,7 @@ class _KikiState extends State<Kiki> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 160),
     );
-    _scheduleBlink();
+    if (widget.blink) _scheduleBlink();
 
     _react = AnimationController(
       vsync: this,
@@ -88,7 +106,7 @@ class _KikiState extends State<Kiki> with TickerProviderStateMixin {
 
   void _scheduleBlink() {
     // Irregular interval: the irregularity is what sells it.
-    final ms = 1800 + _random.nextInt(3200);
+    final ms = Kiki.minBlinkDelay.inMilliseconds + _random.nextInt(3200);
     _blinkTimer = Timer(Duration(milliseconds: ms), () {
       if (!mounted) return;
       _blink.forward().then((_) {
