@@ -25,6 +25,7 @@ to a parent.
 """
 
 from sqlalchemy import (
+    Boolean,
     Column,
     Date,
     DateTime,
@@ -37,7 +38,7 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
 
 from ..db.base import Base
-from .enums import QuestSlot
+from .enums import QuestSlot, RecognitionMode
 
 
 class DailyQuest(Base):
@@ -122,6 +123,50 @@ class PhonemeUnlock(Base):
     seen_at = Column(DateTime, nullable=True)
 
     phoneme = relationship("Phoneme")
+
+
+class RecognitionAttempt(Base):
+    """One answer to "which symbol says this sound?".
+
+    Every attempt is kept, right or wrong, and the wrong ones are the
+    valuable half: `chosen_phoneme_id` alongside `phoneme_id` is a
+    confusion matrix for this child, built for free. It tells the round
+    builder which distractors are worth offering and tells a parent
+    something they can act on — "she mixes up /b/ and /d/" rather than
+    "82% average".
+
+    Deliberately not merged with PronunciationScore. Recognising a sound
+    and being able to say it are different skills; a child can hold the
+    mapping long before their mouth is reliable, and averaging the two
+    would hide exactly the gap a teacher needs to see. Recognition
+    therefore gates no reward that production gates.
+    """
+
+    __tablename__ = "recognition_attempts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    child_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # The sound the child was asked to find.
+    phoneme_id = Column(
+        Integer, ForeignKey("phonemes.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # What they picked. Null when the round was abandoned without an answer,
+    # which is not a wrong answer and must never be scored as one.
+    chosen_phoneme_id = Column(
+        Integer, ForeignKey("phonemes.id", ondelete="CASCADE"), nullable=True
+    )
+    is_correct = Column(Boolean, nullable=False, default=False)
+    mode = Column(
+        SQLEnum(RecognitionMode, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    )
+    # How many symbols were on screen. A correct answer out of two is a
+    # coin toss; out of four it is evidence. Stored so the bar for
+    # "recognised" can be set on the hard case only.
+    option_count = Column(Integer, nullable=False, default=2)
+    answered_at = Column(DateTime, default=func.now(), index=True)
 
 
 class StreakFreeze(Base):

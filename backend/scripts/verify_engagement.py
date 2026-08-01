@@ -19,6 +19,7 @@ Usage (from backend/):
 from __future__ import annotations
 
 import asyncio
+import random
 import sys
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
@@ -33,15 +34,26 @@ from app.db.session import AsyncSessionLocal  # noqa: E402
 from app.models.engagement import (  # noqa: E402
     DailyQuest,
     PhonemeUnlock,
+    RecognitionAttempt,
     StreakFreeze,
 )
-from app.models.enums import ExerciseType, QuestSlot, UserRole  # noqa: E402
+from app.models.enums import (  # noqa: E402
+    ExerciseType,
+    QuestSlot,
+    RecognitionMode,
+    UserRole,
+)
 from app.models.exercise import Exercise  # noqa: E402
 from app.models.parent import LearningGoal  # noqa: E402
 from app.models.phoneme import Phoneme  # noqa: E402
 from app.models.pronuncation_score import PronunciationScore  # noqa: E402
 from app.models.user import User  # noqa: E402
-from app.services import collection_service, quest_service, story_service  # noqa: E402
+from app.services import (  # noqa: E402
+    collection_service,
+    quest_service,
+    recognition_service,
+    story_service,
+)
 from app.services.mastery_service import mastered_phoneme_ids  # noqa: E402
 from app.services.streak_service import streak_summary  # noqa: E402
 
@@ -52,6 +64,21 @@ def check(name: str, ok: bool, detail: str = "") -> bool:
     results.append((name, ok, detail))
     print(f"[{'PASS' if ok else 'FAIL'}] {name}" + (f"\n       {detail}" if detail else ""))
     return ok
+
+
+def _report() -> int:
+    print()
+    print("=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+    passed = sum(1 for _, ok, _ in results if ok)
+    failed = [n for n, ok, _ in results if not ok]
+    print(f"{passed}/{len(results)} passed")
+    if failed:
+        print("\nFAILED:")
+        for name in failed:
+            print(f"  - {name}")
+    return 1 if failed else 0
 
 
 async def _score(db, child_id: int, exercise: Exercise, value: float, when: date):
@@ -103,7 +130,13 @@ async def main() -> int:
         finally:
             # Clean up in FK order. A probe row left behind would show up
             # in the parent dashboard of whoever runs this next.
-            for model in (PronunciationScore, PhonemeUnlock, StreakFreeze, LearningGoal):
+            for model in (
+                PronunciationScore,
+                PhonemeUnlock,
+                RecognitionAttempt,
+                StreakFreeze,
+                LearningGoal,
+            ):
                 await db.execute(delete(model).where(
                     (model.user_id if model is PronunciationScore else model.child_id)
                     == child.id
@@ -283,16 +316,144 @@ async def run_checks(db, child_id: int) -> int:
 
     print()
     print("=" * 70)
-    print("SUMMARY")
+    print("RECOGNITION")
     print("=" * 70)
-    passed = sum(1 for _, ok, _ in results if ok)
-    failed = [n for n, ok, _ in results if not ok]
-    print(f"{passed}/{len(results)} passed")
-    if failed:
-        print("\nFAILED:")
-        for name in failed:
-            print(f"  - {name}")
-    return 1 if failed else 0
+
+    rng = random.Random(7)
+    explore = await recognition_service.build_round(
+        db, child_id, mode=RecognitionMode.EXPLORE, rng=rng
+    )
+    check("a round builds", bool(explore), f"n={len(explore)}")
+    if not explore:
+        return _report()
+
+    check("the answer is always on screen",
+          all(q.target in q.options for q in explore),
+          f"targets={[q.target.symbol for q in explore]}")
+    check("no symbol appears twice in one question",
+          all(len({o.id for o in q.options}) == len(q.options) for q in explore),
+          f"widths={[q.option_count for q in explore]}")
+    check("an unasked sound starts as a straight choice of two",
+          all(q.option_count == 2 for q in explore),
+          f"widths={[q.option_count for q in explore]}")
+    check("every option can actually be heard",
+          all(o.id for q in explore for o in q.options),
+          f"{sum(len(q.options) for q in explore)} options, each a real phoneme")
+
+    # EXPLORE is the way in, not the test: getting it right while every
+    # symbol is audible proves the child can compare, not that they know.
+    first = explore[0].target
+    await recognition_service.record_answers(db, child_id, [
+        recognition_service.SubmittedAnswer(
+            phoneme_id=first.id,
+            chosen_phoneme_id=first.id,
+            mode=RecognitionMode.EXPLORE,
+            option_count=4,
+        )
+        for _ in range(4)
+    ])
+    check("explore answers never count towards recognising a sound",
+          first.id not in await recognition_service.recognised_phoneme_ids(db, child_id),
+          f"/{first.symbol}/ after 4 correct explore answers")
+
+    # Three in a row out of four, in CHOOSE, is the documented bar.
+    for _ in range(recognition_service.RECOGNITION_STREAK):
+        await recognition_service.record_answers(db, child_id, [
+            recognition_service.SubmittedAnswer(
+                phoneme_id=first.id,
+                chosen_phoneme_id=first.id,
+                mode=RecognitionMode.CHOOSE,
+                option_count=4,
+            )
+        ])
+    recognised = await recognition_service.recognised_phoneme_ids(db, child_id)
+    check("three correct out of four earns the sound", first.id in recognised,
+          f"/{first.symbol}/ recognised={sorted(recognised)}")
+
+    # A second sound, right three times but only ever out of two symbols.
+    narrow = next(q.target for q in explore if q.target.id != first.id)
+    for _ in range(recognition_service.RECOGNITION_STREAK):
+        await recognition_service.record_answers(db, child_id, [
+            recognition_service.SubmittedAnswer(
+                phoneme_id=narrow.id,
+                chosen_phoneme_id=narrow.id,
+                mode=RecognitionMode.CHOOSE,
+                option_count=2,
+            )
+        ])
+    check("winning a coin toss three times does not",
+          narrow.id not in await recognition_service.recognised_phoneme_ids(db, child_id),
+          f"/{narrow.symbol}/ at two symbols")
+
+    stats = await recognition_service.stats_by_phoneme(db, child_id)
+    check("the field widens for a child who is steady",
+          stats[narrow.id].next_option_count == 3,
+          f"next width for /{narrow.symbol}/ = {stats[narrow.id].next_option_count}")
+
+    # A wrong answer, recorded as the confusion it is.
+    wrong = next(o for o in explore[0].options if o.id != first.id)
+    await recognition_service.record_answers(db, child_id, [
+        recognition_service.SubmittedAnswer(
+            phoneme_id=first.id,
+            chosen_phoneme_id=wrong.id,
+            mode=RecognitionMode.CHOOSE,
+            option_count=4,
+        )
+    ])
+    matrix = await recognition_service.confusion_counts(db, child_id)
+    check("a wrong answer records which sound was reached for instead",
+          matrix.get(first.id, {}).get(wrong.id) == 1,
+          f"/{first.symbol}/ -> /{wrong.symbol}/ {matrix.get(first.id)}")
+    check("a recent mistake takes the sound back off the recognised list",
+          first.id not in await recognition_service.recognised_phoneme_ids(db, child_id),
+          f"/{first.symbol}/ was recognised until this answer")
+
+    stats = await recognition_service.stats_by_phoneme(db, child_id)
+    check("a wrong answer narrows the field again",
+          stats[first.id].next_option_count == 3,
+          f"next width for /{first.symbol}/ = {stats[first.id].next_option_count}")
+
+    # Abandonment: the child put the phone down. Stored, never held
+    # against them, and kept out of the confusion matrix.
+    await recognition_service.record_answers(db, child_id, [
+        recognition_service.SubmittedAnswer(
+            phoneme_id=narrow.id,
+            chosen_phoneme_id=None,
+            mode=RecognitionMode.CHOOSE,
+            option_count=3,
+        )
+    ])
+    after = await recognition_service.stats_by_phoneme(db, child_id)
+    check("an abandoned question is not counted as a wrong answer",
+          after[narrow.id].asked == stats[narrow.id].asked
+          and after[narrow.id].recent_correct_streak
+          == stats[narrow.id].recent_correct_streak,
+          f"asked {stats[narrow.id].asked} -> {after[narrow.id].asked}")
+    check("an abandoned question does not enter the confusion matrix",
+          narrow.id not in await recognition_service.confusion_counts(db, child_id),
+          f"no confusion recorded against /{narrow.symbol}/")
+
+    # The two tracks stay separate: this child has mastered the whole
+    # curriculum by production and recognises almost none of it. That gap
+    # is the point — averaging the two would hide it.
+    await collection_service.sync_unlocks(db, child_id)
+    unlocks = await collection_service.all_unlocks(db, child_id)
+    recognised = await recognition_service.recognised_phoneme_ids(db, child_id)
+    check("recognising and saying a sound are tracked apart",
+          len(unlocks) > len(recognised),
+          f"{len(unlocks)} unlocked, {len(recognised)} recognised")
+
+    # The round builder must now favour the sound just got wrong over the
+    # eighty-odd it has never asked about... no: never-asked comes first by
+    # design. What it must not do is keep re-asking a settled sound.
+    later = await recognition_service.build_round(
+        db, child_id, mode=RecognitionMode.CHOOSE, rng=random.Random(11)
+    )
+    check("a settled sound is not asked again straight away",
+          narrow.id not in {q.target.id for q in later},
+          f"targets={[q.target.symbol for q in later]}")
+
+    return _report()
 
 
 if __name__ == "__main__":

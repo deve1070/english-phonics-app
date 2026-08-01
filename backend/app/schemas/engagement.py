@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from app.models.enums import ExerciseType, QuestSlot
+from app.models.enums import ExerciseType, QuestSlot, RecognitionMode
 
 
 class QuestItemResponse(BaseModel):
@@ -42,6 +42,11 @@ class CollectibleResponse(BaseModel):
     is_unlocked: bool
     unlocked_at: Optional[datetime] = None
     is_new: bool = False
+    # The recognition track's own reward. The creature opens its eyes when
+    # the child can pick this sound out of four, and only turns full colour
+    # when they can say it — two visible stages for two separate skills,
+    # neither standing in for the other.
+    is_recognised: bool = False
 
 
 class CollectionResponse(BaseModel):
@@ -51,6 +56,47 @@ class CollectionResponse(BaseModel):
     # Ids the child has earned but never been shown. The app celebrates
     # these once and then POSTs /collection/seen.
     newly_unlocked: List[int]
+
+
+class RecognitionOption(BaseModel):
+    phoneme_id: int
+    symbol: str
+    # What the child actually looks at. The symbol may be IPA; the
+    # grapheme is the spelling, and the spelling is what has to be learnt.
+    grapheme: str
+    audio_url: str
+
+
+class RecognitionQuestionResponse(BaseModel):
+    target_phoneme_id: int
+    target_audio_url: str
+    options: List[RecognitionOption]
+
+
+class RecognitionRoundResponse(BaseModel):
+    mode: RecognitionMode
+    questions: List[RecognitionQuestionResponse]
+
+
+class RecognitionAnswerRequest(BaseModel):
+    phoneme_id: int
+    # Null when the child left without answering. Recorded, never counted
+    # as wrong.
+    chosen_phoneme_id: Optional[int] = None
+    option_count: int = 2
+
+
+class RecognitionRoundResult(BaseModel):
+    mode: RecognitionMode
+    answers: List[RecognitionAnswerRequest]
+
+
+class RecognitionSummary(BaseModel):
+    recorded: int
+    # Sounds that crossed into "recognised" because of this round, so the
+    # app can show the creature opening its eyes at the moment it happens.
+    newly_recognised: List[int]
+    total_recognised: int
 
 
 class StoryResponse(BaseModel):

@@ -12,6 +12,7 @@ from .engagement import (  # noqa: F401
     DailyQuest,
     DailyQuestItem,
     PhonemeUnlock,
+    RecognitionAttempt,
     StreakFreeze,
 )
 
@@ -20,6 +21,7 @@ from .enums import (
     Level,
     PhonemeType,
     QuestSlot,
+    RecognitionMode,
     UserRole,
 )
 from .exercise import Exercise

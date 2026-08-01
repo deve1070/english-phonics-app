@@ -55,6 +55,24 @@ class QuestSlot(str, Enum):
     STRETCH = "stretch"
 
 
+class RecognitionMode(str, Enum):
+    """How much help the child had when they answered.
+
+    Two rungs of the same ladder, and the distinction has to be recorded
+    because a correct answer means very different things on each. In
+    EXPLORE the child may tap every card to hear it before committing, so
+    the task is a search they can verify. In CHOOSE the target plays once
+    and the symbols are silent — that is recall with nothing to lean on.
+
+    Only CHOOSE counts towards recognising a sound. Getting it right with
+    the answers audible proves the child can compare, not that they hold
+    the mapping.
+    """
+
+    EXPLORE = "explore"
+    CHOOSE = "choose"
+
+
 class LessonStatus(str, Enum):
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
