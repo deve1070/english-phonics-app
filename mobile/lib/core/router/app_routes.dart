@@ -25,6 +25,10 @@ abstract class AppRoutes {
   static const String collection = '/collection';
   static const String stories    = '/stories';
 
+  /// The listening game. No microphone, no upload, no Azure — the one
+  /// exercise a child can always do, whatever the connection.
+  static const String recognition = '/find-the-sound';
+
   /// Practise one exercise by id, with no lesson around it.
   ///
   /// [exercise] is nested under a lesson and needs a lessonId to build its

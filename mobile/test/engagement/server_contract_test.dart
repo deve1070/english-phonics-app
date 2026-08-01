@@ -57,6 +57,70 @@ void main() {
     }
   });
 
+  test('a recognition round parses and every question is answerable', () {
+    for (final key in ['recognition_explore', 'recognition_choose']) {
+      final round =
+          RecognitionRound.fromJson(payloads[key] as Map<String, dynamic>);
+
+      expect(round.questions, isNotEmpty, reason: '$key came back empty');
+      for (final question in round.questions) {
+        // The answer travels with the question so the app can mark it on
+        // the device. Without it there is nothing to mark against and the
+        // game cannot run at all.
+        expect(
+          question.options.map((o) => o.phonemeId),
+          contains(question.targetPhonemeId),
+          reason: 'a question arrived with no correct option on screen',
+        );
+        expect(question.options.length, greaterThanOrEqualTo(2));
+        expect(question.options.length, lessThanOrEqualTo(4));
+        expect(
+          question.options.map((o) => o.phonemeId).toSet().length,
+          question.options.length,
+          reason: 'the same sound was offered twice in one question',
+        );
+        for (final option in question.options) {
+          // The card shows the spelling. An empty one would render a
+          // blank tile with nothing to choose between.
+          expect(option.grapheme.isNotEmpty || option.symbol.isNotEmpty, isTrue);
+          expect(option.audioUrl, isNotEmpty);
+        }
+      }
+    }
+  });
+
+  test('a brand-new child gets a real round, not the same pair repeatedly', () {
+    final round = RecognitionRound.fromJson(
+        payloads['recognition_explore'] as Map<String, dynamic>);
+
+    // Captured from a child who had done nothing at all. Two sounds
+    // rotating for five questions is what this used to be, and it is not
+    // a game — the frontier has to open wide enough on day one.
+    final targets = round.questions.map((q) => q.targetPhonemeId).toSet();
+    expect(targets.length, greaterThanOrEqualTo(3),
+        reason: 'a first round asked about almost nothing');
+  });
+
+  test('the round summary parses', () {
+    final summary = RecognitionSummary.fromJson(
+        payloads['recognition_summary'] as Map<String, dynamic>);
+    expect(summary.recorded, greaterThan(0));
+    expect(summary.totalRecognised, greaterThanOrEqualTo(0));
+  });
+
+  test('the collection carries the recognised flag', () {
+    final collection = Collection.fromJson(
+        payloads['collection_fresh'] as Map<String, dynamic>);
+
+    expect(collection.items, isNotEmpty);
+    for (final item in collection.items) {
+      // A sound cannot be recognised without being asked about, and this
+      // child was captured before answering anything. The flag existing
+      // at all is what the sticker's third state depends on.
+      expect(item.isRecognised, isFalse);
+    }
+  });
+
   test('the story payload parses and locked ones carry no text', () {
     final shelf =
         StoryShelf.fromJson(payloads['stories'] as Map<String, dynamic>);

@@ -66,6 +66,11 @@ MAX_OPTIONS = 4
 # who got it right last week and wrong twice since has not got it.
 RECOGNITION_STREAK = 3
 
+# How much of the curriculum a child who has done nothing yet can be asked
+# about. Enough that a first round is five different sounds rather than
+# the same pair five times.
+STARTER_WINDOW = 8
+
 
 @dataclass(frozen=True)
 class RecognitionQuestion:
@@ -258,6 +263,13 @@ async def _taught_phonemes(db: AsyncSession, child_id: int) -> list[Phoneme]:
     stretch, it is a guess. The window extends slightly past the frontier
     so new sounds get introduced here — recognising a sound is a good way
     to meet it — but not so far that most of the round is unfamiliar.
+
+    The frontier moves on either track. Gating it on speaking alone would
+    have made this exercise useless to the child it was built for: one who
+    cannot yet say /b/ would have been handed the same two sounds forever
+    while their ear ran well ahead of their mouth. It advances on correct
+    recognition rather than on questions asked, so it cannot be guessed
+    open.
     """
     all_phonemes = (
         await db.execute(select(Phoneme).order_by(Phoneme.order))
@@ -265,7 +277,7 @@ async def _taught_phonemes(db: AsyncSession, child_id: int) -> list[Phoneme]:
     if not all_phonemes:
         return []
 
-    furthest = (
+    spoken = (
         await db.execute(
             select(func.max(Phoneme.order))
             .select_from(PronunciationScore)
@@ -274,11 +286,27 @@ async def _taught_phonemes(db: AsyncSession, child_id: int) -> list[Phoneme]:
         )
     ).scalar()
 
-    frontier = (furthest or 0) + 2
+    heard = (
+        await db.execute(
+            select(func.max(Phoneme.order))
+            .select_from(RecognitionAttempt)
+            .join(Phoneme, Phoneme.id == RecognitionAttempt.phoneme_id)
+            .where(
+                RecognitionAttempt.child_id == child_id,
+                RecognitionAttempt.is_correct.is_(True),
+            )
+        )
+    ).scalar()
+
+    frontier = max(spoken or 0, heard or 0) + 2
     window = [p for p in all_phonemes if p.order <= frontier]
-    # A brand-new child has practised nothing, so give them the opening of
-    # the curriculum rather than an empty round.
-    return window if len(window) >= MIN_OPTIONS else all_phonemes[:MIN_OPTIONS + 2]
+    # A brand-new child has done nothing at all, and a frontier of two
+    # sounds is not a game — it is /a/ against /b/, over and over, with
+    # nothing to find. Open with enough of the curriculum to make a real
+    # round.
+    if len(window) < STARTER_WINDOW:
+        window = list(all_phonemes[:STARTER_WINDOW])
+    return window
 
 
 async def build_round(

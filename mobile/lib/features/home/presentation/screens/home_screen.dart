@@ -129,6 +129,21 @@ class _LoadedView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.lg),
 
+              // The listening game, above the shelves and always present.
+              // Unlike everything else on this screen it needs no
+              // microphone, no upload and no Azure, so it is the one thing
+              // here that still works when the connection does not — and
+              // the one rung a child who cannot yet say a sound can
+              // always succeed on.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: _ListenGameCard(
+                  onTap: () => context.push(AppRoutes.recognition),
+                ),
+              ).animate(delay: 100.ms).fadeIn(duration: 350.ms),
+
+              const SizedBox(height: AppSpacing.md),
+
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: _ShelfLinks(),
@@ -182,6 +197,50 @@ class _LoadedView extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The way into the listening game.
+///
+/// Phrased as an invitation with no number attached to it. There is no
+/// score on this card and none on the game's own summary either, because
+/// the point of this exercise is that it is the one a child can walk into
+/// and come out of having got something right.
+class _ListenGameCard extends StatelessWidget {
+  final VoidCallback onTap;
+  const _ListenGameCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      color: AppColors.leafLight,
+      borderColor: AppColors.border,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      semanticLabel: 'Find the sound — a listening game',
+      child: Row(
+        children: [
+          const Icon(Icons.hearing_rounded, size: 30, color: AppColors.leaf),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Find the sound', style: AppTextStyles.headingSmall),
+                const SizedBox(height: 2),
+                Text(
+                  'Listen, then point at it.',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.inkSoft),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded,
+              size: 26, color: AppColors.inkFaint),
+        ],
+      ),
     );
   }
 }

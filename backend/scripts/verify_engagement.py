@@ -151,6 +151,27 @@ async def run_checks(db, child_id: int) -> int:
     today = date.today()
 
     print("=" * 70)
+    print("A CHILD WHO HAS DONE NOTHING YET")
+    print("=" * 70)
+
+    # Runs first because it is the only moment this child is new. The
+    # listening game is the rung below speaking and has to work on day
+    # one, before a single word has been said into the microphone.
+    first_round = await recognition_service.build_round(
+        db, child_id, mode=RecognitionMode.EXPLORE, rng=random.Random(3)
+    )
+    targets = {q.target.id for q in first_round}
+    check("a brand-new child gets a full round", len(first_round) >= 3,
+          f"n={len(first_round)}")
+    check("and it is not the same two sounds over and over",
+          len(targets) >= 3,
+          f"{len(targets)} different sounds: "
+          f"{[q.target.symbol for q in first_round]}")
+    check("nothing is recognised before anything is answered",
+          not await recognition_service.recognised_phoneme_ids(db, child_id))
+
+    print()
+    print("=" * 70)
     print("MASTERY AND COLLECTIBLES")
     print("=" * 70)
 

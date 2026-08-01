@@ -16,6 +16,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/lessons/presentation/screens/lessons_list_screen.dart';
 // NEW: engagement — collectibles and the decodable story shelf
 import '../../features/engagement/presentation/screens/collection_screen.dart';
+import '../../features/engagement/presentation/screens/recognition_screen.dart';
 import '../../features/engagement/presentation/screens/story_shelf_screen.dart';
 // NEW: phone auth screens
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -199,6 +200,10 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.stories,
           builder: (_, __) => const StoryShelfScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.recognition,
+          builder: (_, __) => const RecognitionScreen(),
         ),
         GoRoute(
           // Practise a single exercise with no lesson context. See

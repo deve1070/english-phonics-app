@@ -124,6 +124,13 @@ class Collectible {
   final bool isUnlocked;
   final bool isNew;
 
+  /// Earned on the recognition track — the child can pick this symbol out
+  /// of four when they hear the sound. It wakes the creature up without
+  /// colouring it in, because knowing a sound when you see it and being
+  /// able to say it are two different things and the shelf should show
+  /// both.
+  final bool isRecognised;
+
   const Collectible({
     required this.phonemeId,
     required this.symbol,
@@ -131,6 +138,7 @@ class Collectible {
     required this.phonemeType,
     required this.isUnlocked,
     required this.isNew,
+    this.isRecognised = false,
   });
 
   factory Collectible.fromJson(Map<String, dynamic> json) => Collectible(
@@ -140,6 +148,7 @@ class Collectible {
         phonemeType: json['phoneme_type'] as String? ?? 'alphabet',
         isUnlocked: json['is_unlocked'] as bool? ?? false,
         isNew: json['is_new'] as bool? ?? false,
+        isRecognised: json['is_recognised'] as bool? ?? false,
       );
 }
 
@@ -168,6 +177,147 @@ class Collection {
 
   static const Collection empty =
       Collection(total: 0, unlocked: 0, items: [], newlyUnlocked: []);
+}
+
+/// Two ways of asking the same question, forming a ladder.
+///
+/// In [explore] every symbol plays its own sound when tapped, so the child
+/// can listen around before committing — a search they can verify rather
+/// than a trap. In [choose] the target plays once and the symbols are
+/// silent, which is recall. Only [choose] counts towards knowing a sound,
+/// and the server enforces that; the app never has to decide.
+enum RecognitionMode {
+  explore,
+  choose;
+
+  String get wire => name;
+}
+
+class RecognitionOption {
+  final int phonemeId;
+  final String symbol;
+
+  /// The spelling, which is what the child is actually looking at. The
+  /// symbol may be IPA and IPA is not what a six-year-old reads.
+  final String grapheme;
+  final String audioUrl;
+
+  const RecognitionOption({
+    required this.phonemeId,
+    required this.symbol,
+    required this.grapheme,
+    required this.audioUrl,
+  });
+
+  factory RecognitionOption.fromJson(Map<String, dynamic> json) =>
+      RecognitionOption(
+        phonemeId: json['phoneme_id'] as int,
+        symbol: json['symbol'] as String? ?? '',
+        grapheme: json['grapheme'] as String? ?? '',
+        audioUrl: json['audio_url'] as String? ?? '',
+      );
+}
+
+class RecognitionQuestion {
+  /// The answer, sent with the question on purpose. A child cannot be left
+  /// waiting on a round trip to find out whether they were right, so the
+  /// app marks it on the device and posts the whole round afterwards.
+  /// There is nothing here worth hiding: the app is not a competition and
+  /// the phone belongs to the child.
+  final int targetPhonemeId;
+  final String targetAudioUrl;
+  final List<RecognitionOption> options;
+
+  const RecognitionQuestion({
+    required this.targetPhonemeId,
+    required this.targetAudioUrl,
+    required this.options,
+  });
+
+  RecognitionOption get target =>
+      options.firstWhere((o) => o.phonemeId == targetPhonemeId);
+
+  bool isCorrect(int chosenPhonemeId) => chosenPhonemeId == targetPhonemeId;
+
+  factory RecognitionQuestion.fromJson(Map<String, dynamic> json) =>
+      RecognitionQuestion(
+        targetPhonemeId: json['target_phoneme_id'] as int,
+        targetAudioUrl: json['target_audio_url'] as String? ?? '',
+        options: (json['options'] as List<dynamic>? ?? [])
+            .map((e) => RecognitionOption.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+}
+
+class RecognitionRound {
+  final RecognitionMode mode;
+  final List<RecognitionQuestion> questions;
+
+  const RecognitionRound({required this.mode, required this.questions});
+
+  bool get isEmpty => questions.isEmpty;
+
+  factory RecognitionRound.fromJson(Map<String, dynamic> json) =>
+      RecognitionRound(
+        mode: json['mode'] == 'choose'
+            ? RecognitionMode.choose
+            : RecognitionMode.explore,
+        questions: (json['questions'] as List<dynamic>? ?? [])
+            .map((e) => RecognitionQuestion.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+
+  static const RecognitionRound empty =
+      RecognitionRound(mode: RecognitionMode.explore, questions: []);
+}
+
+class RecognitionAnswer {
+  final int phonemeId;
+
+  /// Null when the child left the question without answering. Sent anyway
+  /// and never counted wrong — a child who put the phone down has not
+  /// confused anything.
+  final int? chosenPhonemeId;
+  final int optionCount;
+
+  const RecognitionAnswer({
+    required this.phonemeId,
+    required this.chosenPhonemeId,
+    required this.optionCount,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'phoneme_id': phonemeId,
+        'chosen_phoneme_id': chosenPhonemeId,
+        'option_count': optionCount,
+      };
+}
+
+class RecognitionSummary {
+  final int recorded;
+
+  /// Sounds that crossed into "known by sight" because of this round, so
+  /// the app can show those creatures waking at the moment it happened
+  /// rather than silently next time the shelf is opened.
+  final List<int> newlyRecognised;
+  final int totalRecognised;
+
+  const RecognitionSummary({
+    required this.recorded,
+    required this.newlyRecognised,
+    required this.totalRecognised,
+  });
+
+  factory RecognitionSummary.fromJson(Map<String, dynamic> json) =>
+      RecognitionSummary(
+        recorded: json['recorded'] as int? ?? 0,
+        newlyRecognised:
+            (json['newly_recognised'] as List<dynamic>? ?? []).cast<int>(),
+        totalRecognised: json['total_recognised'] as int? ?? 0,
+      );
+
+  static const RecognitionSummary none =
+      RecognitionSummary(recorded: 0, newlyRecognised: [], totalRecognised: 0);
 }
 
 class Story {

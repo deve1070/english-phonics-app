@@ -28,6 +28,13 @@ class SoundSticker extends StatelessWidget {
   final int phonemeId;
   final String symbol;
   final bool isUnlocked;
+
+  /// The child knows this sound by sight but cannot yet say it — the
+  /// recognition track's own reward. The creature opens its eyes and
+  /// stays grey, so the shelf shows the two skills as two stages instead
+  /// of letting either stand in for the other. A child who is good at
+  /// listening sees that recognised, and still has somewhere to go.
+  final bool isRecognised;
   final double size;
 
   const SoundSticker({
@@ -35,6 +42,7 @@ class SoundSticker extends StatelessWidget {
     required this.phonemeId,
     required this.symbol,
     required this.isUnlocked,
+    this.isRecognised = false,
     this.size = 72,
   });
 
@@ -47,10 +55,14 @@ class SoundSticker extends StatelessWidget {
         painter: _StickerPainter(
           seed: phonemeId,
           isUnlocked: isUnlocked,
-          // Locked creatures show no symbol. The shape alone is the tease:
-          // the child can see there is something there without being told
-          // what, which is what makes the gap worth closing.
-          symbol: isUnlocked ? symbol : null,
+          isAwake: isUnlocked || isRecognised,
+          // Sleeping creatures show no symbol. The shape alone is the
+          // tease: the child can see there is something there without
+          // being told what, which is what makes the gap worth closing.
+          // Once they can pick the symbol out by ear it is no longer a
+          // secret, so it goes on the badge even before the sound is
+          // sayable.
+          symbol: (isUnlocked || isRecognised) ? symbol : null,
           symbolStyle: AppTextStyles.headingSmall.copyWith(
             fontSize: size * 0.24,
             color: AppColors.ink,
@@ -121,12 +133,14 @@ class StickerTraits {
 class _StickerPainter extends CustomPainter {
   final int seed;
   final bool isUnlocked;
+  final bool isAwake;
   final String? symbol;
   final TextStyle symbolStyle;
 
   _StickerPainter({
     required this.seed,
     required this.isUnlocked,
+    required this.isAwake,
     required this.symbol,
     required this.symbolStyle,
   });
@@ -312,7 +326,11 @@ class _StickerPainter extends CustomPainter {
     // A locked creature is asleep, not dead: closed eyes read as "not yet",
     // where a blank face reads as absence. The distinction matters on a
     // shelf a child is looking at every day.
-    if (isUnlocked) {
+    //
+    // Eyes open on recognition, colour comes with saying it. A grey
+    // creature looking back at the child is the in-between state, and it
+    // is the one most of the shelf will be in for a long while.
+    if (isAwake) {
       for (final dx in [-r * 0.28, r * 0.28]) {
         canvas.drawCircle(Offset(c.dx + dx, c.dy - r * 0.18), r * 0.11, eye);
       }
@@ -375,5 +393,8 @@ class _StickerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_StickerPainter old) =>
-      old.seed != seed || old.isUnlocked != isUnlocked || old.symbol != symbol;
+      old.seed != seed ||
+      old.isUnlocked != isUnlocked ||
+      old.isAwake != isAwake ||
+      old.symbol != symbol;
 }

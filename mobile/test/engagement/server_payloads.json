@@ -89,5 +89,327 @@
         "content": null
       }
     ]
+  },
+  "recognition_explore": {
+    "mode": "explore",
+    "questions": [
+      {
+        "target_phoneme_id": 7,
+        "target_audio_url": "/phonemes/7/audio",
+        "options": [
+          {
+            "phoneme_id": 6,
+            "symbol": "Ff",
+            "grapheme": "f",
+            "audio_url": "/phonemes/6/audio"
+          },
+          {
+            "phoneme_id": 7,
+            "symbol": "Gg",
+            "grapheme": "g",
+            "audio_url": "/phonemes/7/audio"
+          }
+        ]
+      },
+      {
+        "target_phoneme_id": 6,
+        "target_audio_url": "/phonemes/6/audio",
+        "options": [
+          {
+            "phoneme_id": 6,
+            "symbol": "Ff",
+            "grapheme": "f",
+            "audio_url": "/phonemes/6/audio"
+          },
+          {
+            "phoneme_id": 5,
+            "symbol": "Ee",
+            "grapheme": "e",
+            "audio_url": "/phonemes/5/audio"
+          }
+        ]
+      },
+      {
+        "target_phoneme_id": 1,
+        "target_audio_url": "/phonemes/1/audio",
+        "options": [
+          {
+            "phoneme_id": 1,
+            "symbol": "Aa",
+            "grapheme": "a",
+            "audio_url": "/phonemes/1/audio"
+          },
+          {
+            "phoneme_id": 5,
+            "symbol": "Ee",
+            "grapheme": "e",
+            "audio_url": "/phonemes/5/audio"
+          }
+        ]
+      },
+      {
+        "target_phoneme_id": 3,
+        "target_audio_url": "/phonemes/3/audio",
+        "options": [
+          {
+            "phoneme_id": 3,
+            "symbol": "Cc",
+            "grapheme": "c",
+            "audio_url": "/phonemes/3/audio"
+          },
+          {
+            "phoneme_id": 7,
+            "symbol": "Gg",
+            "grapheme": "g",
+            "audio_url": "/phonemes/7/audio"
+          }
+        ]
+      },
+      {
+        "target_phoneme_id": 4,
+        "target_audio_url": "/phonemes/4/audio",
+        "options": [
+          {
+            "phoneme_id": 4,
+            "symbol": "Dd",
+            "grapheme": "d",
+            "audio_url": "/phonemes/4/audio"
+          },
+          {
+            "phoneme_id": 2,
+            "symbol": "Bb",
+            "grapheme": "b",
+            "audio_url": "/phonemes/2/audio"
+          }
+        ]
+      }
+    ]
+  },
+  "recognition_choose": {
+    "mode": "choose",
+    "questions": [
+      {
+        "target_phoneme_id": 4,
+        "target_audio_url": "/phonemes/4/audio",
+        "options": [
+          {
+            "phoneme_id": 2,
+            "symbol": "Bb",
+            "grapheme": "b",
+            "audio_url": "/phonemes/2/audio"
+          },
+          {
+            "phoneme_id": 4,
+            "symbol": "Dd",
+            "grapheme": "d",
+            "audio_url": "/phonemes/4/audio"
+          }
+        ]
+      },
+      {
+        "target_phoneme_id": 5,
+        "target_audio_url": "/phonemes/5/audio",
+        "options": [
+          {
+            "phoneme_id": 1,
+            "symbol": "Aa",
+            "grapheme": "a",
+            "audio_url": "/phonemes/1/audio"
+          },
+          {
+            "phoneme_id": 5,
+            "symbol": "Ee",
+            "grapheme": "e",
+            "audio_url": "/phonemes/5/audio"
+          }
+        ]
+      },
+      {
+        "target_phoneme_id": 1,
+        "target_audio_url": "/phonemes/1/audio",
+        "options": [
+          {
+            "phoneme_id": 1,
+            "symbol": "Aa",
+            "grapheme": "a",
+            "audio_url": "/phonemes/1/audio"
+          },
+          {
+            "phoneme_id": 5,
+            "symbol": "Ee",
+            "grapheme": "e",
+            "audio_url": "/phonemes/5/audio"
+          }
+        ]
+      },
+      {
+        "target_phoneme_id": 8,
+        "target_audio_url": "/phonemes/8/audio",
+        "options": [
+          {
+            "phoneme_id": 2,
+            "symbol": "Bb",
+            "grapheme": "b",
+            "audio_url": "/phonemes/2/audio"
+          },
+          {
+            "phoneme_id": 8,
+            "symbol": "Hh",
+            "grapheme": "h",
+            "audio_url": "/phonemes/8/audio"
+          }
+        ]
+      },
+      {
+        "target_phoneme_id": 7,
+        "target_audio_url": "/phonemes/7/audio",
+        "options": [
+          {
+            "phoneme_id": 7,
+            "symbol": "Gg",
+            "grapheme": "g",
+            "audio_url": "/phonemes/7/audio"
+          },
+          {
+            "phoneme_id": 6,
+            "symbol": "Ff",
+            "grapheme": "f",
+            "audio_url": "/phonemes/6/audio"
+          }
+        ]
+      }
+    ]
+  },
+  "recognition_summary": {
+    "recorded": 5,
+    "newly_recognised": [],
+    "total_recognised": 0
+  },
+  "collection_fresh": {
+    "total": 90,
+    "unlocked": 0,
+    "items": [
+      {
+        "phoneme_id": 1,
+        "symbol": "Aa",
+        "order": 1,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 2,
+        "symbol": "Bb",
+        "order": 2,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 3,
+        "symbol": "Cc",
+        "order": 3,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 4,
+        "symbol": "Dd",
+        "order": 4,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 5,
+        "symbol": "Ee",
+        "order": 5,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 6,
+        "symbol": "Ff",
+        "order": 6,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 7,
+        "symbol": "Gg",
+        "order": 7,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 8,
+        "symbol": "Hh",
+        "order": 8,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 9,
+        "symbol": "\u026a",
+        "order": 9,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 10,
+        "symbol": "d\u0292",
+        "order": 10,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 11,
+        "symbol": "k\u02b0",
+        "order": 11,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      },
+      {
+        "phoneme_id": 12,
+        "symbol": "Ll",
+        "order": 12,
+        "phoneme_type": "alphabet",
+        "is_unlocked": false,
+        "unlocked_at": null,
+        "is_new": false,
+        "is_recognised": false
+      }
+    ],
+    "newly_unlocked": []
   }
 }

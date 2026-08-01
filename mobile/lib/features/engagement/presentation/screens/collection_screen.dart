@@ -117,6 +117,7 @@ class _Shelf extends StatelessWidget {
                   phonemeId: item.phonemeId,
                   symbol: item.symbol,
                   isUnlocked: item.isUnlocked,
+                  isRecognised: item.isRecognised,
                   size: 76,
                 );
                 if (!fresh.contains(item.phonemeId)) return sticker;
@@ -148,6 +149,13 @@ class _Tally extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fresh = collection.newlyUnlocked.length;
+    // Creatures the child has earned by ear but not yet by voice. Naming
+    // them gives the shelf a second, nearer thing to aim at than the
+    // ninety-sound total, and says exactly what closes the gap.
+    final stirring = collection.items
+        .where((i) => !i.isUnlocked && i.isRecognised)
+        .length;
+
     return PaperCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       color: fresh > 0 ? AppColors.honeyLight : AppColors.surface,
@@ -172,7 +180,12 @@ class _Tally extends StatelessWidget {
                 Text(
                   fresh > 0
                       ? 'You woke them up by learning their sound.'
-                      : 'Master a sound to wake up its friend.',
+                      : stirring > 0
+                          ? (stirring == 1
+                              ? '1 has opened its eyes. Say its sound to wake it.'
+                              : '$stirring have opened their eyes. '
+                                  'Say their sounds to wake them.')
+                          : 'Master a sound to wake up its friend.',
                   style: AppTextStyles.bodySmall
                       .copyWith(color: AppColors.inkSoft),
                 ),

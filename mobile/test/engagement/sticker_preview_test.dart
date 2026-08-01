@@ -19,6 +19,18 @@ void main() {
   setUpAll(loadPreviewFonts);
 
   testWidgets('collectibles are distinct, awake and asleep', (tester) async {
+    // Three rows, because there are three states and the middle one is
+    // the whole point of the recognition track: a creature that has
+    // opened its eyes but is still grey has to read as further along than
+    // a sleeping one and not as far as a mastered one. If the middle row
+    // is indistinguishable from either neighbour, that reward is invisible
+    // and the child gets nothing for the work.
+    const states = [
+      (unlocked: true, recognised: true),
+      (unlocked: false, recognised: true),
+      (unlocked: false, recognised: false),
+    ];
+
     await tester.pumpWidget(MaterialApp(
       theme: AppTheme.light,
       home: Material(
@@ -28,7 +40,7 @@ void main() {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final unlocked in [true, false])
+              for (final state in states)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Row(
@@ -38,7 +50,8 @@ void main() {
                         SoundSticker(
                           phonemeId: i + 1,
                           symbol: _symbols[i],
-                          isUnlocked: unlocked,
+                          isUnlocked: state.unlocked,
+                          isRecognised: state.recognised,
                           size: 76,
                         ),
                     ],
