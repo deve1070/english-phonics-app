@@ -65,6 +65,10 @@ abstract class ApiConstants {
   /// child is handed and hands back.
   static const String recognitionRound = '/me/recognition/round';
 
+  /// This week's promise. GET returns the goal or the three choices,
+  /// POST makes the choice. The target is always the server's to decide.
+  static const String myGoal = '/me/goal';
+
   // ── Parent management ─────────────────────────────────────────
   static const String parentRegister = '/parents/register';
   static const String parentDashboard = '/parents/dashboard';

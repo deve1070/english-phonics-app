@@ -411,5 +411,58 @@
       }
     ],
     "newly_unlocked": []
+  },
+  "goal_offer": {
+    "week_start": "2026-07-27",
+    "kind": null,
+    "target": 0,
+    "done": 0,
+    "is_complete": false,
+    "choices": [
+      {
+        "kind": "days",
+        "target": 2
+      },
+      {
+        "kind": "sounds_found",
+        "target": 10
+      },
+      {
+        "kind": "sounds_mastered",
+        "target": 1
+      }
+    ],
+    "earned_weeks": []
+  },
+  "goal_partway": {
+    "week_start": "2026-07-27",
+    "kind": "sounds_found",
+    "target": 10,
+    "done": 5,
+    "is_complete": false,
+    "choices": [],
+    "earned_weeks": []
+  },
+  "goal_kept": {
+    "week_start": "2026-07-27",
+    "kind": "sounds_found",
+    "target": 10,
+    "done": 10,
+    "is_complete": true,
+    "choices": [],
+    "earned_weeks": [
+      {
+        "week_start": "2026-07-13",
+        "kind": "sounds_mastered"
+      },
+      {
+        "week_start": "2026-07-20",
+        "kind": "days"
+      },
+      {
+        "week_start": "2026-07-27",
+        "kind": "sounds_found"
+      }
+    ]
   }
 }

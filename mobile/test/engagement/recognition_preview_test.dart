@@ -19,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:phonics_app/core/theme/app_theme.dart';
-import 'package:phonics_app/features/engagement/data/engagement_models.dart';
 import 'package:phonics_app/features/engagement/presentation/screens/recognition_screen.dart';
 
 import '../support/preview_fonts.dart';

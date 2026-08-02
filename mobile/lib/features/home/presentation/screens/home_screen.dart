@@ -11,8 +11,10 @@ import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import '../widgets/home_greeting_header.dart';
 import '../widgets/lesson_card.dart';
+import '../../../engagement/data/engagement_models.dart';
 import '../../../engagement/presentation/widgets/quest_card.dart';
 import '../../../engagement/presentation/widgets/streak_badge.dart';
+import '../../../engagement/presentation/widgets/week_medal.dart';
 import '../../../phonics/domain/entities/lesson_entity.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -129,6 +131,20 @@ class _LoadedView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.lg),
 
+              // The week's promise, with the prize already on screen. It
+              // sits under the quest — today's work comes first — but
+              // above everything else, because a goal a child has to go
+              // looking for is not one they are working towards.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: _WeekCard(
+                  goal: state.goal,
+                  onTap: () => context.push(AppRoutes.goal),
+                ),
+              ).animate(delay: 80.ms).fadeIn(duration: 350.ms),
+
+              const SizedBox(height: AppSpacing.md),
+
               // The listening game, above the shelves and always present.
               // Unlike everything else on this screen it needs no
               // microphone, no upload and no Azure, so it is the one thing
@@ -197,6 +213,76 @@ class _LoadedView extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// This week's promise, on the first screen.
+///
+/// Three states, and none of them is a scolding. Before the child has
+/// chosen it is an open question; after, it is the prize with however much
+/// of the week is done showing through it; once kept, it is the prize in
+/// full colour and a sentence in the past tense. A week going badly is
+/// simply a medal that has not filled up much — there is no red, no "you
+/// are behind", and nothing counting the days left.
+class _WeekCard extends StatelessWidget {
+  final WeeklyGoal goal;
+  final VoidCallback onTap;
+
+  const _WeekCard({required this.goal, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final kind = goal.kind;
+
+    final title = switch ((kind, goal.isComplete)) {
+      (null, _) => 'What will you do this week?',
+      (_, true) => 'You did it!',
+      _ => kind!.label(goal.target),
+    };
+    final line = switch ((kind, goal.isComplete)) {
+      (null, _) => 'Pick one thing. Tap to choose.',
+      (_, true) => 'You said you would, and you did.',
+      _ => '${goal.done} of ${goal.target} ${kind!.noun}',
+    };
+
+    return Pressable(
+      onTap: onTap,
+      color: goal.isComplete ? AppColors.honeyLight : AppColors.surface,
+      borderColor: AppColors.border,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      semanticLabel: '$title. $line',
+      child: Row(
+        children: [
+          // The medal fills from the bottom as the week goes, exactly as
+          // it does on the goal screen — the same object in both places,
+          // so the one on the home screen is recognisably the one the
+          // child is working towards.
+          FillingMedal(
+            weekStart: goal.weekStart,
+            kind: kind,
+            fraction: goal.fraction,
+            size: 56,
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTextStyles.headingSmall),
+                const SizedBox(height: 2),
+                Text(
+                  line,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.inkSoft),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded,
+              size: 26, color: AppColors.inkFaint),
+        ],
+      ),
     );
   }
 }

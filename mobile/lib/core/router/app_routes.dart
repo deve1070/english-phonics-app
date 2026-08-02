@@ -29,6 +29,11 @@ abstract class AppRoutes {
   /// exercise a child can always do, whatever the connection.
   static const String recognition = '/find-the-sound';
 
+  /// This week's promise and the prize for keeping it. Named for the week
+  /// rather than for the goal: what the child is looking at is their own
+  /// week, not a target somebody set them.
+  static const String goal = '/my-week';
+
   /// Practise one exercise by id, with no lesson around it.
   ///
   /// [exercise] is nested under a lesson and needs a lessonId to build its

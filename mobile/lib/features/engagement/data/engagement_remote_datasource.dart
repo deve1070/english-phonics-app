@@ -48,6 +48,29 @@ class EngagementRemoteDataSource {
     }
   }
 
+  /// This week's promise, or the three the child may choose from.
+  ///
+  /// One call for both states, so the home screen never has to ask
+  /// "has this child chosen yet?" before it knows what to draw.
+  Future<WeeklyGoal> getGoal() async {
+    try {
+      final response = await _dio.get(ApiConstants.myGoal);
+      return WeeklyGoal.fromJson(response.data as Map<String, dynamic>);
+    } on DioException {
+      return WeeklyGoal.none;
+    }
+  }
+
+  /// Make the promise. The size comes back from the server, which is
+  /// where it is worked out from this child's own recent weeks.
+  Future<WeeklyGoal> chooseGoal(GoalKind kind) async {
+    final response = await _dio.post(
+      ApiConstants.myGoal,
+      data: {'kind': kind.wire},
+    );
+    return WeeklyGoal.fromJson(response.data as Map<String, dynamic>);
+  }
+
   /// A short round of "which symbol says this sound?".
   ///
   /// Throws rather than degrading: this one is the activity itself, not

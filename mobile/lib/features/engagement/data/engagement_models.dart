@@ -320,6 +320,136 @@ class RecognitionSummary {
       RecognitionSummary(recorded: 0, newlyRecognised: [], totalRecognised: 0);
 }
 
+/// The three things a child may promise themselves for a week.
+///
+/// Kinds, not sizes. "I'll come every day" against "I'll wake up two
+/// friends" is a choice about what to do; three sizes of one thing is a
+/// difficulty slider, and a difficulty slider only ever gets pulled to
+/// the bottom.
+enum GoalKind {
+  days,
+  soundsFound,
+  soundsMastered;
+
+  static GoalKind fromWire(String raw) => switch (raw) {
+        'sounds_found' => GoalKind.soundsFound,
+        'sounds_mastered' => GoalKind.soundsMastered,
+        _ => GoalKind.days,
+      };
+
+  String get wire => switch (this) {
+        GoalKind.days => 'days',
+        GoalKind.soundsFound => 'sounds_found',
+        GoalKind.soundsMastered => 'sounds_mastered',
+      };
+
+  /// What the child is promising, in their own terms. Phrased as
+  /// something they will do, never as something they should be.
+  String label(int target) => switch (this) {
+        GoalKind.days => 'Come and practise on $target days',
+        GoalKind.soundsFound => 'Find $target sounds by listening',
+        GoalKind.soundsMastered =>
+          target == 1 ? 'Wake up a new friend' : 'Wake up $target new friends',
+      };
+
+  /// The short form, for the progress line once it is chosen.
+  String get noun => switch (this) {
+        GoalKind.days => 'days',
+        GoalKind.soundsFound => 'sounds',
+        GoalKind.soundsMastered => 'friends',
+      };
+}
+
+class GoalOption {
+  final GoalKind kind;
+  final int target;
+
+  const GoalOption({required this.kind, required this.target});
+
+  factory GoalOption.fromJson(Map<String, dynamic> json) => GoalOption(
+        kind: GoalKind.fromWire(json['kind'] as String? ?? 'days'),
+        target: json['target'] as int? ?? 1,
+      );
+}
+
+class EarnedWeek {
+  final DateTime weekStart;
+
+  /// What that week was spent on. The prize wears it, so a shelf reads as
+  /// a run of decisions the child made rather than a row of identical
+  /// tokens saying how many times they complied.
+  final GoalKind kind;
+
+  const EarnedWeek({required this.weekStart, required this.kind});
+
+  factory EarnedWeek.fromJson(Map<String, dynamic> json) => EarnedWeek(
+        weekStart: DateTime.parse(json['week_start'] as String),
+        kind: GoalKind.fromWire(json['kind'] as String? ?? 'days'),
+      );
+}
+
+class WeeklyGoal {
+  final DateTime weekStart;
+
+  /// Null when the child has not chosen yet, which is a perfectly good
+  /// state to be in and never nagged about.
+  final GoalKind? kind;
+  final int target;
+  final int done;
+  final bool isComplete;
+  final List<GoalOption> choices;
+
+  /// Every week this child finished. There is no matching list of weeks
+  /// they did not — a shelf with gaps in it would be a record of failure,
+  /// and this feature does not keep one.
+  final List<EarnedWeek> earnedWeeks;
+
+  const WeeklyGoal({
+    required this.weekStart,
+    required this.kind,
+    required this.target,
+    required this.done,
+    required this.isComplete,
+    required this.choices,
+    required this.earnedWeeks,
+  });
+
+  bool get isChosen => kind != null;
+
+  /// How far round the ring the child has got. Capped, so overshooting
+  /// never draws past full.
+  double get fraction =>
+      target <= 0 ? 0 : (done / target).clamp(0.0, 1.0).toDouble();
+
+  int get remaining => target - done < 0 ? 0 : target - done;
+
+  factory WeeklyGoal.fromJson(Map<String, dynamic> json) => WeeklyGoal(
+        weekStart: DateTime.parse(json['week_start'] as String),
+        kind: json['kind'] == null
+            ? null
+            : GoalKind.fromWire(json['kind'] as String),
+        target: json['target'] as int? ?? 0,
+        done: json['done'] as int? ?? 0,
+        isComplete: json['is_complete'] as bool? ?? false,
+        choices: (json['choices'] as List<dynamic>? ?? [])
+            .map((e) => GoalOption.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        earnedWeeks: (json['earned_weeks'] as List<dynamic>? ?? [])
+            .map((e) => EarnedWeek.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+
+  static final WeeklyGoal none = WeeklyGoal(
+    weekStart: DateTime.fromMillisecondsSinceEpoch(0),
+    kind: null,
+    target: 0,
+    done: 0,
+    isComplete: false,
+    choices: const [],
+    earnedWeeks: const [],
+  );
+}
+
 class Story {
   final int exerciseId;
   final String title;

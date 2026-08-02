@@ -121,6 +121,63 @@ void main() {
     }
   });
 
+  test('a week with nothing chosen offers three reachable things', () {
+    final goal =
+        WeeklyGoal.fromJson(payloads['goal_offer'] as Map<String, dynamic>);
+
+    expect(goal.isChosen, isFalse);
+    expect(goal.choices.length, 3,
+        reason: 'a child was given fewer than three ways to spend the week');
+    expect(goal.choices.map((c) => c.kind).toSet().length, 3,
+        reason: 'the same kind was offered twice');
+    for (final choice in goal.choices) {
+      expect(choice.target, greaterThan(0),
+          reason: 'a goal of zero is not a goal');
+    }
+
+    // Captured from a child who had done nothing at all — the first week
+    // is the one most likely to be sized wrong, and getting it wrong here
+    // is how a child learns that goals are for other people.
+    final days = goal.choices.firstWhere((c) => c.kind == GoalKind.days);
+    expect(days.target, lessThan(7),
+        reason: 'a first week that needs every day is a week with no slack');
+  });
+
+  test('a promise part-way through draws a part-filled prize', () {
+    final goal =
+        WeeklyGoal.fromJson(payloads['goal_partway'] as Map<String, dynamic>);
+
+    expect(goal.isChosen, isTrue);
+    expect(goal.isComplete, isFalse);
+    expect(goal.done, greaterThan(0));
+    expect(goal.done, lessThan(goal.target));
+    expect(goal.fraction, greaterThan(0));
+    expect(goal.fraction, lessThan(1));
+    // Nothing to choose from while a promise stands: a client that could
+    // show three alternatives could let a child swap on Saturday for
+    // whichever one is nearly done.
+    expect(goal.choices, isEmpty);
+  });
+
+  test('a week kept fills the prize and puts it on the shelf', () {
+    final goal =
+        WeeklyGoal.fromJson(payloads['goal_kept'] as Map<String, dynamic>);
+
+    expect(goal.isComplete, isTrue);
+    expect(goal.fraction, 1.0);
+    expect(goal.earnedWeeks, isNotEmpty);
+
+    // Each prize carries what that week was spent on. Without the kind
+    // the shelf is a row of identical tokens counting compliance, which
+    // is the thing this feature is built not to be.
+    for (final week in goal.earnedWeeks) {
+      expect(week.kind, isNotNull);
+    }
+    expect(goal.earnedWeeks.map((w) => w.weekStart).toSet().length,
+        goal.earnedWeeks.length,
+        reason: 'the same week appeared twice on the shelf');
+  });
+
   test('the story payload parses and locked ones carry no text', () {
     final shelf =
         StoryShelf.fromJson(payloads['stories'] as Map<String, dynamic>);

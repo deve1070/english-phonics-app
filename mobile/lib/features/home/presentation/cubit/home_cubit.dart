@@ -38,14 +38,15 @@ class HomeCubit extends Cubit<HomeState> {
       final user = userResult.fold((f) => throw Exception(f.message), (u) => u);
       final lessons = await _lessonsDataSource.getLessons();
 
-      // Quest and streak are fetched together and after the lessons, not
-      // before: they decorate the home screen, and a child whose network
-      // is flaky must still get their lesson path. Both datasource calls
-      // fall back to an empty value rather than throwing, so neither can
-      // take the home screen down with it.
+      // Quest, streak and goal are fetched together and after the lessons,
+      // not before: they decorate the home screen, and a child whose
+      // network is flaky must still get their lesson path. All three
+      // datasource calls fall back to an empty value rather than throwing,
+      // so none of them can take the home screen down with it.
       final results = await Future.wait([
         _engagement.getTodaysQuest(),
         _engagement.getStreak(),
+        _engagement.getGoal(),
       ]);
 
       emit(HomeLoaded(
@@ -53,6 +54,7 @@ class HomeCubit extends Cubit<HomeState> {
         lessons: lessons,
         quest: results[0] as DailyQuest,
         streak: results[1] as StreakInfo,
+        goal: results[2] as WeeklyGoal,
       ));
     } on DioException catch (e) {
       emit(HomeError(e.message ?? 'Network error'));

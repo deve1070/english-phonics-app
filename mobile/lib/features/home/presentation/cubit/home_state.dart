@@ -23,12 +23,18 @@ class HomeLoaded extends HomeState {
   final DailyQuest quest;
   final StreakInfo streak;
 
-  const HomeLoaded({
+  /// This week's promise, or the offer to make one. Never absent: an
+  /// unreachable server leaves [WeeklyGoal.none], which the home screen
+  /// draws as an invitation rather than as an error.
+  final WeeklyGoal goal;
+
+  HomeLoaded({
     required this.user,
     required this.lessons,
     this.quest = DailyQuest.empty,
     this.streak = StreakInfo.none,
-  });
+    WeeklyGoal? goal,
+  }) : goal = goal ?? WeeklyGoal.none;
 
   /// Kept so the greeting header and anything else reading a plain count
   /// still works. The display rule — hide it below three days — belongs
@@ -50,7 +56,7 @@ class HomeLoaded extends HomeState {
           : null;
 
   @override
-  List<Object?> get props => [user, lessons, quest, streak];
+  List<Object?> get props => [user, lessons, quest, streak, goal];
 }
 
 class HomeError extends HomeState {
