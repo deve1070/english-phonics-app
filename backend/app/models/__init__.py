@@ -15,6 +15,7 @@ from .engagement import (  # noqa: F401
     RecognitionAttempt,
     StreakFreeze,
     WeeklyGoal,
+    WeeklyPromise,
 )
 
 from .enums import (

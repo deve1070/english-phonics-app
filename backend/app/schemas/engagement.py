@@ -111,6 +111,23 @@ class EarnedWeekResponse(BaseModel):
     kind: GoalKind
 
 
+class PromiseResponse(BaseModel):
+    """This week's promise as the child may see it."""
+
+    text: Optional[str] = None
+    # Whose it is. An anonymous message from the app is not the thing
+    # being delivered here.
+    parent_name: Optional[str] = None
+
+    # Told from Monday, so the recording is something to work towards
+    # rather than a surprise afterwards.
+    has_voice: bool = False
+
+    # Filled in only once the goal is met. The server withholds it rather
+    # than trusting the client to keep it sealed.
+    voice_url: Optional[str] = None
+
+
 class GoalResponse(BaseModel):
     week_start: date
 
@@ -131,9 +148,39 @@ class GoalResponse(BaseModel):
     # can see on Monday exactly which one they are working towards.
     earned_weeks: List[EarnedWeekResponse] = []
 
+    # What a grown-up promised for this week, if anyone did. Null is the
+    # ordinary case and draws nothing: a child whose parent has not
+    # written anything must never see the space where it would have been.
+    promise: Optional[PromiseResponse] = None
+
 
 class GoalChoiceRequest(BaseModel):
     kind: GoalKind
+
+
+class PromiseTextRequest(BaseModel):
+    # Null clears it. A parent must be able to take back a promise they
+    # cannot keep, and doing so quietly is kinder than leaving it there.
+    text: Optional[str] = None
+
+
+class ParentPromiseResponse(BaseModel):
+    """The same promise from the parent's side, with nothing withheld.
+
+    Carries the child's goal too, because a parent writing a promise on
+    Monday needs to see what their child actually chose — a promise that
+    ignores it reads as though nobody was paying attention.
+    """
+
+    week_start: date
+    text: Optional[str] = None
+    has_voice: bool = False
+    voice_seconds: Optional[float] = None
+
+    goal_kind: Optional[GoalKind] = None
+    goal_target: int = 0
+    goal_done: int = 0
+    goal_is_complete: bool = False
 
 
 class StoryResponse(BaseModel):

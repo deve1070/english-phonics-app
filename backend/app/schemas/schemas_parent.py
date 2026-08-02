@@ -147,6 +147,19 @@ class ChildSummary(BaseModel):
     streak_days: int
     last_active: Optional[datetime]
 
+    # This week's promise, on the first screen the parent opens.
+    #
+    # kept_the_week is the one that matters. A parent who promised the
+    # park on Saturday and never learns their child finished has been
+    # made, by this app, into someone who breaks promises — which is a
+    # worse outcome than the feature not existing. So it travels with the
+    # summary rather than waiting behind another tap.
+    kept_the_week: bool = False
+    promise_text: Optional[str] = None
+    # True when the child chose a goal and nobody has answered it yet.
+    # Not a nag and not a badge — the dashboard states it once.
+    promise_wanted: bool = False
+
 
 class ParentDashboardResponse(BaseModel):
     parent_name: str

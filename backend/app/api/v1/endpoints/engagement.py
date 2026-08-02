@@ -7,8 +7,9 @@ GET  /me/collection       — every phoneme sticker, locked and unlocked
 POST /me/collection/seen  — acknowledge the celebration
 GET  /me/recognition/round  — "which symbol says this sound?"
 POST /me/recognition/round  — record a finished round
-GET  /me/goal             — this week's promise, or the three on offer
+GET  /me/goal             — this week's goal, or the three on offer
 POST /me/goal             — make the promise
+GET  /me/promise/voice    — the grown-up's recording, once the week is kept
 GET  /me/stories          — the decodable library
 
 All of these are scoped to the calling child. There is no child_id
@@ -18,6 +19,7 @@ quest is that child. Parents reach the same underlying facts through
 """
 
 from datetime import date
+from pathlib import Path
 
 from app.api.deps import get_db
 from app.core.security import get_current_student
@@ -31,6 +33,7 @@ from app.schemas.engagement import (
     GoalChoiceRequest,
     GoalOptionResponse,
     GoalResponse,
+    PromiseResponse,
     QuestItemResponse,
     QuestResponse,
     RecognitionOption,
@@ -45,6 +48,7 @@ from app.schemas.engagement import (
 from app.services import (
     collection_service,
     goal_service,
+    promise_service,
     quest_service,
     recognition_service,
     story_service,
@@ -52,7 +56,8 @@ from app.services import (
 from app.services.recognition_service import ROUND_SIZE as RECOGNITION_ROUND_SIZE
 from app.services.streak_service import streak_summary
 from app.services.streak_service import week_start as streak_service_week_start
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -252,6 +257,57 @@ async def submit_recognition_round(
     )
 
 
+async def _promise_for(
+    db: AsyncSession, child_id: int, is_complete: bool
+) -> PromiseResponse | None:
+    """This week's promise, with the recording sealed until it is earned.
+
+    The url the child gets points back at this app rather than at the
+    stored path: the file lives under uploads/ next to every other bit of
+    audio, and only this route knows whether the week has been kept.
+    """
+    view = await promise_service.child_view(db, child_id, is_complete=is_complete)
+    if view is None or view.is_empty:
+        return None
+
+    return PromiseResponse(
+        text=view.text,
+        parent_name=view.parent_name,
+        has_voice=view.has_voice,
+        voice_url="/me/promise/voice" if view.voice_url else None,
+    )
+
+
+# ── GET /me/promise/voice ────────────────────────────────────────
+@router.get("/promise/voice")
+async def my_promise_voice(
+    db: AsyncSession = Depends(get_db),
+    child: User = Depends(get_current_student),
+):
+    """The parent's recording, once the week has been kept.
+
+    Checked here as well as in the goal response, because this route can
+    be reached directly. A child who has not finished gets a 404 rather
+    than the file — the message is not lost, it is simply not theirs yet.
+    """
+    current = await goal_service.progress(db, child.id)
+    view = await promise_service.child_view(
+        db, child.id, is_complete=current is not None and current.is_complete
+    )
+    if view is None or view.voice_url is None:
+        raise HTTPException(404, "No message to play yet.")
+
+    path = Path("uploads") / view.voice_url.lstrip("/")
+    if not path.exists():
+        raise HTTPException(404, "The recording is missing.")
+
+    def stream():
+        with open(path, "rb") as f:
+            yield from f
+
+    return StreamingResponse(stream(), media_type="audio/mpeg")
+
+
 # ── GET /me/goal ─────────────────────────────────────────────────
 @router.get("/goal", response_model=GoalResponse)
 async def my_goal(
@@ -270,6 +326,10 @@ async def my_goal(
     ]
     current = await goal_service.progress(db, child.id)
 
+    # The goal's completion is the one thing that unseals the recording,
+    # so the promise is read after it and never before.
+    promise = await _promise_for(db, child.id, current is not None and current.is_complete)
+
     if current is None:
         options = await goal_service.options_for(db, child.id)
         return GoalResponse(
@@ -278,6 +338,7 @@ async def my_goal(
                 GoalOptionResponse(kind=o.kind, target=o.target) for o in options
             ],
             earned_weeks=earned,
+            promise=promise,
         )
 
     return GoalResponse(
@@ -287,6 +348,7 @@ async def my_goal(
         done=current.done,
         is_complete=current.is_complete,
         earned_weeks=earned,
+        promise=promise,
     )
 
 

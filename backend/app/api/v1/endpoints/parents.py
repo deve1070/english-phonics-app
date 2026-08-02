@@ -21,12 +21,17 @@ Endpoints:
   POST  /parents/children/{id}/start-session → open a screen-time session
   POST  /parents/children/{id}/end-session → close a screen-time session
                                               (parent or the child's own token)
+  GET   /parents/children/{id}/promise → this week's promise + the child's goal
+  PUT   /parents/children/{id}/promise → write or clear the promise
+  POST  /parents/children/{id}/promise/voice → record the message
+  GET   /parents/children/{id}/promise/voice → play it back
   POST  /parents/child-login/{id}      → get child token for Flutter
 """
 
 import json
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from typing import List
 
 from app.api.deps import get_db
@@ -47,6 +52,7 @@ from app.models.progress import Progress
 from app.models.pronuncation_score import PronunciationScore
 from app.models.user import User
 from app.models.enums import UserRole
+from app.schemas.engagement import ParentPromiseResponse, PromiseTextRequest
 from app.schemas.schemas_parent import (
     ChildCreate,
     ChildProgressResponse,
@@ -63,10 +69,22 @@ from app.schemas.schemas_parent import (
     SessionStartResponse,
     WeeklyReportResponse,
 )
+from app.services import goal_service, promise_service
 from app.services.mastery_service import is_mastered
 from app.services.streak_service import current_streak
+from app.services.streak_service import week_start as streak_week_start
 from app.services.weekly_report_service import generate_weekly_report
-from fastapi import APIRouter, Depends, HTTPException, status
+from app.utils.audio import save_audio_file
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
+)
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -308,8 +326,16 @@ async def parent_dashboard(
     for link, child in rows:
         screen = await _screen_time_today(db, child.id)
         progress = await _compute_progress_summary(db, child.id)
+        goal = await goal_service.progress(db, child.id)
+        promise = await promise_service.for_week(db, child.id)
         children_summaries.append(
             ChildSummary(
+                kept_the_week=bool(goal and goal.is_complete),
+                promise_text=promise.text if promise else None,
+                # Asked for only when there is something to answer: a
+                # child who has not chosen a goal has not asked anyone
+                # for anything.
+                promise_wanted=bool(goal) and promise is None,
                 child_id=child.id,
                 child_name=child.name,
                 nickname=link.nickname,
@@ -486,6 +512,114 @@ async def screen_time_today(
     db: AsyncSession = Depends(get_db),
 ):
     return await _screen_time_today(db, child.id)
+
+
+# ── The week's promise ────────────────────────────────────────────
+async def _promise_view(
+    db: AsyncSession, child_id: int
+) -> ParentPromiseResponse:
+    """This week's promise plus what the child chose to do for it."""
+    promise = await promise_service.for_week(db, child_id)
+    goal = await goal_service.progress(db, child_id)
+
+    return ParentPromiseResponse(
+        week_start=streak_week_start(date.today()),
+        text=promise.text if promise else None,
+        has_voice=bool(promise and promise.voice_url),
+        voice_seconds=promise.voice_seconds if promise else None,
+        goal_kind=goal.kind if goal else None,
+        goal_target=goal.target if goal else 0,
+        goal_done=goal.done if goal else 0,
+        goal_is_complete=goal.is_complete if goal else False,
+    )
+
+
+@router.get(
+    "/children/{child_id}/promise", response_model=ParentPromiseResponse
+)
+async def get_promise(
+    child: User = Depends(get_owned_child),
+    db: AsyncSession = Depends(get_db),
+):
+    """What this parent promised for the week, and what the child chose.
+
+    Both in one response because a promise written without seeing the
+    goal reads to a child as though nobody was paying attention.
+    """
+    return await _promise_view(db, child.id)
+
+
+@router.put(
+    "/children/{child_id}/promise", response_model=ParentPromiseResponse
+)
+async def set_promise(
+    body: PromiseTextRequest,
+    parent: User = Depends(get_current_parent),
+    child: User = Depends(get_owned_child),
+    db: AsyncSession = Depends(get_db),
+):
+    """Write, rewrite or clear this week's promise.
+
+    No validation beyond a length cap. What a family promises each other
+    is not this app's business to approve, and a parent who has to phrase
+    something in a way the app will accept is being managed rather than
+    helped.
+    """
+    await promise_service.set_text(db, child.id, parent.id, body.text)
+    return await _promise_view(db, child.id)
+
+
+@router.post(
+    "/children/{child_id}/promise/voice", response_model=ParentPromiseResponse
+)
+async def record_promise_voice(
+    file: UploadFile = File(...),
+    seconds: float | None = Form(None),
+    parent: User = Depends(get_current_parent),
+    child: User = Depends(get_owned_child),
+    db: AsyncSession = Depends(get_db),
+):
+    """Attach a recording for the moment the child finishes.
+
+    Replaces whatever was there. A parent who re-records because the baby
+    cried over the first take should not have to delete anything first,
+    and the child has not heard either version yet.
+    """
+    if seconds is not None and seconds > promise_service.MAX_VOICE_SECONDS:
+        raise HTTPException(
+            400,
+            f"Keep it under {promise_service.MAX_VOICE_SECONDS} seconds.",
+        )
+
+    url = await save_audio_file(file)
+    await promise_service.set_voice(db, child.id, parent.id, url, seconds)
+    return await _promise_view(db, child.id)
+
+
+@router.get("/children/{child_id}/promise/voice")
+async def play_promise_voice(
+    child: User = Depends(get_owned_child),
+    db: AsyncSession = Depends(get_db),
+):
+    """Play back the recording.
+
+    For the parent only, and unconditionally: they need to hear what they
+    made before it goes to their child. The child's copy of this route
+    stays sealed until the week is kept.
+    """
+    promise = await promise_service.for_week(db, child.id)
+    if promise is None or not promise.voice_url:
+        raise HTTPException(404, "Nothing recorded for this week.")
+
+    path = Path("uploads") / promise.voice_url.lstrip("/")
+    if not path.exists():
+        raise HTTPException(404, "The recording is missing.")
+
+    def stream():
+        with open(path, "rb") as f:
+            yield from f
+
+    return StreamingResponse(stream(), media_type="audio/mpeg")
 
 
 # ── POST /parents/children/{id}/start-session ─────────────────────

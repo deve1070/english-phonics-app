@@ -29,8 +29,10 @@ from sqlalchemy import (
     Column,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
+    String,
     UniqueConstraint,
     func,
 )
@@ -208,6 +210,63 @@ class WeeklyGoal(Base):
     target = Column(Integer, nullable=False)
     chosen_at = Column(DateTime, default=func.now())
     completed_at = Column(DateTime, nullable=True)
+
+
+class WeeklyPromise(Base):
+    """What the grown-up promised for the week the child chose.
+
+    Deliberately not a target. The child picks the goal; the parent
+    answers it with something real from outside the app — "we'll walk to
+    the market on Saturday" — and the app's only job is to carry the
+    message and get out of the way. A parent who could set the target
+    would turn the whole feature back into homework.
+
+    On rewards. A promise contingent on reading is exactly the pattern
+    that can displace a child's own reason for reading with someone
+    else's. Three things keep this one on the right side of it: the child
+    set the goal, the promise is for the whole week rather than paid out
+    per exercise, and the app asks for something the family does together
+    rather than something bought. The wording in the parent's form does
+    that work; nothing here polices what a family writes, because that is
+    not the app's business.
+
+    voice_url is the part that matters most and the part that needed no
+    literacy. A parent working long hours records eight seconds in their
+    own language, and the child hears their voice at the moment they
+    finish — not that evening, not from a notification, but there. Its
+    existence is shown to the child from Monday and its contents are
+    withheld until the goal is met, the same way a locked story shows its
+    title and keeps its text.
+    """
+
+    __tablename__ = "weekly_promises"
+    __table_args__ = (
+        UniqueConstraint("child_id", "week_start", name="uq_promise_child_week"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    child_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # Who made it, kept so the child can be told whose voice this is
+    # rather than being handed an anonymous message from the app.
+    parent_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    week_start = Column(Date, nullable=False, index=True)
+
+    # In whatever language the family speaks. Never translated, never run
+    # through TTS, never rewritten by the app: a promise in a parent's own
+    # words is the thing being delivered.
+    text = Column(String(200), nullable=True)
+
+    # Path under uploads/, as save_audio_file returns it. Null until the
+    # parent records something, which most weeks they will not.
+    voice_url = Column(String(255), nullable=True)
+    voice_seconds = Column(Float, nullable=True)
+
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
 
 class StreakFreeze(Base):
