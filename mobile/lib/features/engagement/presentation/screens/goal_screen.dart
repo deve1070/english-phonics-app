@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/audio/voice_message.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/mascot/kiki.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -34,6 +35,7 @@ class GoalScreen extends StatefulWidget {
 class _GoalScreenState extends State<GoalScreen> {
   late final EngagementRemoteDataSource _source =
       EngagementRemoteDataSource(getIt<Dio>());
+  late final VoiceMessage _voice = VoiceMessage(getIt<Dio>());
 
   WeeklyGoal? _goal;
   String? _error;
@@ -45,11 +47,23 @@ class _GoalScreenState extends State<GoalScreen> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _voice.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     setState(() => _error = null);
     final goal = await _source.getGoal();
     if (!mounted) return;
     setState(() => _goal = goal);
+
+    // Pulled down as the screen opens rather than on the first tap. A
+    // child who has just finished their week should not then be made to
+    // wait on a download to hear their parent.
+    final url = goal.promise?.voiceUrl;
+    if (url != null) await _voice.prefetch(url);
   }
 
   Future<void> _choose(GoalKind kind) async {
@@ -107,6 +121,13 @@ class _GoalScreenState extends State<GoalScreen> {
                       busy: _choosing,
                       onChoose: _choose,
                     ),
+                  if (goal.promise != null) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    _PromiseCard(
+                      promise: goal.promise!,
+                      voice: _voice,
+                    ),
+                  ],
                   if (goal.earnedWeeks.isNotEmpty) ...[
                     const SizedBox(height: AppSpacing.xl),
                     _Shelf(weeks: goal.earnedWeeks),
@@ -312,6 +333,142 @@ class _Steps extends StatelessWidget {
                 : null,
           ),
       ],
+    );
+  }
+}
+
+// ── What a grown-up said ─────────────────────────────────────────────
+
+/// The promise, and the message waiting behind it.
+///
+/// Before the week is kept this is a closed envelope with a name on it —
+/// the child knows something is there and whose it is, and that is what
+/// makes it worth working towards. After, it is a button that plays their
+/// parent's voice, as many times as they like.
+///
+/// Nothing here ever counts down, warns, or says what happens if the week
+/// is missed. A promise used as leverage is a threat with a bow on it.
+class _PromiseCard extends StatefulWidget {
+  final Promise promise;
+  final VoiceMessage voice;
+
+  const _PromiseCard({required this.promise, required this.voice});
+
+  @override
+  State<_PromiseCard> createState() => _PromiseCardState();
+}
+
+class _PromiseCardState extends State<_PromiseCard> {
+  bool _playing = false;
+
+  Future<void> _play() async {
+    final url = widget.promise.voiceUrl;
+    if (url == null) return;
+    setState(() => _playing = true);
+    await widget.voice.play(url);
+    if (mounted) setState(() => _playing = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final promise = widget.promise;
+    final name = promise.parentName;
+    final open = promise.voiceUrl != null;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: open ? AppColors.honeyLight : AppColors.surface,
+        border: Border.all(color: AppColors.border, width: 2),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (promise.text != null && promise.text!.isNotEmpty) ...[
+            Text(
+              // Named. A promise from the app is worth nothing; a promise
+              // from someone who will be there on Saturday is the thing.
+              name == null ? 'A promise for this week' : '$name said:',
+              style: AppTextStyles.label.copyWith(color: AppColors.inkSoft),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(promise.text!, style: AppTextStyles.bodyLarge),
+          ],
+          if (promise.hasVoice) ...[
+            if (promise.text != null && promise.text!.isNotEmpty)
+              const SizedBox(height: AppSpacing.md),
+            if (open)
+              _PlayButton(
+                label: name == null
+                    ? 'Listen to your message'
+                    : 'Listen to $name',
+                isPlaying: _playing,
+                onTap: _play,
+              )
+            else
+              Row(
+                children: [
+                  const Icon(Icons.mail_rounded,
+                      size: 26, color: AppColors.inkFaint),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      // Says what is there and who left it, and stops.
+                      // No "finish and you'll get it" — the child already
+                      // knows, and saying it turns a gift into a deal.
+                      name == null
+                          ? 'There is a message here for when you finish.'
+                          : '$name left you a message for when you finish.',
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: AppColors.inkSoft),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PlayButton extends StatelessWidget {
+  final String label;
+  final bool isPlaying;
+  final VoidCallback onTap;
+
+  const _PlayButton({
+    required this.label,
+    required this.isPlaying,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: isPlaying ? null : onTap,
+      color: AppColors.crest,
+      borderColor: AppColors.ink,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      semanticLabel: label,
+      child: Row(
+        children: [
+          Icon(
+            isPlaying ? Icons.graphic_eq_rounded : Icons.play_arrow_rounded,
+            size: 28,
+            color: AppColors.onInk,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              label,
+              style: AppTextStyles.label.copyWith(color: AppColors.onInk),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

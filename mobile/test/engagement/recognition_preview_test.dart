@@ -27,11 +27,28 @@ import '../support/preview_fonts.dart';
 /// else (audio fetches) with empty bytes.
 class _CannedAdapter implements HttpClientAdapter {
   final Map<String, dynamic> round;
+
+  /// What /me/goal answers with. Null means "no goal", which is what the
+  /// ordinary tests want; a completed one is how the round that finishes
+  /// a child's week is staged.
+  Map<String, dynamic>? goal;
+
   _CannedAdapter(this.round);
 
   @override
   Future<ResponseBody> fetch(RequestOptions options, Stream<List<int>>? _,
       Future<void>? __) async {
+    if (options.path.contains('goal')) {
+      final body = goal;
+      if (body == null) return ResponseBody.fromBytes(const [], 404);
+      return ResponseBody.fromString(
+        jsonEncode(body),
+        200,
+        headers: {
+          Headers.contentTypeHeader: [Headers.jsonContentType],
+        },
+      );
+    }
     if (options.path.contains('recognition')) {
       return ResponseBody.fromString(
         jsonEncode(options.method == 'GET'
@@ -80,18 +97,23 @@ Finder _card(String grapheme) => find.ancestor(
 
 void main() {
   late Map<String, dynamic> round;
+  late Map<String, dynamic> payloads;
+  late _CannedAdapter adapter;
 
   setUpAll(() async {
     await loadPreviewFonts();
-    final payloads = jsonDecode(
+    payloads = jsonDecode(
       File('test/engagement/server_payloads.json').readAsStringSync(),
     ) as Map<String, dynamic>;
     round = payloads['recognition_explore'] as Map<String, dynamic>;
 
+    adapter = _CannedAdapter(round);
     final dio = Dio(BaseOptions(baseUrl: 'http://test'))
-      ..httpClientAdapter = _CannedAdapter(round);
+      ..httpClientAdapter = adapter;
     GetIt.instance.registerSingleton<Dio>(dio);
   });
+
+  tearDown(() => adapter.goal = null);
 
   tearDownAll(() => GetIt.instance.reset());
 
@@ -159,6 +181,36 @@ void main() {
     await _closeAndSettle(tester);
   });
 
+  testWidgets('the round that finishes the week says so, and who is waiting',
+      (tester) async {
+    // Where a week is nearly always kept: mid-round, on the answer that
+    // crosses the target. A child who finishes here and is told nothing
+    // would have to go looking for the message their parent left them.
+    adapter.goal = payloads['goal_promise_open'] as Map<String, dynamic>;
+    await _pumpGame(tester);
+    await _playThrough(tester, round);
+
+    expect(find.text('You finished your week!'), findsOneWidget);
+    expect(find.text('Almaz left you a message. Tap to hear it.'),
+        findsOneWidget);
+
+    await expectLater(
+      find.byType(RecognitionScreen),
+      matchesGoldenFile('recognition_week_kept.png'),
+    );
+    await _closeAndSettle(tester);
+  });
+
+  testWidgets('an ordinary round says nothing about a week', (tester) async {
+    // The common case, and it must stay quiet. A summary that mentioned
+    // the goal every time would turn every round into a progress report.
+    await _pumpGame(tester);
+    await _playThrough(tester, round);
+
+    expect(find.text('You finished your week!'), findsNothing);
+    await _closeAndSettle(tester);
+  });
+
   testWidgets('a wrong answer shows the right one saying itself',
       (tester) async {
     await _pumpGame(tester);
@@ -184,4 +236,22 @@ void main() {
     );
     await _closeAndSettle(tester);
   });
+}
+
+/// Play a whole round correctly, which is what it takes to reach the
+/// summary — there is no shortcut to it, and the round that finishes a
+/// child's week is the one worth looking at.
+Future<void> _playThrough(WidgetTester tester, Map<String, dynamic> round) async {
+  for (final q in (round['questions'] as List).cast<Map<String, dynamic>>()) {
+    final right = (q['options'] as List).firstWhere(
+      (o) => o['phoneme_id'] == q['target_phoneme_id'],
+    ) as Map<String, dynamic>;
+    final grapheme = right['grapheme'] as String;
+
+    await tester.tap(_card(grapheme));
+    await settleAnimations(tester, total: const Duration(milliseconds: 200));
+    await tester.tap(_card(grapheme));
+    // Long enough for the pause between questions to run out.
+    await settleAnimations(tester, total: const Duration(seconds: 3));
+  }
 }

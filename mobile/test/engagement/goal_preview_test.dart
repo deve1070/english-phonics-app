@@ -111,6 +111,49 @@ void main() {
     );
   });
 
+  testWidgets('a message from home is announced without being dangled',
+      (tester) async {
+    await pumpWith(tester, 'goal_promise_sealed');
+
+    final promise = (payloads['goal_promise_sealed']
+        as Map<String, dynamic>)['promise'] as Map<String, dynamic>;
+    final name = promise['parent_name'] as String;
+
+    expect(find.text('$name said:'), findsOneWidget);
+    expect(find.text(promise['text'] as String), findsOneWidget);
+    expect(find.text('$name left you a message for when you finish.'),
+        findsOneWidget);
+
+    // Nothing that turns the promise into leverage. "If you don't" and
+    // any countdown make a threat out of a gift, and a child who reads it
+    // that way has been given a reason to dread the week rather than
+    // want it.
+    expect(find.textContaining('If you'), findsNothing);
+    expect(find.textContaining('only'), findsNothing);
+    expect(find.textContaining('left to go'), findsNothing);
+
+    await expectLater(
+      find.byType(GoalScreen),
+      matchesGoldenFile('goal_promise_sealed.png'),
+    );
+  });
+
+  testWidgets('finishing turns the message into a button', (tester) async {
+    await pumpWith(tester, 'goal_promise_open');
+
+    final promise = (payloads['goal_promise_open']
+        as Map<String, dynamic>)['promise'] as Map<String, dynamic>;
+    final name = promise['parent_name'] as String;
+
+    expect(find.text('Listen to $name'), findsOneWidget);
+    expect(find.text('You did it!'), findsOneWidget);
+
+    await expectLater(
+      find.byType(GoalScreen),
+      matchesGoldenFile('goal_promise_open.png'),
+    );
+  });
+
   testWidgets('the prize fills evenly from empty to whole', (tester) async {
     // The same widget the home card uses, at the size it uses. A medal
     // whose coloured half sits out of register with its grey half reads as

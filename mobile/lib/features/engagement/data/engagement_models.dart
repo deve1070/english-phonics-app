@@ -388,6 +388,40 @@ class EarnedWeek {
       );
 }
 
+/// What a grown-up promised for this week, as the child may see it.
+///
+/// [voiceUrl] arrives null until the goal is met — the server seals it, and
+/// the client is not trusted to. What the child does get from Monday is
+/// [hasVoice] and a name, which is the whole point: a message you know is
+/// waiting is something to work towards, where one sprung on you
+/// afterwards is just a payment.
+class Promise {
+  final String? text;
+
+  /// Whose promise it is. "Your mum recorded this" is a different thing to
+  /// a child than a message from an app.
+  final String? parentName;
+  final bool hasVoice;
+  final String? voiceUrl;
+
+  const Promise({
+    required this.text,
+    required this.parentName,
+    required this.hasVoice,
+    required this.voiceUrl,
+  });
+
+  /// True while there is a message the child has not earned yet.
+  bool get isSealed => hasVoice && voiceUrl == null;
+
+  factory Promise.fromJson(Map<String, dynamic> json) => Promise(
+        text: json['text'] as String?,
+        parentName: json['parent_name'] as String?,
+        hasVoice: json['has_voice'] as bool? ?? false,
+        voiceUrl: json['voice_url'] as String?,
+      );
+}
+
 class WeeklyGoal {
   final DateTime weekStart;
 
@@ -404,6 +438,11 @@ class WeeklyGoal {
   /// and this feature does not keep one.
   final List<EarnedWeek> earnedWeeks;
 
+  /// Null when nobody has promised anything, which is the ordinary case
+  /// and draws nothing at all. A child whose parent has not written
+  /// something must never be shown the space where it would have been.
+  final Promise? promise;
+
   const WeeklyGoal({
     required this.weekStart,
     required this.kind,
@@ -412,6 +451,7 @@ class WeeklyGoal {
     required this.isComplete,
     required this.choices,
     required this.earnedWeeks,
+    this.promise,
   });
 
   bool get isChosen => kind != null;
@@ -437,6 +477,9 @@ class WeeklyGoal {
         earnedWeeks: (json['earned_weeks'] as List<dynamic>? ?? [])
             .map((e) => EarnedWeek.fromJson(e as Map<String, dynamic>))
             .toList(),
+        promise: json['promise'] == null
+            ? null
+            : Promise.fromJson(json['promise'] as Map<String, dynamic>),
       );
 
   static final WeeklyGoal none = WeeklyGoal(

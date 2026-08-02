@@ -28,6 +28,7 @@ import '../../features/home/presentation/screens/join_screen.dart';
 import '../../features/parent/presentation/screens/parent_dashboard_screen.dart';
 import '../../features/parent/presentation/screens/child_progress_detail_screen.dart';
 import '../../features/parent/presentation/screens/invite_links_screen.dart';
+import '../../features/parent/presentation/screens/promise_screen.dart';
 
 class AppRouter {
   final TokenStorage tokenStorage;
@@ -76,8 +77,9 @@ class AppRouter {
     }
 
     // Determine if this is a parent-only route
-    final isParentRoute = location.startsWith(AppRoutes.parentDashboard) || 
-                          location.startsWith(AppRoutes.inviteLinks);
+    final isParentRoute = location.startsWith(AppRoutes.parentDashboard) ||
+                          location.startsWith(AppRoutes.inviteLinks) ||
+                          location.startsWith(AppRoutes.parentPromise);
 
     if (isParentRoute) {
       final role = await tokenStorage.getUserRole();
@@ -144,6 +146,12 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.inviteLinks,
           builder: (_, __) => const InviteLinksScreen(),
+        ),
+        GoRoute(
+          path: '${AppRoutes.parentPromise}/:childId',
+          builder: (context, state) => PromiseScreen(
+            childId: int.parse(state.pathParameters['childId']!),
+          ),
         ),
 
         // ── Main shell with bottom nav (child experience) ─────────

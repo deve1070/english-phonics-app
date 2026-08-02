@@ -178,6 +178,51 @@ void main() {
         reason: 'the same week appeared twice on the shelf');
   });
 
+  test('a message from home is announced but sealed until the week is kept',
+      () {
+    final goal = WeeklyGoal.fromJson(
+        payloads['goal_promise_sealed'] as Map<String, dynamic>);
+    final promise = goal.promise;
+
+    expect(promise, isNotNull);
+    expect(goal.isComplete, isFalse);
+    // The child is told there is something and whose it is. That is what
+    // makes it worth working towards rather than a surprise afterwards.
+    expect(promise!.hasVoice, isTrue);
+    expect(promise.parentName, isNotEmpty);
+    expect(promise.isSealed, isTrue);
+    // If this ever fails, a child can hear their parent's message without
+    // finishing — which empties out the one moment the feature exists for.
+    expect(promise.voiceUrl, isNull,
+        reason: 'the recording was handed over before it was earned');
+  });
+
+  test('finishing the week opens the message', () {
+    final goal = WeeklyGoal.fromJson(
+        payloads['goal_promise_open'] as Map<String, dynamic>);
+    final promise = goal.promise!;
+
+    expect(goal.isComplete, isTrue);
+    expect(promise.isSealed, isFalse);
+    expect(promise.voiceUrl, isNotNull);
+    expect(promise.text, isNotEmpty);
+  });
+
+  test('the dashboard tells a parent their child kept the week', () {
+    // Parsed by the parent dashboard's own model, which read a
+    // total_points field the server has never sent — every load threw.
+    final row =
+        payloads['parent_dashboard_child'] as Map<String, dynamic>;
+
+    expect(row['kept_the_week'], isNotNull,
+        reason: 'a parent who is not told has been made to break a promise');
+    expect(row.containsKey('promise_text'), isTrue);
+    expect(row.containsKey('promise_wanted'), isTrue);
+    expect(row.containsKey('total_points'), isFalse,
+        reason: 'the client must not go back to reading a field '
+            'the server does not send');
+  });
+
   test('the story payload parses and locked ones carry no text', () {
     final shelf =
         StoryShelf.fromJson(payloads['stories'] as Map<String, dynamic>);

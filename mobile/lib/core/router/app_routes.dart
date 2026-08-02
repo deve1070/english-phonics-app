@@ -60,4 +60,7 @@ abstract class AppRoutes {
   static const String addChild          = '/parent/add-child';
   static const String parentChildDetail = '/parent/child';
   static const String inviteLinks       = '/parent/invite-links';
+
+  /// Where a parent answers the goal their child set. Takes /:childId.
+  static const String parentPromise     = '/parent/promise';
 }

@@ -17,7 +17,6 @@ class ChildSummaryModel {
   final int childId;
   final String childName;
   final String? nickname;
-  final int totalPoints;
   final int lessonsCompleted;
   final int totalLessons;
   final double overallProgressPct;
@@ -26,11 +25,24 @@ class ChildSummaryModel {
   final bool isLimitReached;
   final int streakDays;
 
+  /// This week's promise, as far as the parent needs to know it on the
+  /// first screen they open.
+  ///
+  /// [keptTheWeek] is the one that has to be here rather than a tap away.
+  /// A parent who promised the park on Saturday and is never told their
+  /// child finished has been turned by this app into someone who breaks
+  /// promises, which is worse than the feature not existing.
+  final bool keptTheWeek;
+  final String? promiseText;
+
+  /// The child chose a goal and nobody has answered it. Stated once,
+  /// never nagged.
+  final bool promiseWanted;
+
   const ChildSummaryModel({
     required this.childId,
     required this.childName,
     this.nickname,
-    required this.totalPoints,
     required this.lessonsCompleted,
     required this.totalLessons,
     required this.overallProgressPct,
@@ -38,6 +50,9 @@ class ChildSummaryModel {
     required this.maxDailyMinutes,
     required this.isLimitReached,
     required this.streakDays,
+    this.keptTheWeek = false,
+    this.promiseText,
+    this.promiseWanted = false,
   });
 
   String get displayName => nickname ?? childName;
@@ -47,7 +62,6 @@ class ChildSummaryModel {
         childId: j['child_id'] as int,
         childName: j['child_name'] as String,
         nickname: j['nickname'] as String?,
-        totalPoints: (j['total_points'] as num).toInt(),
         lessonsCompleted: (j['lessons_completed'] as num).toInt(),
         totalLessons: (j['total_lessons'] as num).toInt(),
         overallProgressPct: (j['overall_progress_pct'] as num).toDouble(),
@@ -55,6 +69,9 @@ class ChildSummaryModel {
         maxDailyMinutes: (j['max_daily_minutes'] as num).toInt(),
         isLimitReached: j['is_limit_reached'] as bool,
         streakDays: (j['streak_days'] as num).toInt(),
+        keptTheWeek: j['kept_the_week'] as bool? ?? false,
+        promiseText: j['promise_text'] as String?,
+        promiseWanted: j['promise_wanted'] as bool? ?? false,
       );
 }
 
@@ -536,25 +553,10 @@ class _ChildCard extends StatelessWidget {
                   ),
                 ),
 
-                // Points badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.yellow.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('⭐', style: TextStyle(fontSize: 13)),
-                      const SizedBox(width: 3),
-                      Text('${child.totalPoints} pts',
-                          style: AppTextStyles.label
-                              .copyWith(color: AppColors.orange)),
-                    ],
-                  ),
-                ),
+                // Nothing here counts points. The app has never had any,
+                // and the badge that used to sit here read total_points
+                // from a response that has never carried it — every
+                // dashboard load threw on it.
               ],
             ),
           ),
@@ -594,6 +596,19 @@ class _ChildCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+
+          // ── This week's promise ───────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: _PromiseRow(
+              child: child,
+              onTap: () => context.push(
+                '${AppRoutes.parentPromise}/${child.childId}',
+              ),
             ),
           ),
 
@@ -645,6 +660,86 @@ class _ChildCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// What this week's promise is doing, in one line.
+///
+/// Four states, and the order they are checked in is the point: a kept
+/// week comes before everything else, because it is the only one with a
+/// deadline attached to it in the real world. A parent who reads this
+/// line on Sunday morning and learns on Sunday evening has already let
+/// their child down.
+class _PromiseRow extends StatelessWidget {
+  final ChildSummaryModel child;
+  final VoidCallback onTap;
+
+  const _PromiseRow({required this.child, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, colour, title, subtitle) = switch (child) {
+      final c when c.keptTheWeek => (
+          Icons.celebration_rounded,
+          AppColors.coral,
+          '${c.displayName} kept their week',
+          c.promiseText ?? 'They finished what they set out to do.',
+        ),
+      final c when c.promiseWanted => (
+          Icons.favorite_border_rounded,
+          AppColors.teal,
+          '${c.displayName} set themselves a goal',
+          'Promise them something for keeping it.',
+        ),
+      final c when c.promiseText != null => (
+          Icons.handshake_rounded,
+          AppColors.teal,
+          'You promised',
+          c.promiseText!,
+        ),
+      _ => (
+          Icons.handshake_outlined,
+          AppColors.textSecondary,
+          'No promise this week',
+          'Tap to make one.',
+        ),
+    };
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: colour.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: colour),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: AppTextStyles.label),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: AppColors.textSecondary),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded,
+                size: 22, color: AppColors.textSecondary),
+          ],
+        ),
       ),
     );
   }

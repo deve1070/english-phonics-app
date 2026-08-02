@@ -78,6 +78,11 @@ abstract class ApiConstants {
       '/parents/children/$id/weekly-report';
   static String parentChildGoals(int id) => '/parents/children/$id/goals';
   static String parentChildLogin(int id) => '/parents/child-login/$id';
+
+  /// This week's promise, from the parent's side — nothing withheld.
+  static String parentPromise(int id) => '/parents/children/$id/promise';
+  static String parentPromiseVoice(int id) =>
+      '/parents/children/$id/promise/voice';
   static String parentChildScreenTime(int id) =>
       '/parents/children/$id/screen-time';
   static String parentChildStartSession(int id) =>

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/audio/phoneme_audio.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/mascot/kiki.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -69,6 +70,10 @@ class _RecognitionScreenState extends State<RecognitionScreen> {
   int _found = 0;
   bool _posted = false;
   RecognitionSummary? _summary;
+
+  /// The week's goal, once a round has just finished it. Only ever set on
+  /// the round that crosses the target.
+  WeeklyGoal? _keptTheWeek;
   Timer? _advance;
 
   bool get _isDone => _round != null && _index >= _round!.questions.length;
@@ -190,6 +195,15 @@ class _RecognitionScreenState extends State<RecognitionScreen> {
     final summary = await _post();
     if (!mounted) return;
     setState(() => _summary = summary);
+
+    // The week is most often kept here rather than on the goal screen —
+    // a child finishes a round and the count crosses their target. If
+    // nobody says so, the message their parent recorded sits behind a
+    // screen they have no reason to open, and the moment it was made for
+    // passes in silence.
+    final goal = await _source.getGoal();
+    if (!mounted) return;
+    if (goal.isComplete) setState(() => _keptTheWeek = goal);
   }
 
   /// Send the round, padding out anything the child never reached.
@@ -260,6 +274,8 @@ class _RecognitionScreenState extends State<RecognitionScreen> {
         total: round.questions.length,
         summary: summary ?? RecognitionSummary.none,
         mode: round.mode,
+        keptTheWeek: _keptTheWeek,
+        onSeeWeek: () => context.push(AppRoutes.goal),
         onAgain: (mode) {
           setState(() => _mode = mode);
           _load();
@@ -549,16 +565,23 @@ class _RoundSummary extends StatelessWidget {
   final int total;
   final RecognitionSummary summary;
   final RecognitionMode mode;
+
+  /// Set when this round finished the week's goal. Null the rest of the
+  /// time, which is nearly always.
+  final WeeklyGoal? keptTheWeek;
   final void Function(RecognitionMode) onAgain;
   final VoidCallback onDone;
+  final VoidCallback onSeeWeek;
 
   const _RoundSummary({
     required this.right,
     required this.total,
     required this.summary,
     required this.mode,
+    required this.keptTheWeek,
     required this.onAgain,
     required this.onDone,
+    required this.onSeeWeek,
   });
 
   /// Where the child goes next: always the harder rung, offered rather
@@ -605,6 +628,10 @@ class _RoundSummary extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ],
+            if (keptTheWeek != null) ...[
+              const SizedBox(height: AppSpacing.lg),
+              _WeekKept(goal: keptTheWeek!, onTap: onSeeWeek),
+            ],
             const SizedBox(height: AppSpacing.xl),
             Pressable(
               onTap: () => onAgain(_nextRung),
@@ -630,6 +657,58 @@ class _RoundSummary extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The week finished, said here rather than left to be discovered.
+///
+/// It leads to the goal screen rather than playing the message inline:
+/// what the child should see first is the medal they have been watching
+/// all week, now filled, with their parent's voice next to it. Playing it
+/// here would hand over the payoff with the prize still on another
+/// screen.
+class _WeekKept extends StatelessWidget {
+  final WeeklyGoal goal;
+  final VoidCallback onTap;
+
+  const _WeekKept({required this.goal, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = goal.promise?.parentName;
+    final hasMessage = goal.promise?.voiceUrl != null;
+
+    return Pressable(
+      onTap: onTap,
+      color: AppColors.honeyLight,
+      borderColor: AppColors.border,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      semanticLabel: 'You finished your week',
+      child: Column(
+        children: [
+          // An envelope before any words. This card carries the one thing
+          // on the screen a child cannot afford to skim past, and at six
+          // the picture is read before the sentence is.
+          Icon(
+            hasMessage ? Icons.mark_email_unread_rounded : Icons.military_tech_rounded,
+            size: 34,
+            color: AppColors.honey,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text('You finished your week!', style: AppTextStyles.headingSmall),
+          const SizedBox(height: 2),
+          Text(
+            hasMessage
+                ? (name == null
+                    ? 'There is a message waiting for you.'
+                    : '$name left you a message. Tap to hear it.')
+                : 'Come and see your prize.',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.ink),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

@@ -464,5 +464,66 @@
         "kind": "sounds_found"
       }
     ]
+  },
+  "goal_promise_sealed": {
+    "week_start": "2026-07-27",
+    "kind": "sounds_found",
+    "target": 10,
+    "done": 0,
+    "is_complete": false,
+    "choices": [],
+    "earned_weeks": [],
+    "promise": {
+      "text": "On Saturday we will walk to the market together.",
+      "parent_name": "Almaz",
+      "has_voice": true,
+      "voice_url": null
+    }
+  },
+  "goal_promise_open": {
+    "week_start": "2026-07-27",
+    "kind": "sounds_found",
+    "target": 10,
+    "done": 10,
+    "is_complete": true,
+    "choices": [],
+    "earned_weeks": [
+      {
+        "week_start": "2026-07-27",
+        "kind": "sounds_found"
+      }
+    ],
+    "promise": {
+      "text": "On Saturday we will walk to the market together.",
+      "parent_name": "Almaz",
+      "has_voice": true,
+      "voice_url": "/me/promise/voice"
+    }
+  },
+  "parent_promise": {
+    "week_start": "2026-07-27",
+    "text": "On Saturday we will walk to the market together.",
+    "has_voice": true,
+    "voice_seconds": 9.2,
+    "goal_kind": "sounds_found",
+    "goal_target": 10,
+    "goal_done": 10,
+    "goal_is_complete": true
+  },
+  "parent_dashboard_child": {
+    "child_id": 115,
+    "child_name": "Promise Kid",
+    "nickname": "Bud",
+    "lessons_completed": 0,
+    "total_lessons": 18,
+    "overall_progress_pct": 0.0,
+    "minutes_today": 0.0,
+    "max_daily_minutes": 30,
+    "is_limit_reached": false,
+    "streak_days": 1,
+    "last_active": null,
+    "kept_the_week": true,
+    "promise_text": "On Saturday we will walk to the market together.",
+    "promise_wanted": false
   }
 }
