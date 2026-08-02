@@ -36,9 +36,11 @@ from app.models.engagement import (  # noqa: E402
     PhonemeUnlock,
     RecognitionAttempt,
     StreakFreeze,
+    WeeklyGoal,
 )
 from app.models.enums import (  # noqa: E402
     ExerciseType,
+    GoalKind,
     QuestSlot,
     RecognitionMode,
     UserRole,
@@ -50,12 +52,13 @@ from app.models.pronuncation_score import PronunciationScore  # noqa: E402
 from app.models.user import User  # noqa: E402
 from app.services import (  # noqa: E402
     collection_service,
+    goal_service,
     quest_service,
     recognition_service,
     story_service,
 )
 from app.services.mastery_service import mastered_phoneme_ids  # noqa: E402
-from app.services.streak_service import streak_summary  # noqa: E402
+from app.services.streak_service import streak_summary, week_start  # noqa: E402
 
 results: list[tuple[str, bool, str]] = []
 
@@ -135,6 +138,7 @@ async def main() -> int:
                 PhonemeUnlock,
                 RecognitionAttempt,
                 StreakFreeze,
+                WeeklyGoal,
                 LearningGoal,
             ):
                 await db.execute(delete(model).where(
@@ -145,6 +149,112 @@ async def main() -> int:
             await db.execute(delete(User).where(User.id == child.id))
             await db.commit()
             print("\nprobe child removed")
+
+
+async def _goal_checks(db, exercise: Exercise, today: date) -> None:
+    """The whole arc of one week's promise, on a child made for it."""
+    child = User(
+        name="Goal Probe",
+        user_name=f"goal-probe-{int(datetime.utcnow().timestamp())}",
+        role=UserRole.STUDENT,
+    )
+    db.add(child)
+    await db.flush()
+    try:
+        # A quiet-but-real last week: two days. That is the history the
+        # targets are sized from.
+        last_week = week_start(today) - timedelta(days=7)
+        for offset in (0, 2):
+            await _score(db, child.id, exercise, 88.0, last_week + timedelta(days=offset))
+        await db.commit()
+
+        options = await goal_service.options_for(db, child.id, today)
+        check("the child is offered three ways to spend the week",
+              len(options) == 3,
+              f"{[(o.kind.value, o.target) for o in options]}")
+        check("every option is a real number to aim at",
+              all(o.target >= 1 for o in options),
+              f"targets={[o.target for o in options]}")
+        check("no week ever asks for a perfect attendance record",
+              all(o.target <= 6 for o in options if o.kind is GoalKind.DAYS),
+              "a seven-day goal fails on one busy Tuesday")
+
+        days_option = next(o for o in options if o.kind is GoalKind.DAYS)
+        check("the goal is one step past their own best week",
+              days_option.target == 3,
+              f"two days last week, asked for {days_option.target}")
+        check("nothing is chosen until the child chooses",
+              await goal_service.current_goal(db, child.id, today) is None)
+
+        goal = await goal_service.choose(db, child.id, GoalKind.DAYS, today)
+        check("choosing writes the promise down",
+              goal.kind is GoalKind.DAYS and goal.target == days_option.target,
+              f"{goal.kind.value} x{goal.target}")
+
+        state = await goal_service.progress(db, child.id, today)
+        check("a fresh week starts at nothing done",
+              state.done == 0 and not state.is_complete,
+              f"{state.done}/{state.target}")
+        check("no prize before the goal is met",
+              not await goal_service.earned_weeks(db, child.id))
+
+        # Choosing again mid-week must not swap the promise for whichever
+        # one happens to be closest to done.
+        again = await goal_service.choose(db, child.id, GoalKind.SOUNDS_MASTERED, today)
+        check("the promise cannot be swapped later in the week",
+              again.kind is GoalKind.DAYS and again.target == goal.target,
+              f"still {again.kind.value} x{again.target}")
+
+        # Part-way. This is the state the child spends most of the week in
+        # and the one the app has to show without any hint of falling short.
+        await _score(db, child.id, exercise, 90.0, week_start(today))
+        await db.commit()
+        part = await goal_service.progress(db, child.id, today)
+        check("progress counts the days as they happen",
+              part.done == 1 and part.remaining == goal.target - 1,
+              f"{part.done}/{part.target}, {part.remaining} to go")
+        check("the target does not move as the child gets going",
+              part.target == goal.target,
+              f"{goal.target} then {part.target}")
+
+        for offset in (1, 2):
+            day = week_start(today) + timedelta(days=offset)
+            if day <= today:
+                await _score(db, child.id, exercise, 90.0, day)
+        await db.commit()
+
+        finished = await goal_service.progress(db, child.id, today)
+        check("meeting the target completes the goal",
+              finished.is_complete and finished.completed_at is not None,
+              f"{finished.done}/{finished.target}")
+
+        earned = await goal_service.earned_weeks(db, child.id)
+        check("a finished week leaves a prize on the shelf",
+              [e.week_start for e in earned] == [week_start(today)],
+              f"earned={[(e.week_start, e.kind.value) for e in earned]}")
+        check("the prize remembers what the week was spent on",
+              earned[0].kind is GoalKind.DAYS if earned else False,
+              f"kind={earned[0].kind.value if earned else 'none'}")
+
+        stamped = finished.completed_at
+        again_read = await goal_service.progress(db, child.id, today)
+        check("the prize is not re-awarded on every read",
+              again_read.completed_at == stamped,
+              f"{stamped} then {again_read.completed_at}")
+
+        # A bad run afterwards must not take it back, the same rule the
+        # collectibles follow.
+        check("a prize already earned is kept",
+              week_start(today)
+              in [e.week_start for e in await goal_service.earned_weeks(db, child.id)])
+    finally:
+        for model in (PronunciationScore, WeeklyGoal, StreakFreeze):
+            await db.execute(delete(model).where(
+                (model.user_id if model is PronunciationScore else model.child_id)
+                == child.id
+            ))
+        await db.execute(delete(User).where(User.id == child.id))
+        await db.commit()
 
 
 async def run_checks(db, child_id: int) -> int:
@@ -464,15 +574,78 @@ async def run_checks(db, child_id: int) -> int:
           len(unlocks) > len(recognised),
           f"{len(unlocks)} unlocked, {len(recognised)} recognised")
 
-    # The round builder must now favour the sound just got wrong over the
-    # eighty-odd it has never asked about... no: never-asked comes first by
-    # design. What it must not do is keep re-asking a settled sound.
+    # Sounds never asked about come first by design, so what this checks
+    # is the other end: a sound the child has just had right three times
+    # must not keep coming back while eighty others have never been seen.
     later = await recognition_service.build_round(
         db, child_id, mode=RecognitionMode.CHOOSE, rng=random.Random(11)
     )
     check("a settled sound is not asked again straight away",
           narrow.id not in {q.target.id for q in later},
           f"targets={[q.target.symbol for q in later]}")
+
+    print()
+    print("=" * 70)
+    print("THIS WEEK'S PROMISE")
+    print("=" * 70)
+
+    # On its own child, because the arc that matters — nothing done, a
+    # promise made, the promise kept — cannot be walked by the probe
+    # above, which has already mastered the entire curriculum this week
+    # and would meet every goal the moment it chose one.
+    await _goal_checks(db, target, today)
+
+    print()
+    print("=" * 70)
+    print("WHAT COUNTS AS TURNING UP")
+    print("=" * 70)
+
+    # A day spent entirely in the listening game is a day of practice.
+    # This is the child on a bad connection, and their streak has to
+    # survive it — the game exists precisely for that day.
+    listener = User(
+        name="Listening Probe",
+        user_name=f"listen-probe-{int(datetime.utcnow().timestamp())}",
+        role=UserRole.STUDENT,
+    )
+    db.add(listener)
+    await db.flush()
+    try:
+        phoneme = (
+            await db.execute(select(Phoneme).order_by(Phoneme.order).limit(1))
+        ).scalar_one()
+        db.add(RecognitionAttempt(
+            child_id=listener.id,
+            phoneme_id=phoneme.id,
+            chosen_phoneme_id=phoneme.id,
+            is_correct=True,
+            mode=RecognitionMode.CHOOSE,
+            option_count=4,
+        ))
+        await db.commit()
+
+        summary = await streak_summary(db, listener.id, today)
+        check("a day of the listening game counts as practice",
+              summary.days == 1, f"days={summary.days}")
+
+        db.add(RecognitionAttempt(
+            child_id=listener.id,
+            phoneme_id=phoneme.id,
+            chosen_phoneme_id=None,
+            is_correct=False,
+            mode=RecognitionMode.CHOOSE,
+            option_count=4,
+        ))
+        await db.commit()
+        after = await streak_summary(db, listener.id, today)
+        check("abandoning a round does not manufacture a practice day",
+              after.days == 1, f"days={after.days}")
+    finally:
+        await db.execute(
+            delete(RecognitionAttempt).where(RecognitionAttempt.child_id == listener.id)
+        )
+        await db.execute(delete(User).where(User.id == listener.id))
+        await db.commit()
 
     return _report()
 

@@ -73,6 +73,31 @@ class RecognitionMode(str, Enum):
     CHOOSE = "choose"
 
 
+class GoalKind(str, Enum):
+    """What a child can promise themselves for one week.
+
+    Three kinds rather than three sizes of one kind, because the choice is
+    meant to be about what the child wants to do — "I'll come every day"
+    against "I'll wake up two friends" — and not a difficulty slider,
+    which only ever invites picking the smallest number.
+
+    Each is sized from that child's own last few weeks, so all three are
+    reachable. A goal a child cannot reach teaches the opposite of what
+    this feature exists to teach.
+
+    DAYS is the floor and always offered: it asks only for turning up,
+    which is the one thing every child can do regardless of how the
+    sounds are going. SOUNDS_FOUND runs on the listening game, so it
+    survives a bad microphone and a bad connection. SOUNDS_MASTERED is
+    the ambitious one and depends on scoring, which is partly out of the
+    child's hands — it is offered, never assigned.
+    """
+
+    DAYS = "days"
+    SOUNDS_FOUND = "sounds_found"
+    SOUNDS_MASTERED = "sounds_mastered"
+
+
 class LessonStatus(str, Enum):
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"

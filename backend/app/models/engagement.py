@@ -38,7 +38,7 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
 
 from ..db.base import Base
-from .enums import QuestSlot, RecognitionMode
+from .enums import GoalKind, QuestSlot, RecognitionMode
 
 
 class DailyQuest(Base):
@@ -167,6 +167,47 @@ class RecognitionAttempt(Base):
     # "recognised" can be set on the hard case only.
     option_count = Column(Integer, nullable=False, default=2)
     answered_at = Column(DateTime, default=func.now(), index=True)
+
+
+class WeeklyGoal(Base):
+    """What the child promised themselves this week.
+
+    Stores the promise, not the progress. How far along they are is
+    counted from the work itself at read time — practice days, answers in
+    the listening game, sounds mastered — so there is no second tally to
+    drift and nothing to write on every attempt.
+
+    `target` is stored even though the service can recompute it, because
+    it must not move once chosen. A target derived on every read would
+    quietly rise as the child got better and the goal would retreat as
+    they walked towards it, which is the single cruellest thing this
+    feature could do.
+
+    completed_at is written the moment the goal is met and never cleared.
+    A prize a child has been shown is theirs; nothing later in the week
+    can take it back.
+
+    There is no failed state and no failed_at column. A week that ends
+    short simply ends, and the app says nothing about it.
+    """
+
+    __tablename__ = "weekly_goals"
+    __table_args__ = (
+        UniqueConstraint("child_id", "week_start", name="uq_goal_child_week"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    child_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    week_start = Column(Date, nullable=False, index=True)
+    kind = Column(
+        SQLEnum(GoalKind, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    )
+    target = Column(Integer, nullable=False)
+    chosen_at = Column(DateTime, default=func.now())
+    completed_at = Column(DateTime, nullable=True)
 
 
 class StreakFreeze(Base):

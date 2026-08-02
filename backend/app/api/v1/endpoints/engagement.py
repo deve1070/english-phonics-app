@@ -7,6 +7,8 @@ GET  /me/collection       — every phoneme sticker, locked and unlocked
 POST /me/collection/seen  — acknowledge the celebration
 GET  /me/recognition/round  — "which symbol says this sound?"
 POST /me/recognition/round  — record a finished round
+GET  /me/goal             — this week's promise, or the three on offer
+POST /me/goal             — make the promise
 GET  /me/stories          — the decodable library
 
 All of these are scoped to the calling child. There is no child_id
@@ -25,6 +27,10 @@ from app.models.user import User
 from app.schemas.engagement import (
     CollectibleResponse,
     CollectionResponse,
+    EarnedWeekResponse,
+    GoalChoiceRequest,
+    GoalOptionResponse,
+    GoalResponse,
     QuestItemResponse,
     QuestResponse,
     RecognitionOption,
@@ -38,12 +44,14 @@ from app.schemas.engagement import (
 )
 from app.services import (
     collection_service,
+    goal_service,
     quest_service,
     recognition_service,
     story_service,
 )
 from app.services.recognition_service import ROUND_SIZE as RECOGNITION_ROUND_SIZE
 from app.services.streak_service import streak_summary
+from app.services.streak_service import week_start as streak_service_week_start
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -241,6 +249,75 @@ async def submit_recognition_round(
         recorded=recorded,
         newly_recognised=sorted(after - before),
         total_recognised=len(after),
+    )
+
+
+# ── GET /me/goal ─────────────────────────────────────────────────
+@router.get("/goal", response_model=GoalResponse)
+async def my_goal(
+    db: AsyncSession = Depends(get_db),
+    child: User = Depends(get_current_student),
+):
+    """This week's promise, or the three the child may choose from.
+
+    One response for both states so the home screen makes a single call
+    and the client never has to ask "has this child chosen yet?" before
+    knowing what to draw.
+    """
+    earned = [
+        EarnedWeekResponse(week_start=e.week_start, kind=e.kind)
+        for e in await goal_service.earned_weeks(db, child.id)
+    ]
+    current = await goal_service.progress(db, child.id)
+
+    if current is None:
+        options = await goal_service.options_for(db, child.id)
+        return GoalResponse(
+            week_start=streak_service_week_start(date.today()),
+            choices=[
+                GoalOptionResponse(kind=o.kind, target=o.target) for o in options
+            ],
+            earned_weeks=earned,
+        )
+
+    return GoalResponse(
+        week_start=current.week_start,
+        kind=current.kind,
+        target=current.target,
+        done=current.done,
+        is_complete=current.is_complete,
+        earned_weeks=earned,
+    )
+
+
+# ── POST /me/goal ────────────────────────────────────────────────
+@router.post("/goal", response_model=GoalResponse)
+async def choose_goal(
+    choice: GoalChoiceRequest,
+    db: AsyncSession = Depends(get_db),
+    child: User = Depends(get_current_student),
+):
+    """Make this week's promise.
+
+    The size comes from the server. Choosing twice in a week returns the
+    first choice unchanged rather than erroring: from the child's side
+    that is simply the goal they set, and there is nothing here worth
+    showing them an error over.
+    """
+    await goal_service.choose(db, child.id, choice.kind)
+    current = await goal_service.progress(db, child.id)
+    earned = [
+        EarnedWeekResponse(week_start=e.week_start, kind=e.kind)
+        for e in await goal_service.earned_weeks(db, child.id)
+    ]
+
+    return GoalResponse(
+        week_start=current.week_start,
+        kind=current.kind,
+        target=current.target,
+        done=current.done,
+        is_complete=current.is_complete,
+        earned_weeks=earned,
     )
 
 

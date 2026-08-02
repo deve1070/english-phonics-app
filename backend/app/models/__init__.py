@@ -14,10 +14,12 @@ from .engagement import (  # noqa: F401
     PhonemeUnlock,
     RecognitionAttempt,
     StreakFreeze,
+    WeeklyGoal,
 )
 
 from .enums import (
     ExerciseType,
+    GoalKind,
     Level,
     PhonemeType,
     QuestSlot,

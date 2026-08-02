@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from app.models.enums import ExerciseType, QuestSlot, RecognitionMode
+from app.models.enums import ExerciseType, GoalKind, QuestSlot, RecognitionMode
 
 
 class QuestItemResponse(BaseModel):
@@ -97,6 +97,43 @@ class RecognitionSummary(BaseModel):
     # app can show the creature opening its eyes at the moment it happens.
     newly_recognised: List[int]
     total_recognised: int
+
+
+class GoalOptionResponse(BaseModel):
+    kind: GoalKind
+    target: int
+
+
+class EarnedWeekResponse(BaseModel):
+    week_start: date
+    # What the week was spent on. The prize carries it, so the shelf reads
+    # as a run of decisions rather than a row of identical tokens.
+    kind: GoalKind
+
+
+class GoalResponse(BaseModel):
+    week_start: date
+
+    # Null until the child has chosen. The client shows `choices` in that
+    # case; it never picks one on the child's behalf, and a week with no
+    # goal is a perfectly good week.
+    kind: Optional[GoalKind] = None
+    target: int = 0
+    done: int = 0
+    is_complete: bool = False
+
+    # Offered only while there is nothing chosen, so a client cannot show
+    # a child three tempting alternatives to the promise they made.
+    choices: List[GoalOptionResponse] = []
+
+    # Every week this child finished. The client draws one prize per
+    # entry, and each week's prize is always the same object — the child
+    # can see on Monday exactly which one they are working towards.
+    earned_weeks: List[EarnedWeekResponse] = []
+
+
+class GoalChoiceRequest(BaseModel):
+    kind: GoalKind
 
 
 class StoryResponse(BaseModel):

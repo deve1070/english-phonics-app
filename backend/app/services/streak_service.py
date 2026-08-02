@@ -3,11 +3,11 @@
 A streak is the number of consecutive days, counting backwards from today,
 on which a child actually practised.
 
-"Practised" means submitting at least one pronunciation attempt
-(a PronunciationScore row). That is deliberately the signal rather than
-screen-time sessions: a session is opened when a parent switches into the
-child's view, which says nothing about whether the child did any work.
-A pronunciation attempt is unambiguous.
+"Practised" means doing a piece of work the app can see: a pronunciation
+attempt, or an answered question in the listening game. Screen-time
+sessions deliberately do not count — a session is opened when a parent
+switches into the child's view, which says nothing about whether the
+child did anything. See practice_days.
 
 Yesterday counts as the anchor as well as today, so a streak is not broken
 the moment the clock rolls over — it breaks only once a full day has been
@@ -31,7 +31,7 @@ from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.engagement import StreakFreeze
+from app.models.engagement import RecognitionAttempt, StreakFreeze
 from app.models.parent import LearningGoal
 from app.models.pronuncation_score import PronunciationScore
 
@@ -41,19 +41,42 @@ FREEZE_COVERS_DAYS = 1
 
 
 async def practice_days(db: AsyncSession, child_id: int) -> set[date]:
-    """Every distinct UTC calendar day on which this child practised."""
-    result = await db.execute(
+    """Every distinct UTC calendar day on which this child practised.
+
+    Two signals count, and both are unambiguous evidence of work: a
+    pronunciation attempt, and an answered question in the listening
+    game. Screen-time sessions still do not count — a session opens when
+    a parent switches into the child's view, which says nothing about
+    whether the child did anything.
+
+    The listening game was added later than this function and had to be
+    let in. It is the one exercise that needs no microphone and no Azure,
+    so it is what a child falls back on when the connection is poor —
+    exactly the day their streak most needs to survive. Leaving it out
+    would have broken the run of the child who kept turning up under the
+    worst conditions.
+    """
+    days: set[date] = set()
+
+    for query in (
         select(distinct(func.date(PronunciationScore.timestamp))).where(
             PronunciationScore.user_id == child_id
-        )
-    )
-    days: set[date] = set()
-    for (value,) in result.all():
-        if value is None:
-            continue
-        # func.date() returns a date on asyncpg, but a string on some
-        # drivers (notably SQLite in tests) — normalise both.
-        days.add(value if isinstance(value, date) else date.fromisoformat(str(value)))
+        ),
+        select(distinct(func.date(RecognitionAttempt.answered_at))).where(
+            RecognitionAttempt.child_id == child_id,
+            # An abandoned question is not practice. It is a child who
+            # put the phone down, and it must not hold a streak up.
+            RecognitionAttempt.chosen_phoneme_id.isnot(None),
+        ),
+    ):
+        for (value,) in (await db.execute(query)).all():
+            if value is None:
+                continue
+            # func.date() returns a date on asyncpg, but a string on some
+            # drivers (notably SQLite in tests) — normalise both.
+            days.add(
+                value if isinstance(value, date) else date.fromisoformat(str(value))
+            )
     return days
 
 
