@@ -27,9 +27,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from sqlalchemy import delete  # noqa: E402
+from sqlalchemy import delete, select  # noqa: E402
 
-from app.db.session import AsyncSessionLocal  # noqa: E402
+from app.db.session import AsyncSessionLocal, engine  # noqa: E402
 from app.models.engagement import (  # noqa: E402
     RecognitionAttempt,
     WeeklyGoal,
@@ -37,6 +37,7 @@ from app.models.engagement import (  # noqa: E402
 )
 from app.models.parent import LearningGoal, ParentChildLink  # noqa: E402
 from app.models.user import User  # noqa: E402
+from app.utils.audio import delete_audio_file, resolve_stored_audio  # noqa: E402
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8077/api/v1"
 
@@ -169,6 +170,8 @@ def run() -> None:
           r.status_code == 200 and len(r.content) == len(FAKE_MP3),
           f"status={r.status_code} bytes={len(r.content)}")
 
+    first_take = _stored_voice_path(child_id)
+
     r = c.post(
         f"{BASE}/parents/children/{child_id}/promise/voice",
         files={"file": ("message.mp3", FAKE_MP3 + b"\x00" * 16, "audio/mpeg")},
@@ -176,6 +179,17 @@ def run() -> None:
         headers=parent_h,
     )
     check("re-recording replaces the first take", r.status_code == 200)
+
+    r = c.get(f"{BASE}/parents/children/{child_id}/promise/voice", headers=parent_h)
+    check("and what plays back is the new one",
+          r.status_code == 200 and len(r.content) == len(FAKE_MP3) + 16,
+          f"bytes={len(r.content)}")
+    # The button promised "replaces the last one". A discarded take of a
+    # family's voice left on the server would make that untrue, and it is
+    # the kind of untrue nobody would ever notice.
+    check("and the take it replaced is gone from disk",
+          first_take is not None and not first_take.exists(),
+          f"still there: {first_take}")
 
     r = c.post(
         f"{BASE}/parents/children/{child_id}/promise/voice",
@@ -260,8 +274,50 @@ def run() -> None:
     return child_id
 
 
+def _stored_voice_path(child_id: int) -> Path | None:
+    """Where this week's recording actually sits, read straight from the row.
+
+    The api deliberately never tells anyone the stored filename, so the
+    only way to check that a replaced take was really deleted is to look.
+    """
+
+    async def go() -> Path | None:
+        async with AsyncSessionLocal() as db:
+            url = (
+                await db.execute(
+                    select(WeeklyPromise.voice_url).where(
+                        WeeklyPromise.child_id == child_id
+                    )
+                )
+            ).scalar_one_or_none()
+        # The pool holds connections belonging to this loop, and the loop
+        # dies with the asyncio.run below. Left in place they are handed
+        # to the next run() and fail there instead of here.
+        await engine.dispose()
+        return resolve_stored_audio(url) if url else None
+
+    return asyncio.run(go())
+
+
 async def _cleanup(child_id: int) -> None:
-    """Remove the probe accounts, including the parents behind them."""
+    """Remove the probe accounts, including the parents behind them.
+
+    And the audio they uploaded. Deleting the rows alone left a probe
+    recording on disk after every run — which is how the app's own
+    re-record leak was found, so the script may as well not have it.
+    """
+    async with AsyncSessionLocal() as db:
+        voices = (
+            await db.execute(
+                select(WeeklyPromise.voice_url).where(
+                    WeeklyPromise.child_id == child_id
+                )
+            )
+        ).scalars().all()
+    for url in voices:
+        if url:
+            delete_audio_file(url)
+
     async with AsyncSessionLocal() as db:
         links = (
             await db.execute(

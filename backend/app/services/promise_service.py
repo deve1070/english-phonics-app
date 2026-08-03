@@ -48,6 +48,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.engagement import WeeklyPromise
 from app.models.user import User
 from app.services.streak_service import week_start
+from app.utils.audio import delete_audio_file
 
 # Long enough for a sentence in any language, short enough that a parent
 # with a minute between jobs will actually do it. A recording that feels
@@ -143,9 +144,15 @@ async def set_voice(
     promise — for a family that does not share a written language it may
     be the only form of it available — so a promise with no text and a
     voice note is a complete promise, not a half-filled form.
+
+    A take that is replaced is deleted from disk. The button says
+    "replaces the last one", and a parent who reads that and re-records
+    has asked for the first attempt to be gone — leaving every discarded
+    take of a family's voice sitting on a server would make that a lie.
     """
     today = today or date.today()
     promise = await for_week(db, child_id, today)
+    replaced = promise.voice_url if promise is not None else None
 
     if promise is None:
         promise = WeeklyPromise(
@@ -163,6 +170,12 @@ async def set_voice(
 
     await db.commit()
     await db.refresh(promise)
+
+    # After the commit, never before: if the write had failed, the row
+    # would still point at a file this had already thrown away.
+    if replaced and replaced != voice_url:
+        delete_audio_file(replaced)
+
     return promise
 
 

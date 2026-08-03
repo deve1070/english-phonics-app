@@ -1,5 +1,6 @@
 import os
 import uuid
+from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
@@ -45,3 +46,39 @@ async def save_audio_file(file: UploadFile) -> str:
     with open(file_path, "wb") as buffer:
         buffer.write(content)
     return f"/audio/{filename}"
+
+
+def resolve_stored_audio(url: str) -> Path | None:
+    """The file on disk behind a stored audio url, or None if it is not one.
+
+    Stored urls look like "/audio/<uuid>.mp3" — the value save_audio_file
+    returned. Anything that resolves outside the uploads directory is
+    treated as not ours: these strings reach here from database columns,
+    and a caller that is about to unlink one should never be able to be
+    steered at a path somewhere else on the machine.
+    """
+    if not url:
+        return None
+
+    root = Path(UPLOAD_DIR).parent.resolve()
+    candidate = (root / url.lstrip("/")).resolve()
+    if not candidate.is_relative_to(root):
+        return None
+    return candidate
+
+
+def delete_audio_file(url: str) -> bool:
+    """Remove a stored recording, reporting whether a file went.
+
+    Never raises. Deleting the file a row no longer points at is
+    housekeeping, and housekeeping that can fail a request a parent has
+    already been told succeeded is worse than an orphan left on disk.
+    """
+    path = resolve_stored_audio(url)
+    if path is None:
+        return False
+    try:
+        path.unlink()
+        return True
+    except OSError:
+        return False

@@ -161,4 +161,15 @@ venv/
 # Database dumps — data artifacts, not source
 *.dump
 
+# Runtime uploads. Anyone using the app drops files here — a teacher
+# adding a phoneme, a parent recording a message for their child — and
+# none of it is source. Six probe recordings reached a commit before
+# this rule existed; a family's voice note doing the same would be
+# worse than untidy.
+#
+# The audio corpus already committed under backend/uploads/ stays
+# tracked: ignoring a path does not untrack what is in it. A genuinely
+# new asset therefore needs `git add -f`.
+backend/uploads/
+
 # End of file
