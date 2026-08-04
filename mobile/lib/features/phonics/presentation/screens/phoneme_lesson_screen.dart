@@ -11,7 +11,6 @@ import '../../../home/presentation/widgets/level_style.dart';
 import '../cubit/phonics_cubit.dart';
 import '../cubit/phonics_state.dart';
 import '../widgets/phoneme_hero_card.dart';
-import '../widgets/mouth_animation_widget.dart';
 import '../widgets/exercise_card.dart';
 import '../widgets/phoneme_progress_dots.dart';
 import '../widgets/phoneme_quiz_widget.dart';
@@ -40,9 +39,6 @@ class _PhonemeLessonView extends StatefulWidget {
 class _PhonemeLessonViewState extends State<_PhonemeLessonView> {
   _LessonStage _stage = _LessonStage.phonemeIntro;
   int _lastPhonemeIndex = -1; // track phoneme changes
-  // Key to access MouthAnimationWidget's state
-  final GlobalKey<MouthAnimationWidgetState> _mouthKey =
-      GlobalKey<MouthAnimationWidgetState>();
 
   void _advanceTo(_LessonStage stage) => setState(() => _stage = stage);
 
@@ -137,7 +133,6 @@ class _PhonemeLessonViewState extends State<_PhonemeLessonView> {
           return _LoadedView(
             state: state,
             stage: _stage,
-            mouthKey: _mouthKey,
             onAdvance: _advanceTo,
             onLeave: _leaveLesson,
           );
@@ -152,7 +147,6 @@ class _PhonemeLessonViewState extends State<_PhonemeLessonView> {
 class _LoadedView extends StatelessWidget {
   final PhonicsLoaded state;
   final _LessonStage stage;
-  final GlobalKey<MouthAnimationWidgetState> mouthKey;
   final void Function(_LessonStage) onAdvance;
 
   /// Routed through the parent so leaving always closes the session, rather
@@ -162,7 +156,6 @@ class _LoadedView extends StatelessWidget {
   const _LoadedView({
     required this.state,
     required this.stage,
-    required this.mouthKey,
     required this.onAdvance,
     required this.onLeave,
   });
@@ -256,22 +249,16 @@ class _LoadedView extends StatelessWidget {
               phoneme: phoneme,
               color: color,
               isPlayingAudio: state.isPlayingAudio,
-              // FIX: play audio AND trigger mouth animation simultaneously
-              onPlayAudio: () {
-                context.read<PhonicsCubit>().playPhonemeAudio(phoneme.id);
-                // Trigger mouth animation in sync with audio
-                mouthKey.currentState?.triggerAnimation();
-              },
+              onPlayAudio: () =>
+                  context.read<PhonicsCubit>().playPhonemeAudio(phoneme.id),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            // FIX: MouthAnimationWidget no longer needs a tap — it receives
-            // triggerAnimation() calls from the play button above
-            MouthAnimationWidget(
-              key: mouthKey,
-              phonemeType: phoneme.type,
-              phonemeSymbol: phoneme.symbol,
-              color: color,
-            ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
+            // A drawn mouth used to sit here, captioned "watch carefully".
+            // It only ever knew one sound of the ninety in the curriculum;
+            // for the rest it sat closed and still while a child was told
+            // to copy it. Nothing is better than that. What belongs here is
+            // a real mouth on video — correct and natural by construction,
+            // which no drawn model of ours would be — and that waits on
+            // someone filming the sounds, not on code.
             const SizedBox(height: AppSpacing.xl),
             _NavRow(
               state: state,

@@ -49,7 +49,6 @@ abstract class ApiConstants {
 
   // ── TTS ───────────────────────────────────────────────────────
   static const String ttsSynthesize = '/tts/synthesize';
-  static const String ttsPhonemeWithVisemes = '/tts/phoneme-with-visemes';
 
   // ── Engagement (the child's own view) ─────────────────────────
   // No child id in any of these: the server scopes them to whoever the
@@ -122,8 +121,6 @@ abstract class AssetPaths {
   static const String hero1 = 'assets/images/image.png';
   static const String hero2 = 'assets/images/image2.png';
   static const String loadingAnimation = 'assets/animations/loading.json';
-  static const String phonicsMouthRive = 'assets/animations/phonics_mouth.riv';
-  static String mouthAnimation(String t) => 'assets/animations/mouth/$t.json';
   static String phonemeAudioAsset(String s) => 'assets/audio/phonemes/$s.mp3';
 }
 
