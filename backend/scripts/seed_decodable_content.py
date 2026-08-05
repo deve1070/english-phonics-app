@@ -48,7 +48,10 @@ from app.db.session import AsyncSessionLocal  # noqa: E402
 from app.models.enums import ExerciseType  # noqa: E402
 from app.models.exercise import Exercise  # noqa: E402
 from app.models.phoneme import Phoneme  # noqa: E402
-from app.utils.graphemes import build_allowed_graphemes, content_is_decodable  # noqa: E402
+from app.curriculum.segmentation import (  # noqa: E402
+    build_inventory,
+    segment_content,
+)
 
 # ── 1. Spellings, by curriculum order ────────────────────────────────
 #
@@ -192,10 +195,13 @@ def _allowed_at(phonemes: list[Phoneme], order: int) -> set[str]:
     are used rather than assigning onto the real rows, which would make
     the backfill below report that it had nothing to do.
     """
-    return build_allowed_graphemes(
+    return build_inventory(
         [
             SimpleNamespace(
-                symbol=p.symbol, graphemes=GRAPHEMES_BY_ORDER.get(p.order)
+                symbol=p.symbol,
+                graphemes=GRAPHEMES_BY_ORDER.get(p.order),
+                order=p.order,
+                type=p.type,
             )
             for p in phonemes
             if p.order <= order
@@ -210,7 +216,7 @@ def _validate(phonemes: list[Phoneme]) -> list[str]:
         for order, entries in table.items():
             allowed = _allowed_at(phonemes, order)
             for entry in entries:
-                if not content_is_decodable(entry, allowed):
+                if segment_content(entry, allowed) is None:
                     problems.append(
                         f"{label} at order {order} is not decodable there: {entry!r}"
                     )
@@ -251,15 +257,22 @@ async def seed_content(db, phonemes: list[Phoneme]) -> int:
             if phoneme is None:
                 print(f"  ! no phoneme at order {order}, skipping its content")
                 continue
+            allowed = _allowed_at(phonemes, order)
             for content in entries:
                 content = content.strip()
                 if (phoneme.lesson_id, ex_type, content) in existing:
                     continue
+                # _validate has already refused to let the script run
+                # with content that will not segment here, so this is
+                # the same answer, kept rather than recomputed later
+                # against a phoneme table that cannot reproduce it.
+                pieces = segment_content(content, allowed)
                 exercise = Exercise(
                     lesson_id=phoneme.lesson_id,
                     content=content,
                     type=ex_type,
                     difficulty=difficulty,
+                    graphemes=",".join(pieces) if pieces else None,
                 )
                 # Linking to the phoneme is not decoration: pronunciation
                 # scores inherit phoneme_id from here, and without it the

@@ -80,8 +80,14 @@ class CRUDExercise(CRUDBase[Exercise, ExerciseCreate, ExerciseUpdate]):
     # Save a batch of AI-generated exercises to the DB in one transaction.
     # Called by exercise_generation_service after AI returns results.
     # Each item in `exercises_data` is a dict with keys:
-    #   lesson_id, content, type (ExerciseType), difficulty
+    #   lesson_id, content, type (ExerciseType), difficulty, graphemes
     # Returns the saved Exercise objects (with IDs populated).
+    #
+    # `graphemes` is the segmentation the generator already proved the
+    # content against. It is stored rather than recomputed: the check
+    # that admitted this content and the check that later decides who
+    # may see it must be reading the same answer, or content clears
+    # generation and is then withheld from the child it was made for.
     # ------------------------------------------------------------------
     async def bulk_create(
         self,
@@ -97,6 +103,7 @@ class CRUDExercise(CRUDBase[Exercise, ExerciseCreate, ExerciseUpdate]):
                 content=data["content"],
                 type=data["type"],
                 difficulty=data.get("difficulty", 1),
+                graphemes=data.get("graphemes"),
             )
             db_obj.phonemes = [phoneme]  # link to the target phoneme
             db.add(db_obj)

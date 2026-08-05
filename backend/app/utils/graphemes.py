@@ -1,89 +1,76 @@
+"""The ordering rule: is this content readable by this child yet?
+
+A child only ever meets content built from sounds they have already been
+taught. This module is the one place that answers whether a given piece
+of content clears that bar, and every feature that shows a child words —
+the exercise generator, the daily quest, the decodable story shelf — has
+to get the same answer.
+
+How it used to work, and why it did not
+---------------------------------------
+This asked whether the content could be segmented *somehow* out of the
+spellings a child knew, guessing the segmentation each time it was
+called. That question stops discriminating the moment a child finishes
+the alphabet. Sounds 1-26 of this curriculum are the twenty-six letters,
+so from sound 26 onward every string of latin letters comes apart
+letter-by-letter and the check returns True for everything. Measured
+against the real curriculum, a child four sounds into the course was
+cleared to read "ship", "the", "quick", "knee", "nation" and "through" —
+twelve of twelve probes wrongly accepted. `through` needs `ough`, which
+this curriculum never teaches at all.
+
+It also inferred spellings from a phoneme's symbol when the `graphemes`
+column was empty, turning "Aa" into the pair {aa, a}. That invented a
+grapheme `aa` the curriculum does not teach and cannot be asked about.
+Every phoneme now declares its spellings, so the guess is gone.
+
+How it works now
+----------------
+A word's segmentation is a fact about the word, not something derivable
+from the phoneme table — "ship" is sh·i·p while "mishap" breaks s·h
+across a syllable. So it is computed once by
+`app.curriculum.segmentation`, reviewed, and stored on the row. This
+module reads what is stored and checks each piece against what the child
+has been taught. No guessing at the point of use.
+
+Content with no stored segmentation cannot be checked, and is therefore
+withheld rather than allowed. An unfilled column is an unanswered
+question, and the safe answer to "can this child read this?" is no.
 """
-Grapheme allow-lists.
-=====================
-Given the phonemes a child has been taught, decide whether a piece of
-text is decodable for them — that is, whether every letter run in it can
-be spelled out of sounds they already know.
 
-This started life inside exercise_generation_service as a guardrail
-against LLM hallucination. It lives here now because decodable stories
-ask exactly the same question of exercises that already exist, and both
-callers have to agree: content the generator accepted must not then be
-judged undecodable by the story gate, or a child would be shown a story
-built from sounds the app itself says they cannot read.
-
-The matching is deliberately coarse. Phoneme symbols in this curriculum
-are a mix of letter names ("Aa", "Bb") and IPA ("dʒ", "kʰ"), so all we
-can reliably extract is the latin letters in each symbol. That makes the
-check a filter for obvious violations, not a phonics engine — it will
-pass some words it arguably should not. Erring towards passing is the
-right direction: a false reject silently hides content, while a false
-accept shows a child a word slightly ahead of them, which is what the
-"stretch" slot does on purpose anyway.
-"""
-
-import re
 from typing import Iterable
 
 from app.models.phoneme import Phoneme
 
 
-def build_allowed_graphemes(allowed_phonemes: Iterable[Phoneme]) -> set[str]:
-    """Latin-letter spellings licensed by a set of taught phonemes.
+def taught_spellings(phonemes: Iterable[Phoneme]) -> set[str]:
+    """Every spelling these phonemes teach.
 
-    Prefers the phoneme's declared `graphemes`. Falls back to inferring
-    them from the symbol, which is what this did before the column
-    existed: each symbol contributes its letters-only form ("Aa" -> "aa")
-    and every character in it ("a").
-
-    The fallback is a guess and a poor one for IPA symbols — /ɪ/ yields
-    nothing at all, so a curriculum that spells its sounds in IPA can
-    leave whole letters undecodable. Populate `graphemes`; the inference
-    is only there so an unmigrated row degrades instead of crashing.
+    Reads the `graphemes` column and nothing else. A phoneme that
+    declares nothing teaches nothing here — better to withhold content
+    than to invent a spelling from an IPA symbol and let content through
+    on the strength of it.
     """
-    graphemes: set[str] = set()
-    for phoneme in allowed_phonemes:
-        declared = (getattr(phoneme, "graphemes", None) or "").strip()
-        if declared:
-            for spelling in declared.lower().split(","):
-                cleaned = re.sub(r"[^a-z]", "", spelling)
-                if cleaned:
-                    graphemes.add(cleaned)
-            continue
-
-        symbol = (phoneme.symbol or "").strip().lower()
-        normalized = re.sub(r"[^a-z]", "", symbol)
-        if not normalized:
-            continue
-        graphemes.add(normalized)
-        for char in normalized:
-            graphemes.add(char)
-    return graphemes
+    spellings: set[str] = set()
+    for phoneme in phonemes:
+        for raw in (phoneme.graphemes or "").lower().split(","):
+            cleaned = raw.strip()
+            if cleaned:
+                spellings.add(cleaned)
+    return spellings
 
 
-def content_is_decodable(content: str, allowed_graphemes: set[str]) -> bool:
-    """True if every word in `content` can be segmented into known graphemes.
+def stored_is_decodable(stored: str | None, taught: set[str]) -> bool:
+    """True if every grapheme in a stored segmentation has been taught.
 
-    Greedy longest-match, left to right. Non-letter characters (spaces,
-    full stops, apostrophes) are ignored entirely — punctuation is not
-    something a child has to decode.
+    `stored` is the comma-separated segmentation held on the row —
+    "sh,i,p" for "ship". None or empty means nobody has worked out how
+    this content breaks apart, which is not the same as it being simple:
+    it is unchecked, so it is withheld.
     """
-    words = re.findall(r"[a-z]+", content.lower())
-    if not words:
-        return True
-
-    max_len = max((len(g) for g in allowed_graphemes), default=1)
-    for word in words:
-        idx = 0
-        while idx < len(word):
-            matched = False
-            max_window = min(max_len, len(word) - idx)
-            for size in range(max_window, 0, -1):
-                chunk = word[idx : idx + size]
-                if chunk in allowed_graphemes:
-                    idx += size
-                    matched = True
-                    break
-            if not matched:
-                return False
-    return True
+    if not stored:
+        return False
+    pieces = [p.strip() for p in stored.lower().split(",") if p.strip()]
+    if not pieces:
+        return False
+    return all(piece in taught for piece in pieces)

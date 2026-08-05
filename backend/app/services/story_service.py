@@ -30,7 +30,7 @@ from app.models.enums import ExerciseType
 from app.models.exercise import Exercise
 from app.models.phoneme import Phoneme
 from app.services.mastery_service import mastered_phoneme_ids
-from app.utils.graphemes import build_allowed_graphemes, content_is_decodable
+from app.utils.graphemes import stored_is_decodable, taught_spellings
 
 
 @dataclass(frozen=True)
@@ -78,11 +78,11 @@ async def list_stories(db: AsyncSession, child_id: int) -> list[StoryView]:
     ).scalars().all()
     mastered_ids = await mastered_phoneme_ids(db, child_id)
     mastered = [p for p in phonemes if p.id in mastered_ids]
-    allowed = build_allowed_graphemes(mastered)
+    allowed = taught_spellings(mastered)
 
     views: list[StoryView] = []
     for story in stories:
-        unlocked = content_is_decodable(story.content, allowed)
+        unlocked = stored_is_decodable(story.graphemes, allowed)
         views.append(
             StoryView(
                 exercise_id=story.id,
@@ -115,10 +115,10 @@ def _next_missing_sound(
     for phoneme in all_phonemes:
         if phoneme.id in mastered_ids:
             continue
-        without = build_allowed_graphemes(
+        without = taught_spellings(
             [p for p in all_phonemes if p.id != phoneme.id]
         )
-        if not content_is_decodable(story.content, without):
+        if not stored_is_decodable(story.graphemes, without):
             return phoneme.symbol
     # No single sound is indispensable — the story is blocked by a
     # combination, or by a spelling the curriculum never teaches. Naming

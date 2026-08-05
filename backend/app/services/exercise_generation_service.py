@@ -22,8 +22,10 @@ from app.crud.crud_exercise import crud_exercise
 from app.models.enums import ExerciseType
 from app.models.exercise import Exercise
 from app.models.phoneme import Phoneme
-from app.utils.graphemes import build_allowed_graphemes, content_is_decodable
+from app.curriculum.segmentation import build_inventory, segment_content
+from app.utils.graphemes import taught_spellings
 from openai import AsyncAzureOpenAI
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -111,14 +113,40 @@ Example format:
 
 
 def _parse_response(
-    raw: str, lesson_id: int, allowed_phonemes: List[Phoneme]
+    raw: str,
+    lesson_id: int,
+    allowed_phonemes: List[Phoneme],
+    curriculum: List[Phoneme],
 ) -> List[dict]:
     """
     Parse and validate the JSON returned by Azure OpenAI.
     Returns a list of dicts ready for bulk_create.
     Skips any malformed items with a warning rather than crashing.
+
+    The ordering rule is enforced here and it is the reason this
+    function exists. The prompt asks the model to use only sounds the
+    child has been taught; the model is not trusted to have done it.
+
+    The two phoneme lists are not interchangeable and the check is
+    wrong if they are confused. Segmenting happens against the *whole*
+    curriculum, because a word breaks apart the way it breaks apart no
+    matter who is reading it — segment "the" against a beginner's
+    sounds alone and, with every letter available, it comes back as
+    t·h·e and sails through. Only once the true segmentation is in hand
+    is it measured against `allowed_phonemes`: `th` is not among them,
+    so the word is refused.
+
+    The segmentation that proves a candidate legal is kept and stored
+    with it. Working it out again later, from a phoneme table that
+    cannot tell "ship" from "mishap", is what let unreadable content
+    through before.
     """
-    valid_types = {e.value for e in ExerciseType}
+    # Keyed by the upper-case spelling the prompt asks for. ExerciseType's
+    # values are lower-case, and this used to compare an upper-cased
+    # response against them directly — so every well-formed item was
+    # discarded as an unknown type and generation always ended in "No
+    # valid exercises could be parsed", whatever Azure had returned.
+    valid_types = {e.value.upper(): e for e in ExerciseType}
 
     try:
         items = json.loads(raw)
@@ -130,9 +158,10 @@ def _parse_response(
         raise ValueError("Expected a JSON array from exercise generation.")
 
     parsed = []
-    allowed_graphemes = build_allowed_graphemes(allowed_phonemes)
+    inventory = build_inventory(curriculum)
+    allowed = taught_spellings(allowed_phonemes)
     for item in items:
-        raw_type = item.get("type", "").upper()
+        raw_type = item.get("type", "").strip().upper()
         content = item.get("content", "").strip()
         difficulty = item.get("difficulty", 1)
 
@@ -144,13 +173,22 @@ def _parse_response(
             continue
         if not isinstance(difficulty, int) or not (1 <= difficulty <= 3):
             difficulty = 1
-        if raw_type in {
-            ExerciseType.WORD.value,
-            ExerciseType.SENTENCE.value,
-            ExerciseType.PARAGRAPH.value,
-        } and not content_is_decodable(content, allowed_graphemes):
+        pieces = segment_content(content, inventory)
+        if pieces is None:
             logger.warning(
-                "Skipping generated content with out-of-scope graphemes: %s", content
+                "Skipping generated content spelled with graphemes the "
+                "curriculum does not teach: %s",
+                content,
+            )
+            continue
+
+        ahead = sorted({p for p in pieces if p not in allowed})
+        if ahead:
+            logger.warning(
+                "Skipping generated content needing %s, which this child "
+                "has not been taught: %s",
+                ", ".join(f"`{p}`" for p in ahead),
+                content,
             )
             continue
 
@@ -158,8 +196,9 @@ def _parse_response(
             {
                 "lesson_id": lesson_id,
                 "content": content,
-                "type": ExerciseType(raw_type),
+                "type": valid_types[raw_type],
                 "difficulty": difficulty,
+                "graphemes": ",".join(pieces),
             }
         )
 
@@ -188,6 +227,14 @@ async def generate_exercises_for_phoneme(
     """
     prompt = _build_prompt(target_phoneme, allowed_phonemes)
 
+    # The whole curriculum, not just what this child may read. It is
+    # what tells the validator that the `th` in "the" is one sound
+    # rather than a t next to an h — a fact about English that does not
+    # depend on how far along the reader is.
+    curriculum = (
+        await db.execute(select(Phoneme).order_by(Phoneme.order))
+    ).scalars().all()
+
     logger.info(
         "Generating exercises for phoneme /%s/ (lesson_id=%d)",
         target_phoneme.symbol,
@@ -210,6 +257,7 @@ async def generate_exercises_for_phoneme(
         raw_content,
         lesson_id=target_phoneme.lesson_id,
         allowed_phonemes=allowed_phonemes,
+        curriculum=curriculum,
     )
 
     if not exercises_data:
