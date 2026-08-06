@@ -194,11 +194,14 @@ class _QuestionPrompt extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          // Show the symbol large with both cases together
+          // The spellings, small and capital. Read from the curriculum's
+          // graphemes, never from its symbol.
           Text(
-            correctPhoneme.dualCaseSymbol,
+            correctPhoneme.letters,
             style: AppTextStyles.phonemeDisplay.copyWith(
-              fontSize: correctPhoneme.dualCaseSymbol.length > 8 ? 36 : (correctPhoneme.dualCaseSymbol.length > 4 ? 48 : 64),
+              fontSize: correctPhoneme.letters.length > 8
+                  ? 36
+                  : (correctPhoneme.letters.length > 4 ? 48 : 64),
               color: AppColors.coral,
             ),
             textAlign: TextAlign.center,
@@ -328,9 +331,11 @@ class _OptionTile extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          option.dualCaseSymbol,
+                          option.letters,
                           style: AppTextStyles.phonemeDisplay.copyWith(
-                            fontSize: option.dualCaseSymbol.length > 8 ? 16 : (option.dualCaseSymbol.length > 4 ? 20 : 26),
+                            fontSize: option.letters.length > 8
+                                ? 16
+                                : (option.letters.length > 4 ? 20 : 26),
                             color: answered && _isCorrect
                                 ? AppColors.green
                                 : AppColors.textPrimary,

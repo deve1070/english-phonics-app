@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../domain/entities/lesson_entity.dart';
 
+/// The sound itself: how it is written, and a way to hear it.
+///
+/// This card used to carry five things — the letters, a type badge reading
+/// "Alphabet" or "Consonant Blend", a "How to say it" heading, a written
+/// description, and the speaker. The description came from the curriculum
+/// and read, in full: *"Voiceless labiodental fricative /f/ as in 'fish',
+/// written with the letter F."* Nobody aged four to eight can read that
+/// sentence, and a child who is still learning what F looks like certainly
+/// cannot. It was four things to look at on the way to the two that matter.
+///
+/// So: the letters, and the button that says them. The sound is taught by
+/// hearing it and seeing how it is written, and everything else on this
+/// card was addressed to an adult.
 class PhonemeHeroCard extends StatelessWidget {
   final PhonemeEntity phoneme;
   final Color color;
@@ -21,146 +33,74 @@ class PhonemeHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: AppShadows.floating,
-      ),
-      child: Column(
-        children: [
-          // ── Big letter display ───────────────────────────────
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadius.xl),
-              ),
-            ),
-            child: Column(
-              children: [
-                // The phoneme symbol — huge PatrickHand displaying both cases together
-                Text(
-                  phoneme.dualCaseSymbol,
-                  style: AppTextStyles.phonemeDisplay.copyWith(
-                    color: color,
-                    fontSize: phoneme.dualCaseSymbol.length > 8 ? 42 : 56, // auto-scale font size if it has helper guides
-                  ),
-                  textAlign: TextAlign.center,
-                ).animate().fadeIn(duration: 300.ms).scale(
-                      begin: const Offset(0.7, 0.7),
-                      duration: 400.ms,
-                      curve: Curves.elasticOut,
-                    ),
+    final forms = phoneme.letterForms;
 
-                const SizedBox(height: AppSpacing.md),
-
-                // Phoneme type badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.xs + 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                    border: Border.all(
-                      color: color.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    _formatType(phoneme.type),
-                    style: AppTextStyles.label.copyWith(color: color),
-                  ),
-                ).animate(delay: 150.ms).fadeIn(duration: 300.ms),
-              ],
-            ),
-          ),
-
-          // ── Description + audio button ───────────────────────
+    return Column(
+      children: [
+        // One line per spelling, so a sound written two ways shows both
+        // rather than picking a favourite. Sized to fit rather than
+        // measured in characters: "ee EE" and "a A" should look like the
+        // same lesson, not two different ones.
+        for (final form in forms)
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'How to say it',
-                        style: AppTextStyles.label,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        phoneme.description.isNotEmpty
-                            ? phoneme.description
-                            : 'Listen and repeat the sound',
-                        style: AppTextStyles.bodyMedium,
-                      ),
-                    ],
-                  ),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                form,
+                style: AppTextStyles.phonemeDisplay.copyWith(
+                  color: color,
+                  fontSize: 96,
                 ),
-                const SizedBox(width: AppSpacing.md),
-
-                // Audio play button
-                GestureDetector(
-                  onTap: isPlayingAudio ? null : onPlayAudio,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: isPlayingAudio ? color : color,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: color.withOpacity(0.4),
-                          blurRadius: isPlayingAudio ? 20 : 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: isPlayingAudio
-                        ? const _PulsingIcon()
-                        : const Icon(
-                            Icons.volume_up_rounded,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                  ),
-                ).animate(delay: 200.ms).fadeIn(duration: 300.ms).scale(
-                      begin: const Offset(0.8, 0.8),
-                      duration: 300.ms,
-                      curve: Curves.elasticOut,
-                    ),
-              ],
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  String _formatType(String type) {
-    return type
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map((w) => w.isEmpty
-            ? ''
-            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
-        .join(' ');
+        const SizedBox(height: AppSpacing.xl),
+
+        // Big enough to be the obvious thing to press, because it is the
+        // only thing to press.
+        Semantics(
+          button: true,
+          label: 'Hear the sound',
+          child: GestureDetector(
+            onTap: isPlayingAudio ? null : onPlayAudio,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.4),
+                    blurRadius: isPlayingAudio ? 28 : 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: isPlayingAudio
+                  ? const _PulsingIcon()
+                  : const Icon(
+                      Icons.volume_up_rounded,
+                      color: Colors.white,
+                      size: 44,
+                    ),
+            ),
+          ),
+        ).animate().fadeIn(duration: 300.ms).scale(
+              begin: const Offset(0.85, 0.85),
+              duration: 300.ms,
+              curve: Curves.easeOut,
+            ),
+      ],
+    );
   }
 }
 
-// ── Pulsing speaker icon when audio plays ────────────────────────
+// ── Pulsing speaker icon while audio plays ───────────────────────
 class _PulsingIcon extends StatefulWidget {
   const _PulsingIcon();
 
@@ -196,7 +136,7 @@ class _PulsingIconState extends State<_PulsingIcon>
         child: const Icon(
           Icons.graphic_eq_rounded,
           color: Colors.white,
-          size: 28,
+          size: 44,
         ),
       ),
     );

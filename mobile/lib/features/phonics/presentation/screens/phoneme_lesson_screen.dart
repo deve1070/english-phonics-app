@@ -10,9 +10,9 @@ import '../../../lessons/presentation/widgets/session_summary_sheet.dart';
 import '../../../home/presentation/widgets/level_style.dart';
 import '../cubit/phonics_cubit.dart';
 import '../cubit/phonics_state.dart';
+import '../../domain/entities/lesson_entity.dart';
 import '../widgets/phoneme_hero_card.dart';
 import '../widgets/exercise_card.dart';
-import '../widgets/phoneme_progress_dots.dart';
 import '../widgets/phoneme_quiz_widget.dart';
 
 enum _LessonStage { phonemeIntro, gate, quiz, exercises }
@@ -189,35 +189,13 @@ class _LoadedView extends StatelessWidget {
               ),
               onPressed: onLeave,
             ),
-            title: Column(
-              children: [
-                Text(
-                  '${LevelStyle.emoji(state.lesson.level)} ${LevelStyle.label(state.lesson.level)}',
-                  style: AppTextStyles.headingSmall,
-                ),
-                Text(
-                  '${state.currentPhonemeIndex + 1} of ${state.lesson.phonemes.length} sounds',
-                  style: AppTextStyles.bodySmall,
-                ),
-              ],
-            ),
+            // "⭐ Level 1", "1 of 5 sounds", a row of progress dots and a
+            // four-icon stage rail used to sit here, above the letter. All
+            // four report on the curriculum; none of them is something a
+            // child can act on, and together they were the first thing on
+            // the screen. Where a child is up to belongs in the parent
+            // dashboard. What belongs here is the sound.
             centerTitle: true,
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(24),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: PhonemeProgressDots(
-                  total: state.lesson.phonemes.length,
-                  current: state.currentPhonemeIndex,
-                  color: color,
-                ),
-              ),
-            ),
-          ),
-
-          // Stage indicator
-          SliverToBoxAdapter(
-            child: _StageIndicator(stage: stage, color: color),
           ),
 
           SliverToBoxAdapter(
@@ -239,7 +217,8 @@ class _LoadedView extends StatelessWidget {
     );
   }
 
-  Widget _stageContent(BuildContext context, Color color, phoneme) {
+  Widget _stageContent(
+      BuildContext context, Color color, PhonemeEntity phoneme) {
     switch (stage) {
       case _LessonStage.phonemeIntro:
         return Column(
@@ -259,11 +238,13 @@ class _LoadedView extends StatelessWidget {
             // a real mouth on video — correct and natural by construction,
             // which no drawn model of ours would be — and that waits on
             // someone filming the sounds, not on code.
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xxl),
             _NavRow(
+              // The label carried a 🎤 emoji next to a mic icon, so the
+              // button showed two microphones.
               state: state,
               color: color,
-              nextLabel: "I'm ready! 🎤",
+              nextLabel: "I'm ready!",
               nextIcon: Icons.mic_rounded,
               onNext: () => onAdvance(_LessonStage.gate),
             ),
@@ -324,88 +305,10 @@ class _LoadedView extends StatelessWidget {
   }
 }
 
-// ── Stage indicator (Simplified & Centered) ───────────────────────
-class _StageIndicator extends StatelessWidget {
-  final _LessonStage stage;
-  final Color color;
-  const _StageIndicator({required this.stage, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final stages = [
-      Icons.hearing_rounded,
-      Icons.mic_rounded,
-      Icons.quiz_rounded,
-      Icons.edit_rounded,
-    ];
-    final current = _LessonStage.values.indexOf(stage);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
-      child: Row(
-        children: stages.asMap().entries.map((e) {
-          final i = e.key;
-          final icon = e.value;
-          final isDone = i < current;
-          final isActive = i == current;
-
-          return Expanded(
-            child: Row(
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDone
-                        ? AppColors.green
-                        : isActive
-                            ? color
-                            : AppColors.surfaceVariant,
-                    boxShadow: isActive
-                        ? [
-                            BoxShadow(
-                                color: color.withOpacity(0.35),
-                                blurRadius: 8)
-                          ]
-                        : null,
-                  ),
-                  child: Icon(
-                    isDone ? Icons.check_rounded : icon,
-                    color: isDone || isActive
-                        ? Colors.white
-                        : AppColors.textSecondary,
-                    size: 16,
-                  ),
-                ),
-                if (i < stages.length - 1)
-                  Expanded(
-                    child: Container(
-                      height: 3,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: i < current
-                            ? AppColors.green.withOpacity(0.6)
-                            : AppColors.border,
-                        borderRadius: BorderRadius.circular(AppRadius.full),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
 // ── Gate section ──────────────────────────────────────────────────
 class _GateSection extends StatelessWidget {
   final PhonicsLoaded state;
-  final dynamic phoneme;
+  final PhonemeEntity phoneme;
   final Color color;
 
   const _GateSection({
@@ -432,10 +335,10 @@ class _GateSection extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              phoneme.dualCaseSymbol,
+              phoneme.letters,
               style: AppTextStyles.phonemeDisplay.copyWith(
                 color: color,
-                fontSize: phoneme.dualCaseSymbol.length > 8 ? 48 : 64,
+                fontSize: phoneme.letters.length > 8 ? 48 : 64,
                 fontFamily: 'PatrickHand',
               ),
               textAlign: TextAlign.center,
@@ -536,7 +439,7 @@ class _GateRecordButton extends StatelessWidget {
 class _ExercisesSection extends StatelessWidget {
   final PhonicsLoaded state;
   final Color color;
-  final dynamic phoneme;
+  final PhonemeEntity phoneme;
 
   const _ExercisesSection({
     required this.state,
@@ -657,7 +560,7 @@ class _ExercisesSection extends StatelessWidget {
 class _GenerateButton extends StatelessWidget {
   final PhonicsLoaded state;
   final Color color;
-  final dynamic phoneme;
+  final PhonemeEntity phoneme;
 
   const _GenerateButton(
       {required this.state, required this.color, required this.phoneme});
@@ -715,30 +618,19 @@ class _NavRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _NavButton(
-            label: 'Previous',
-            icon: Icons.arrow_back_rounded,
-            color: AppColors.textSecondary,
-            isEnabled: !state.isFirstPhoneme,
-            onTap: () => context.read<PhonicsCubit>().previousPhoneme(),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          flex: 2,
-          child: _NavButton(
-            label: nextLabel,
-            icon: nextIcon,
-            color: color,
-            isFilled: true,
-            isEnabled: true,
-            onTap: onNext,
-          ),
-        ),
-      ],
+    // One action. A "Previous" button sat beside this one, greyed out on
+    // the first sound and offering to go backwards on every other — a
+    // second thing to weigh up before doing the only thing there is to do.
+    return SizedBox(
+      width: double.infinity,
+      child: _NavButton(
+        label: nextLabel,
+        icon: nextIcon,
+        color: color,
+        isFilled: true,
+        isEnabled: true,
+        onTap: onNext,
+      ),
     );
   }
 }

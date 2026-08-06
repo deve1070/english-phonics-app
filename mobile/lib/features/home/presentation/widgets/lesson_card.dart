@@ -17,25 +17,16 @@ class LessonCard extends StatelessWidget {
     required this.index,
   });
 
-  String _getPhonemesDisplay() {
-    return lesson.phonemes.map((p) {
-      String spelling = p.symbol;
-      if (spelling.contains('(')) {
-        final match = RegExp(r'\(([^)]+)\)').firstMatch(spelling);
-        if (match != null) {
-          spelling = match.group(1)!.trim();
-        }
-      }
-      
-      spelling = spelling.replaceAll('-', '').trim();
-      if (spelling.isEmpty) return '';
-      
-      if (spelling.length == 1) {
-        return '${spelling.toUpperCase()}${spelling.toLowerCase()}';
-      }
-      return '${spelling[0].toUpperCase()}${spelling.substring(1).toLowerCase()}';
-    }).where((s) => s.isNotEmpty).join('  ');
-  }
+  /// The spellings this lesson teaches, as a glance.
+  ///
+  /// This card is a label for a lesson, not the screen that teaches it, so
+  /// it lists the spellings only — the small-and-capital pair belongs on
+  /// the sound's own screen, where both cases are the thing being learnt.
+  ///
+  /// It used to read `symbol` and cut it about with a regex, which is why
+  /// this card showed "D3" and "Kw" to children learning J and Q.
+  String _getPhonemesDisplay() =>
+      lesson.phonemes.expand((p) => p.spellings).join('  ');
 
   @override
   Widget build(BuildContext context) {
@@ -106,19 +97,11 @@ class LessonCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
 
-              const SizedBox(height: 2),
-
-              // Level label and sounds count
-              Text(
-                '${LevelStyle.label(lesson.level)} · ${lesson.phonemes.length} sound${lesson.phonemes.length > 1 ? 's' : ''}',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-
+              // "Level 1 · 5 sounds" used to sit here. It is a report on
+              // the curriculum rather than anything a child can act on,
+              // and it was also the three or four pixels that pushed this
+              // card past the 190 it is given and striped every one of
+              // them with an overflow warning.
               const Spacer(),
 
               // Progress bar

@@ -362,25 +362,8 @@ class _LessonProgressRow extends StatelessWidget {
   final int index;
   const _LessonProgressRow({required this.lesson, required this.index});
 
-  String _getPhonemesDisplay() {
-    return lesson.phonemes.map((p) {
-      String spelling = p.symbol;
-      if (spelling.contains('(')) {
-        final match = RegExp(r'\(([^)]+)\)').firstMatch(spelling);
-        if (match != null) {
-          spelling = match.group(1)!.trim();
-        }
-      }
-      
-      spelling = spelling.replaceAll('-', '').trim();
-      if (spelling.isEmpty) return '';
-      
-      if (spelling.length == 1) {
-        return '${spelling.toUpperCase()}${spelling.toLowerCase()}';
-      }
-      return '${spelling[0].toUpperCase()}${spelling.substring(1).toLowerCase()}';
-    }).where((s) => s.isNotEmpty).join('  ');
-  }
+  String _getPhonemesDisplay() =>
+      lesson.phonemes.expand((p) => p.spellings).join('  ');
 
   @override
   Widget build(BuildContext context) {

@@ -17,6 +17,17 @@ class PhonemeSummary(BaseModel):
     order: int = 0
     type: Optional[str] = None
 
+    # The spellings this sound is written with, comma separated: "a",
+    # "sh", "ee,ea". This is what a child is shown.
+    #
+    # `symbol` is not, and cannot be. It holds a mix of letter names
+    # ("Aa"), IPA ("ɪ", "dʒ", "kʰ", "ʌ/ə") and IPA-plus-spelling
+    # ("ʃ (sh)"), so a client rendering it puts "D3" and "Kw" in front of
+    # a child learning J and Q — and, for Y, whose symbol is stored as
+    # "Jj", a confident and entirely wrong letter. Eight of the first
+    # twenty-six sounds are affected.
+    graphemes: Optional[str] = None
+
     model_config = {"from_attributes": True}
 
 

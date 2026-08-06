@@ -4,6 +4,7 @@ class PhonemeModel extends PhonemeEntity {
   const PhonemeModel({
     required super.id,
     required super.symbol,
+    super.graphemes,
     required super.description,
     super.audioUrl,
     required super.type,
@@ -13,6 +14,10 @@ class PhonemeModel extends PhonemeEntity {
   factory PhonemeModel.fromJson(Map<String, dynamic> json) => PhonemeModel(
         id: json['id'] as int,
         symbol: json['symbol'] as String,
+        // Left null when absent rather than defaulted to the symbol: the
+        // letters a child is shown come from here, and a symbol is not a
+        // spelling.
+        graphemes: json['graphemes'] as String?,
         description: json['description'] as String? ?? '',
         audioUrl: json['audio_url'] as String?,
         // FIX: type comes as lowercase from backend enum e.g. "ALPHABET"

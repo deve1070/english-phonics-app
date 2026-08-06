@@ -250,14 +250,17 @@ class _Stop extends StatelessWidget {
     // Unfinished stops show the lesson's first letter rather than a number:
     // a child who cannot yet read digits reliably can still recognise the
     // sound they are heading towards.
-    final symbol = lesson.phonemes.isNotEmpty
-        ? lesson.phonemes.first.symbol.trim()
-        : '${lesson.order}';
+    // The spelling, never the symbol: a stop labelled with the curriculum's
+    // IPA is a stop labelled with something the child cannot read.
+    final first = lesson.phonemes.isEmpty
+        ? const <String>[]
+        : lesson.phonemes.first.spellings;
+    final symbol = first.isEmpty ? '${lesson.order}' : first.first;
     return Padding(
       padding: const EdgeInsets.all(4),
       child: FittedBox(
         child: Text(
-          symbol.isEmpty ? '${lesson.order}' : symbol,
+          symbol,
           style: AppTextStyles.headingLarge.copyWith(color: levelColor),
         ),
       ),
