@@ -182,7 +182,7 @@ class _LoginViewState extends State<_LoginView> {
                             style: AppTextStyles.bodyMedium,
                           ),
                           GestureDetector(
-                            onTap: () => context.push(AppRoutes.register),
+                            onTap: () => context.push(AppRoutes.phoneRegister),
                             child: Text(
                               'Sign Up',
                               style: AppTextStyles.bodyMedium.copyWith(

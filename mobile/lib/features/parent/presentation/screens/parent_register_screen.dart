@@ -299,7 +299,7 @@ class _ParentStep extends StatelessWidget {
 
         Center(
           child: TextButton(
-            onPressed: () => context.go(AppRoutes.login),
+            onPressed: () => context.go(AppRoutes.phoneLogin),
             child: Text(
               'Already have an account? Sign in',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.coral),

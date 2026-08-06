@@ -2,10 +2,16 @@ abstract class AppRoutes {
   // ── Auth flow ─────────────────────────────────────────────────
   static const String splash      = '/';
   static const String onboarding  = '/onboarding';
-  static const String login       = '/login';
-  static const String register    = '/register';
 
-  // ── Phone number auth (NEW) ───────────────────────────────────
+  // ── Phone number auth ─────────────────────────────────────────
+  //
+  // `login = '/login'` and `register = '/register'` used to sit above.
+  // Nothing was ever mounted at either: LoginScreen and RegisterScreen are
+  // the phone screens and live at the two paths below. Three places called
+  // `context.go(AppRoutes.login)` — the child's Log Out, the parent's Log
+  // Out, and the link back from parent registration — and all three
+  // cleared the session and then navigated to a route that did not exist.
+  // Removed rather than corrected so a fourth cannot be written.
   static const String phoneRegister = '/phone-register';
   static const String phoneLogin    = '/phone-login';
   // Deep link: phonicsfriends://join?token=...

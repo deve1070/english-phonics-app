@@ -51,15 +51,13 @@ class AppRouter {
       AppRoutes.splash,
       AppRoutes.onboarding,
       AppRoutes.phoneLogin,
-      AppRoutes.login,
-      AppRoutes.register,
       AppRoutes.phoneRegister,
       AppRoutes.joinInvite,
     };
 
     if (publicPaths.contains(location)) {
         // Prevent authenticated users from going to login again
-        if (location == AppRoutes.phoneLogin || location == AppRoutes.login) {
+        if (location == AppRoutes.phoneLogin) {
             final isAuthenticated = await tokenStorage.hasValidToken();
             if (isAuthenticated) {
                 final role = await tokenStorage.getUserRole();

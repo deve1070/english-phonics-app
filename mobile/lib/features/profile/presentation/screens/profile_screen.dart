@@ -33,7 +33,7 @@ class _ProfileView extends StatelessWidget {
     return BlocConsumer<ProfileCubit, ProfileState>(
       listener: (context, state) {
         if (state is ProfileLoggedOut) {
-          context.go(AppRoutes.login);
+          context.go(AppRoutes.phoneLogin);
         }
       },
       builder: (context, state) {

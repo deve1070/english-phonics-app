@@ -14,6 +14,20 @@ import 'package:phonics_app/core/router/app_router.dart';
 import 'package:phonics_app/core/router/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Every path in the route tree, shell and nested routes included.
+Set<String> allPaths(GoRouter router) {
+  final found = <String>{};
+  void walk(Iterable<RouteBase> routes) {
+    for (final r in routes) {
+      if (r is GoRoute) found.add(r.path);
+      walk(r.routes);
+    }
+  }
+
+  walk(router.configuration.routes);
+  return found;
+}
+
 /// Paths of the routes nested inside the ShellRoute.
 Set<String> shellPaths(GoRouter router) {
   final shell = router.configuration.routes
@@ -53,6 +67,19 @@ void main() {
         reason: '$task would keep the nav bar over a child mid-task',
       );
     }
+  });
+
+  test('the screen logging out sends you to exists', () {
+    // Log Out cleared the session and then called
+    // context.go(AppRoutes.login). Nothing was ever mounted at '/login' —
+    // LoginScreen lives at '/phone-login' — so the session went and the
+    // screen did not, in three places: the child's Log Out, the parent's,
+    // and the link back from parent registration. `AppRoutes.login` is
+    // deleted now, so writing a fourth will not compile, but the
+    // destination itself is worth pinning.
+    expect(allPaths(router), contains(AppRoutes.phoneLogin));
+    expect(allPaths(router), isNot(contains('/login')));
+    expect(allPaths(router), isNot(contains('/register')));
   });
 
   test('progress is reachable, but not as a tab', () {

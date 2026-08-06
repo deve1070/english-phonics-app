@@ -271,7 +271,7 @@ class _LoadedView extends StatelessWidget {
             onSettings: () => context.push(AppRoutes.parentSettings),
             onLogout: () async {
               await context.read<ParentDashboardCubit>().logout();
-              if (context.mounted) context.go(AppRoutes.login);
+              if (context.mounted) context.go(AppRoutes.phoneLogin);
             },
             onGenerateLink: () async {
               final link = await context.read<ParentDashboardCubit>().generateLink();

@@ -1,7 +1,37 @@
+import 'package:flutter/foundation.dart';
+
 abstract class ApiConstants {
-  static const String baseUrl = 'https://english-phonics-app.onrender.com/api/v1';
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  // ── Backend URL ───────────────────────────────────────────────
+  //
+  // Chosen by build mode rather than edited by hand. It was a single
+  // constant that had to be swapped to develop and swapped back to ship,
+  // which is a line of code that is wrong half the time and only ever
+  // noticed by whoever gets the broken build.
+  //
+  // Debug runs against the machine you are developing on; release always
+  // goes to production, so a build cannot be shipped pointing at somebody's
+  // wifi. Either can be overridden without touching this file:
+  //
+  //   flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
+  //
+  // Note the two local addresses are not interchangeable. The Android
+  // emulator reaches the host at 10.0.2.2; a real phone needs the host's
+  // address on the wifi you are both on (`ip addr | grep 192.168`), and
+  // must be on that same wifi.
+  static const String productionUrl =
+      'https://english-phonics-app.onrender.com/api/v1';
+  static const String _localUrl = 'http://192.168.0.185:8000/api/v1';
+
+  static const String _override = String.fromEnvironment('API_BASE_URL');
+
+  static final String baseUrl = _override.isNotEmpty
+      ? _override
+      : (kReleaseMode ? productionUrl : _localUrl);
+
+  /// Generous because the production host sleeps when idle and takes the
+  /// best part of a minute to wake up.
+  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 30);
 
   // ── Auth ──────────────────────────────────────────────────────
   // Passwordless: phone number only. Two tokens, no refresh token —

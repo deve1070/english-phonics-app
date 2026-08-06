@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 9 and later refuse cleartext HTTP by default, so a debug build
+  pointed at a backend on the development machine cannot reach it. dio
+  reports the refusal as a connection failure and the app says "No internet
+  connection", which is the one explanation that is not true: the phone's
+  network is fine and the server is answering.
+
+  Cleartext is allowed only for the addresses a local backend can be on.
+  Everything else, including the production host, still has to be HTTPS —
+  which is why this is a scoped config rather than
+  android:usesCleartextTraffic="true".
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- The emulator's alias for the host machine. -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <!-- A real device on the same wifi, talking to the host by LAN IP. -->
+        <domain includeSubdomains="false">192.168.0.185</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
