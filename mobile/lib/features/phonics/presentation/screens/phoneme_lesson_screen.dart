@@ -6,41 +6,94 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/session/learning_cursor.dart';
 import '../../../lessons/presentation/widgets/session_summary_sheet.dart';
 import '../../../home/presentation/widgets/level_style.dart';
 import '../cubit/phonics_cubit.dart';
 import '../cubit/phonics_state.dart';
 import '../../domain/entities/lesson_entity.dart';
+import 'lesson_stage.dart';
 import '../widgets/phoneme_hero_card.dart';
 import '../widgets/exercise_card.dart';
 import '../widgets/phoneme_quiz_widget.dart';
 
-enum _LessonStage { phonemeIntro, gate, quiz, exercises }
-
 class PhonemeLessonScreen extends StatelessWidget {
   final int lessonId;
-  const PhonemeLessonScreen({super.key, required this.lessonId});
+
+  /// Where to pick this lesson up, when arriving from a stored cursor.
+  /// Null when the lesson is being opened from the start.
+  final int? resumePhonemeId;
+  final String? resumeStage;
+
+  const PhonemeLessonScreen({
+    super.key,
+    required this.lessonId,
+    this.resumePhonemeId,
+    this.resumeStage,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => PhonicsCubit.create()..loadLesson(lessonId),
-      child: const _PhonemeLessonView(),
+      child: _PhonemeLessonView(
+        lessonId: lessonId,
+        resumePhonemeId: resumePhonemeId,
+        resumeStage: resumeStage,
+      ),
     );
   }
 }
 
 class _PhonemeLessonView extends StatefulWidget {
-  const _PhonemeLessonView();
+  final int lessonId;
+  final int? resumePhonemeId;
+  final String? resumeStage;
+
+  const _PhonemeLessonView({
+    required this.lessonId,
+    this.resumePhonemeId,
+    this.resumeStage,
+  });
+
   @override
   State<_PhonemeLessonView> createState() => _PhonemeLessonViewState();
 }
 
 class _PhonemeLessonViewState extends State<_PhonemeLessonView> {
-  _LessonStage _stage = _LessonStage.phonemeIntro;
+  late LessonStage _stage = LessonStage.named(widget.resumeStage);
   int _lastPhonemeIndex = -1; // track phoneme changes
 
-  void _advanceTo(_LessonStage stage) => setState(() => _stage = stage);
+  /// True until the cubit has been pointed at the phoneme we resumed to,
+  /// so the listener below does not treat that first arrival as the child
+  /// moving on and reset them to the start of it.
+  bool _awaitingResume = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _awaitingResume = widget.resumePhonemeId != null;
+  }
+
+  /// Remembers the step before showing it.
+  ///
+  /// Written on every move rather than on leaving: this app is closed by
+  /// the battery, by Android reclaiming memory, or by a parent taking the
+  /// phone away mid-sentence, and none of those run an exit handler.
+  void _advanceTo(LessonStage stage) {
+    setState(() => _stage = stage);
+    _remember(stage);
+  }
+
+  void _remember(LessonStage stage) {
+    final state = context.read<PhonicsCubit>().state;
+    if (state is! PhonicsLoaded) return;
+    getIt<CursorStore>().save(LearningCursor(
+      lessonId: widget.lessonId,
+      phonemeId: state.currentPhoneme?.id,
+      stage: stage.name,
+    ));
+  }
 
   /// Set once the summary has been shown, so the second pop goes through.
   ///
@@ -103,19 +156,56 @@ class _PhonemeLessonViewState extends State<_PhonemeLessonView> {
         }
 
         if (state is PhonicsLoaded) {
+          // Arriving from a stored cursor: point the lesson at the phoneme
+          // the child stopped on before anything below can conclude they
+          // have moved and send them back to its first step.
+          if (_awaitingResume) {
+            _awaitingResume = false;
+            final target = widget.resumePhonemeId;
+            final index = target == null
+                ? -1
+                : state.lesson.phonemes.indexWhere((p) => p.id == target);
+
+            if (index >= 0) {
+              // Claim the destination *before* jumping. goToPhoneme emits
+              // immediately, and this listener runs again on the result: if
+              // _lastPhonemeIndex still held the index we started from, that
+              // second pass would read the jump as the child moving to a new
+              // sound and send them back to the first step of it — undoing
+              // the resume, every launch, for exactly the children who had
+              // got furthest into a sound.
+              _lastPhonemeIndex = index;
+              context.read<PhonicsCubit>().goToPhoneme(target!);
+              return;
+            }
+
+            // The sound is not in this lesson any more — a cursor can
+            // outlive a curriculum change. Start the lesson properly rather
+            // than opening a different sound at the step they reached in
+            // the old one.
+            _lastPhonemeIndex = state.currentPhonemeIndex;
+            if (_stage != LessonStage.phonemeIntro) {
+              setState(() => _stage = LessonStage.phonemeIntro);
+            }
+            return;
+          }
+
           // When phoneme changes (next/prev), reset to intro stage
           if (state.currentPhonemeIndex != _lastPhonemeIndex) {
             _lastPhonemeIndex = state.currentPhonemeIndex;
-            if (_stage != _LessonStage.phonemeIntro) {
-              setState(() => _stage = _LessonStage.phonemeIntro);
+            if (_stage != LessonStage.phonemeIntro) {
+              setState(() => _stage = LessonStage.phonemeIntro);
             }
+            // A new sound is a new position worth remembering, and it is
+            // reached without passing through _advanceTo.
+            _remember(LessonStage.phonemeIntro);
           }
 
           // Gate passed → advance to quiz
           if (state.phonemeUnlocked &&
-              _stage == _LessonStage.gate &&
+              _stage == LessonStage.gate &&
               !state.isGateScoring) {
-            _advanceTo(_LessonStage.quiz);
+            _advanceTo(LessonStage.quiz);
           }
         }
       },
@@ -146,8 +236,8 @@ class _PhonemeLessonViewState extends State<_PhonemeLessonView> {
 // ── Loaded view ───────────────────────────────────────────────────
 class _LoadedView extends StatelessWidget {
   final PhonicsLoaded state;
-  final _LessonStage stage;
-  final void Function(_LessonStage) onAdvance;
+  final LessonStage stage;
+  final void Function(LessonStage) onAdvance;
 
   /// Routed through the parent so leaving always closes the session, rather
   /// than depending on whether go_router's pop happens to consult PopScope.
@@ -220,7 +310,7 @@ class _LoadedView extends StatelessWidget {
   Widget _stageContent(
       BuildContext context, Color color, PhonemeEntity phoneme) {
     switch (stage) {
-      case _LessonStage.phonemeIntro:
+      case LessonStage.phonemeIntro:
         return Column(
           children: [
             const SizedBox(height: AppSpacing.md),
@@ -246,19 +336,19 @@ class _LoadedView extends StatelessWidget {
               color: color,
               nextLabel: "I'm ready!",
               nextIcon: Icons.mic_rounded,
-              onNext: () => onAdvance(_LessonStage.gate),
+              onNext: () => onAdvance(LessonStage.gate),
             ),
           ],
         );
 
-      case _LessonStage.gate:
+      case LessonStage.gate:
         return _GateSection(
           state: state,
           phoneme: phoneme,
           color: color,
         );
 
-      case _LessonStage.quiz:
+      case LessonStage.quiz:
         final learnedPhonemes = state.lesson.phonemes
             .where((p) => p.order <= phoneme.order)
             .toList();
@@ -285,7 +375,7 @@ class _LoadedView extends StatelessWidget {
             PhonemeQuizSession(
               learnedPhonemes: learnedPhonemes,
               currentPhoneme: phoneme,
-              onComplete: () => onAdvance(_LessonStage.exercises),
+              onComplete: () => onAdvance(LessonStage.exercises),
               onPlaySound: (id) =>
                   context.read<PhonicsCubit>().playPhonemeAudio(id),
               isPlayingAudio: state.isPlayingAudio,
@@ -295,7 +385,7 @@ class _LoadedView extends StatelessWidget {
           ],
         );
 
-      case _LessonStage.exercises:
+      case LessonStage.exercises:
         return _ExercisesSection(
           state: state,
           color: color,

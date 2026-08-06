@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/token_storage.dart';
+import '../../../../core/session/learning_cursor.dart';
 import '../../../auth/data/datasources/auth_remote_datasource.dart';
 import '../../../auth/data/repositories/auth_repository_impl.dart';
 import 'package:dio/dio.dart';
@@ -32,6 +33,11 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> logout() async {
     await _tokenStorage.clearTokens();
+    // The resume position is on the device, not in the token, so clearing
+    // the session does not clear it. Left behind, the next person to sign
+    // in on this phone — a sibling, most likely — would be dropped into
+    // the middle of somebody else's lesson.
+    await getIt<CursorStore>().clear();
     emit(const ProfileLoggedOut());
   }
 }

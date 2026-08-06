@@ -181,8 +181,15 @@ class AppRouter {
           routes: [
             GoRoute(
               path: ':lessonId',
+              // The resume position rides in the query string rather than
+              // in `extra`: it survives a restart, it shows up in a log
+              // when a child lands somewhere odd, and it is the same
+              // whether the route came from the splash or from a tap.
               builder: (context, state) => PhonemeLessonScreen(
                 lessonId: int.parse(state.pathParameters['lessonId']!),
+                resumePhonemeId:
+                    int.tryParse(state.uri.queryParameters['phoneme'] ?? ''),
+                resumeStage: state.uri.queryParameters['stage'],
               ),
               routes: [
                 GoRoute(

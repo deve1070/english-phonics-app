@@ -89,6 +89,9 @@ abstract class ApiConstants {
   static const String collectionSeen = '/me/collection/seen';
   static const String myStories = '/me/stories';
 
+  /// Where the child stopped. GET to resume, PUT on every step.
+  static const String myCursor = '/me/cursor';
+
   /// "Which symbol says this sound?" — GET builds a round, POST records
   /// the finished one. The same path for both: a round is a resource the
   /// child is handed and hands back.

@@ -6,6 +6,7 @@ import '../constants/app_constants.dart';
 import '../network/auth_interceptor.dart';
 import '../network/token_storage.dart';
 import '../screen_time/screen_time_service.dart';
+import '../session/learning_cursor.dart';
 import '../../features/lessons/presentation/widgets/session_summary_sheet.dart';
 
 // ── Uncomment after: flutter pub add local_auth ───────────────────
@@ -50,6 +51,12 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<ScreenTimeService>(
     () => ScreenTimeService(dio, tokenStorage),
   );
+
+  // Where the child stopped, so the next launch can put them back rather
+  // than asking them to find their way there. A singleton because it is
+  // written from the lesson screen and read from the splash, which never
+  // exist at the same time.
+  getIt.registerLazySingleton<CursorStore>(() => CursorStore(dio));
 
   // Accumulates the current sitting so the closing summary has something to
   // report. A singleton because a session spans several exercise screens —

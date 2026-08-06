@@ -57,6 +57,27 @@ class PhonicsCubit extends Cubit<PhonicsState> {
   }
 
   // ── Navigate phonemes ─────────────────────────────────────────
+
+  /// Jumps straight to a phoneme by id, for resuming.
+  ///
+  /// Silently does nothing if the id is not in this lesson: a cursor can
+  /// outlive a curriculum change, and a child returning after one should
+  /// start the lesson from the top rather than meet an error.
+  void goToPhoneme(int phonemeId) {
+    final state = this.state;
+    if (state is! PhonicsLoaded) return;
+    final index = state.lesson.phonemes.indexWhere((p) => p.id == phonemeId);
+    if (index < 0 || index == state.currentPhonemeIndex) return;
+    emit(state.copyWith(
+      currentPhonemeIndex: index,
+      isPlayingAudio: false,
+      phonemeUnlocked: false,
+      lastGateScore: null,
+      isGateRecording: false,
+      isGateScoring: false,
+    ));
+  }
+
   void nextPhoneme() {
     final state = this.state;
     if (state is PhonicsLoaded && !state.isLastPhoneme) {
