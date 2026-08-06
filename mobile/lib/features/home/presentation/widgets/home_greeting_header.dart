@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/mascot/kiki.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -65,14 +66,11 @@ class HomeGreetingHeader extends StatelessWidget {
               ],
             ),
           ),
-          // Mascot
-          Image.asset(
-            streakDays >= 3
-                ? 'assets/images/popiE.png' // excited for streak
-                : 'assets/images/popi.png',
-            height: 90,
-            errorBuilder: (_, __, ___) =>
-                const Text('🐣', style: TextStyle(fontSize: 56)),
+          // Same bird either way — a streak makes her cheer, not change
+          // species, which is what the old excited asset did.
+          Kiki(
+            size: 90,
+            mood: streakDays >= 3 ? KikiMood.celebrating : KikiMood.idle,
           ).animate().fadeIn(duration: 500.ms).scale(
                 begin: const Offset(0.8, 0.8),
                 duration: 500.ms,

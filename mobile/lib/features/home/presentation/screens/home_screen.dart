@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/mascot/kiki.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -528,12 +529,9 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/popi.png',
-              height: 120,
-              errorBuilder: (_, __, ___) =>
-                  const Text('😅', style: TextStyle(fontSize: 72)),
-            ),
+            // Encouraging rather than dismayed: the app broke, not the
+            // child, and she is the last thing they should read as upset.
+            const Kiki(size: 120, mood: KikiMood.encouraging),
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Oops! Something went wrong',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/mascot/kiki.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,8 +21,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<_OnboardingPage> _pages = const [
     _OnboardingPage(
-      image: 'assets/images/im.png',
-      fallbackEmoji: '👂',
+      mood: KikiMood.listening,
       title: 'Listen & Learn',
       subtitle: 'Tap any letter and hear how\nit sounds out loud!',
       bgColor: Color(0xFFFFEDD8),
@@ -33,8 +33,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ],
     ),
     _OnboardingPage(
-      image: 'assets/images/popiE.png',
-      fallbackEmoji: '🎤',
+      mood: KikiMood.encouraging,
       title: 'Speak It Out!',
       subtitle: 'Practice pronunciation and\nget instant feedback.',
       bgColor: Color(0xFFE8FAF8),
@@ -46,8 +45,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ],
     ),
     _OnboardingPage(
-      image: 'assets/images/popi.png',
-      fallbackEmoji: '🏆',
+      mood: KikiMood.celebrating,
       title: 'Earn & Celebrate',
       subtitle: 'Complete lessons, win stars,\nand become a reading champion!',
       bgColor: Color(0xFFFFFBE6),
@@ -227,13 +225,12 @@ class _PageContent extends StatelessWidget {
                   // Floating emoji bubbles
                   ...page.bubbles.map((b) => _FloatingBubble(bubble: b)),
 
-                  // Mascot image
-                  Image.asset(
-                    page.image,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Text(
-                      page.fallbackEmoji,
-                      style: const TextStyle(fontSize: 100),
+                  // She fills whatever the page leaves her. Sized from the
+                  // shorter side because she is square.
+                  LayoutBuilder(
+                    builder: (context, c) => Kiki(
+                      size: c.maxWidth < c.maxHeight ? c.maxWidth : c.maxHeight,
+                      mood: page.mood,
                     ),
                   ).animate().fadeIn(duration: 400.ms).scale(
                         begin: const Offset(0.85, 0.85),
@@ -363,8 +360,7 @@ class _Blob extends StatelessWidget {
 
 // ── Data classes ──────────────────────────────────────────────────
 class _OnboardingPage {
-  final String image;
-  final String fallbackEmoji;
+  final KikiMood mood;
   final String title;
   final String subtitle;
   final Color bgColor;
@@ -372,8 +368,7 @@ class _OnboardingPage {
   final List<_Bubble> bubbles;
 
   const _OnboardingPage({
-    required this.image,
-    required this.fallbackEmoji,
+    required this.mood,
     required this.title,
     required this.subtitle,
     required this.bgColor,

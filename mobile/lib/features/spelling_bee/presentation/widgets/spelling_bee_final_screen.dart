@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../../../core/mascot/kiki.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -52,15 +53,11 @@ class SpellingBeeFinalScreen extends StatelessWidget {
                           color: _color.withOpacity(0.12),
                         ),
                       ),
-                      Image.asset(
-                        state.percentage >= 0.6
-                            ? 'assets/images/popiE.png'
-                            : 'assets/images/popi.png',
-                        height: 140,
-                        errorBuilder: (_, __, ___) => Text(
-                          state.percentage >= 0.6 ? '🏆' : '😊',
-                          style: const TextStyle(fontSize: 80),
-                        ),
+                      Kiki(
+                        size: 140,
+                        mood: state.percentage >= 0.6
+                            ? KikiMood.celebrating
+                            : KikiMood.encouraging,
                       ),
                     ],
                   ).animate().scale(

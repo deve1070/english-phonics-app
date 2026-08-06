@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/mascot/kiki.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -453,12 +454,9 @@ class _StartView extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Image.asset(
-                'assets/images/popiE.png',
-                height: 180,
-                errorBuilder: (_, __, ___) =>
-                    const Text('🐝', style: TextStyle(fontSize: 100)),
-              ).animate().scale(
+              const Kiki(size: 180, mood: KikiMood.celebrating)
+                  .animate()
+                  .scale(
                     begin: const Offset(0.7, 0.7),
                     duration: 600.ms,
                     curve: Curves.elasticOut,

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -28,6 +29,31 @@ Future<void> settleAnimations(
   for (var i = 0; i < frames; i++) {
     await tester.pump(step);
   }
+  // After the pumping, not before: a preview captures its last frame, and
+  // widgets that only appear partway through — Kiki arriving with a result
+  // — are not in the tree to be precached at the start.
+  await precacheImages(tester);
+}
+
+/// Decodes every [Image] already in the tree, so goldens show artwork.
+///
+/// An asset image resolves asynchronously, and the fake async of a widget
+/// test never lets that finish — the frame is captured while the image is
+/// still an empty box. Precaching has to happen through the widget's own
+/// provider instance rather than a fresh `AssetImage`, because Kiki decodes
+/// at display size and so hands the cache a `ResizeImage`; a key built any
+/// other way misses and the picture is still blank.
+Future<void> precacheImages(WidgetTester tester) async {
+  final images = tester
+      .elementList(find.byType(Image))
+      .map((e) => MapEntry(e, (e.widget as Image).image))
+      .toList();
+  await tester.runAsync(() async {
+    for (final entry in images) {
+      await precacheImage(entry.value, entry.key);
+    }
+  });
+  await tester.pump();
 }
 
 Future<void> loadPreviewFonts() async {

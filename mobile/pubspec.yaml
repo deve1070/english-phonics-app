@@ -77,7 +77,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/
+    # Kiki is the only image the app ships. The 2.0x/3.0x variants beside
+    # her are picked up from this one entry; asset directories are not
+    # recursive, so the folder is named rather than assets/images/.
+    - assets/images/kiki/
     - assets/animations/
     - assets/audio/phonemes/
 

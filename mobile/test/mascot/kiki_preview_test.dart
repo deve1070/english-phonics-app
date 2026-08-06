@@ -20,16 +20,16 @@ void main() {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // blink off: its interval is random, so leaving it on makes this
-              // golden flaky.
+              // Still, so the golden shows the artwork rather than
+              // whichever frame of her breathing the test stopped on.
               for (final m in KikiMood.values)
-                Kiki(size: 140, mood: m, blink: false),
+                Kiki(size: 140, mood: m, animated: false),
             ],
           ),
         ),
       ),
     );
-    await settleAnimations(tester);
+    await precacheImages(tester);
     await expectLater(
       find.byType(Row),
       matchesGoldenFile('kiki_moods.png'),

@@ -115,11 +115,11 @@ abstract class StorageKeys {
 }
 
 abstract class AssetPaths {
-  static const String mascot = 'assets/images/popi.png';
-  static const String mascotExcited = 'assets/images/popiE.png';
-  static const String mascotIntro = 'assets/images/im.png';
-  static const String hero1 = 'assets/images/image.png';
-  static const String hero2 = 'assets/images/image2.png';
+  // The mascot paths that were here are gone. There were three characters
+  // behind them — a monster, an elephant filed as the monster's "excited"
+  // face, and a bird — and a child cannot have a companion who keeps
+  // turning into a different animal. Kiki is a widget now: see
+  // core/mascot/kiki.dart, which owns her artwork and picks the pose.
   static const String loadingAnimation = 'assets/animations/loading.json';
   static String phonemeAudioAsset(String s) => 'assets/audio/phonemes/$s.mp3';
 }

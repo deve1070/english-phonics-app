@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/mascot/kiki.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -16,13 +17,7 @@ class AuthHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Popi peeking from top
-        Image.asset(
-          'assets/images/popi.png',
-          height: 110,
-          errorBuilder: (_, __, ___) =>
-              const Text('🐣', style: TextStyle(fontSize: 64)),
-        ),
+        const Kiki(size: 110),
         const SizedBox(height: 12),
         Text(
           title,

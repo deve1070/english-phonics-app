@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import '../../../core/mascot/kiki.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -135,11 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
                       offset: Offset(0, _bounceAnimation.value),
                       child: child,
                     ),
-                    child: Image.asset(
-                      'assets/images/popi.png',
-                      height: 220,
-                      errorBuilder: (_, __, ___) => const _FallbackMascot(),
-                    ),
+                    child: const Kiki(size: 220),
                   )
                       .animate()
                       .fadeIn(duration: 600.ms, curve: Curves.easeOut)
@@ -268,22 +265,3 @@ class _LoadingDotsState extends State<_LoadingDots>
   }
 }
 
-// ── Fallback if image missing ─────────────────────────────────────
-class _FallbackMascot extends StatelessWidget {
-  const _FallbackMascot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 160,
-      height: 160,
-      decoration: BoxDecoration(
-        color: AppColors.coral.withOpacity(0.15),
-        shape: BoxShape.circle,
-      ),
-      child: const Center(
-        child: Text('🐣', style: TextStyle(fontSize: 72)),
-      ),
-    );
-  }
-}

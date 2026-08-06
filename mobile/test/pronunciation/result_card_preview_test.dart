@@ -40,13 +40,7 @@ void main() {
         ]),
       )),
     ));
-    // The card contains Kiki, whose blink interval is random. Settle
-    // everything the card animates but stop short of her first possible
-    // blink, or this golden drifts by a few hundred pixels at random.
-    await settleAnimations(
-      tester,
-      total: Kiki.minBlinkDelay - const Duration(milliseconds: 300),
-    );
+    await settleAnimations(tester, total: Kiki.settleDelay);
     await expectLater(find.byType(Row).first,
         matchesGoldenFile('result_card.png'));
   });
