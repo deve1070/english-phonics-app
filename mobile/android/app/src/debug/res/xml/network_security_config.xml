@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug builds only. This directory is not merged into a release build, so
+  a shipped app keeps Android's default: cleartext refused, HTTPS or
+  nothing.
+
+  Android 9 and later block cleartext HTTP, and a debug build talking to a
+  backend on the development machine is cleartext by definition. dio
+  reports the refusal as a connection error, which reads as "couldn't
+  reach the server" — true, but not the reason.
+
+  Permitted for everything rather than for one address. Naming the host's
+  wifi address here would mean editing this file, rebuilding and
+  reinstalling every time the router hands out a different lease, to fix a
+  failure that does not say what it is.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -9,6 +9,7 @@ import '../../../engagement/data/engagement_models.dart';
 import '../../../engagement/data/engagement_remote_datasource.dart';
 import '../../../phonics/data/datasources/lessons_remote_datasource.dart';
 import 'home_state.dart';
+import '../../../../core/network/dio_message.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final AuthRepositoryImpl _authRepo;
@@ -57,7 +58,7 @@ class HomeCubit extends Cubit<HomeState> {
         goal: results[2] as WeeklyGoal,
       ));
     } on DioException catch (e) {
-      emit(HomeError(e.message ?? 'Network error'));
+      emit(HomeError(describeDioError(e, whileDoing: 'your lessons')));
     } catch (e) {
       emit(HomeError(e.toString().replaceAll('Exception: ', '')));
     }

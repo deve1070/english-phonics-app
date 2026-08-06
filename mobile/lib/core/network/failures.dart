@@ -11,9 +11,15 @@ class ServerFailure extends Failure {
   const ServerFailure(super.message, {this.statusCode});
 }
 
-/// No internet connection
+/// The request never got an answer.
+///
+/// Named for what is known — nothing came back — rather than for a cause.
+/// It used to carry the fixed sentence "No internet connection. Please try
+/// again." for timeouts, connection errors and dio's `unknown` alike, and
+/// it was the one explanation that was wrong when Android blocked a debug
+/// build's cleartext request to a healthy local server.
 class NetworkFailure extends Failure {
-  const NetworkFailure() : super('No internet connection. Please try again.');
+  const NetworkFailure(super.message);
 }
 
 /// Token expired and refresh failed → force logout

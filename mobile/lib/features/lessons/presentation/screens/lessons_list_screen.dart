@@ -12,6 +12,7 @@ import '../../../phonics/data/datasources/lessons_remote_datasource.dart';
 import '../../../phonics/domain/entities/lesson_entity.dart';
 import '../widgets/journey_map.dart';
 import '../../../home/presentation/widgets/level_style.dart';
+import '../../../../core/network/dio_message.dart';
 
 // ── State ─────────────────────────────────────────────────────────
 abstract class LessonsListState extends Equatable {
@@ -72,7 +73,7 @@ class LessonsListCubit extends Cubit<LessonsListState> {
       final lessons = await _dataSource.getLessons();
       emit(LessonsListLoaded(lessons: lessons));
     } on DioException catch (e) {
-      emit(LessonsListError(e.message ?? 'Failed to load lessons'));
+      emit(LessonsListError(describeDioError(e, whileDoing: 'the lessons')));
     } catch (e) {
       emit(LessonsListError(e.toString().replaceAll('Exception: ', '')));
     }

@@ -10,6 +10,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/network/dio_message.dart';
 
 // ── Model ──────────────────────────────────────────────────────────
 class InviteLinkModel {
@@ -109,7 +110,8 @@ class InviteLinksCubit extends Cubit<InviteLinksState> {
 
       emit(InviteLinksLoaded(links: links, children: children));
     } on DioException catch (e) {
-      emit(InviteLinksError(e.message ?? 'Failed to load invite links'));
+      emit(InviteLinksError(
+          describeDioError(e, whileDoing: 'the invite links')));
     }
   }
 

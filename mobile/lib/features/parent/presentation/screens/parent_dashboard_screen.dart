@@ -11,6 +11,7 @@ import '../../../../core/screen_time/screen_time_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/network/dio_message.dart';
 
 // ── Models ────────────────────────────────────────────────────────
 class ChildSummaryModel {
@@ -146,7 +147,8 @@ class ParentDashboardCubit extends Cubit<ParentDashboardState> {
           ParentDashboardData.fromJson(response.data as Map<String, dynamic>);
       emit(ParentDashboardLoaded(data));
     } on DioException catch (e) {
-      emit(ParentDashboardError(e.message ?? 'Failed to load dashboard'));
+      emit(ParentDashboardError(
+          describeDioError(e, whileDoing: 'the dashboard')));
     } catch (e) {
       emit(ParentDashboardError(e.toString()));
     }

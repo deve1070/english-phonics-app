@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import '../../../../core/network/dio_message.dart';
 import '../../../../core/network/failures.dart';
 import '../../../../core/network/token_storage.dart';
 import '../../domain/entities/user_entity.dart';
@@ -79,17 +80,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   Failure _handleDioError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.unknown) {
-      return const NetworkFailure();
+    if (e.response?.statusCode == 401) return const AuthFailure();
+    if (e.type == DioExceptionType.badResponse) {
+      return ServerFailure(
+        describeDioError(e),
+        statusCode: e.response?.statusCode,
+      );
     }
-    final statusCode = e.response?.statusCode;
-    final message = e.response?.data?['detail'] ??
-        e.response?.data?['message'] ??
-        'Something went wrong';
-    if (statusCode == 401) return const AuthFailure();
-    return ServerFailure(message.toString(), statusCode: statusCode);
+    return NetworkFailure(describeDioError(e));
   }
 }

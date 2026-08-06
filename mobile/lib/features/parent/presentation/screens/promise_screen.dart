@@ -10,6 +10,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/network/dio_message.dart';
 
 /// Where a parent answers the goal their child set themselves.
 ///
@@ -78,7 +79,9 @@ class _PromiseScreenState extends State<PromiseScreen> {
         _text.text = (data['text'] as String?) ?? '';
       });
     } on DioException catch (e) {
-      if (mounted) setState(() => _error = e.message ?? 'Could not load');
+      if (mounted) {
+        setState(() => _error = describeDioError(e, whileDoing: 'the promise'));
+      }
     }
   }
 
@@ -98,7 +101,7 @@ class _PromiseScreenState extends State<PromiseScreen> {
         const SnackBar(content: Text('Saved. Your child can see it now.')),
       );
     } on DioException catch (e) {
-      if (mounted) setState(() => _error = e.message ?? 'Could not save');
+      if (mounted) setState(() => _error = describeDioError(e));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
