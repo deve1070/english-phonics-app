@@ -6,16 +6,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/pressable.dart';
-import '../../../../core/router/app_routes.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import '../widgets/home_greeting_header.dart';
 import '../widgets/lesson_card.dart';
-import '../../../engagement/data/engagement_models.dart';
-import '../../../engagement/presentation/widgets/quest_card.dart';
 import '../../../engagement/presentation/widgets/streak_badge.dart';
-import '../../../engagement/presentation/widgets/week_medal.dart';
 import '../../../phonics/domain/entities/lesson_entity.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -115,62 +110,17 @@ class _LoadedView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.lg),
 
-              // Today's three things, above the lesson path: it is the
-              // one thing on this screen that can be finished.
-              if (!state.quest.isEmpty)
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  child: QuestCard(
-                    quest: state.quest,
-                    onTapItem: (item) => context.push(
-                      '${AppRoutes.practice}/${item.exerciseId}',
-                      extra: {'content': item.content, 'type': item.type},
-                    ),
-                  ),
-                ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.06, end: 0),
-
-              const SizedBox(height: AppSpacing.lg),
-
-              // The week's promise, with the prize already on screen. It
-              // sits under the quest — today's work comes first — but
-              // above everything else, because a goal a child has to go
-              // looking for is not one they are working towards.
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: _WeekCard(
-                  goal: state.goal,
-                  onTap: () => context.push(AppRoutes.goal),
-                ),
-              ).animate(delay: 80.ms).fadeIn(duration: 350.ms),
-
-              const SizedBox(height: AppSpacing.md),
-
-              // The listening game, above the shelves and always present.
-              // Unlike everything else on this screen it needs no
-              // microphone, no upload and no Azure, so it is the one thing
-              // here that still works when the connection does not — and
-              // the one rung a child who cannot yet say a sound can
-              // always succeed on.
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: _ListenGameCard(
-                  onTap: () => context.push(AppRoutes.recognition),
-                ),
-              ).animate(delay: 100.ms).fadeIn(duration: 350.ms),
-
-              const SizedBox(height: AppSpacing.md),
-
-              // The spelling game, which used to be a tab of its own. It is
-              // a thing to do, so it belongs among the things to do rather
-              // than in the furniture of the app.
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: _SpellingGameCard(
-                  onTap: () => context.push(AppRoutes.spellingBee),
-                ),
-              ).animate(delay: 120.ms).fadeIn(duration: 350.ms),
-
+              // Four cards used to sit here: today's quest, the week's
+              // goal, Find the Sound and Spelling Bee. Each was a choice,
+              // and choosing between four activities is a harder task than
+              // any one of them. For a child who came to learn a letter it
+              // is a planning problem set before the lesson starts, and
+              // planning is the part of this they are least able to do.
+              //
+              // None of them is gone as a feature. They belong in the
+              // sequence the app plays — handed over one at a time, when
+              // they fit — rather than laid out as a menu for a
+              // five-year-old to build their own lesson from.
               // "My Sounds" and "My Stories" used to sit here. They are
               // rewards rather than tasks, and they have moved to Me, next
               // to the child's own name and the rest of what they have
@@ -236,150 +186,6 @@ class _LoadedView extends StatelessWidget {
 /// full colour and a sentence in the past tense. A week going badly is
 /// simply a medal that has not filled up much — there is no red, no "you
 /// are behind", and nothing counting the days left.
-class _WeekCard extends StatelessWidget {
-  final WeeklyGoal goal;
-  final VoidCallback onTap;
-
-  const _WeekCard({required this.goal, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final kind = goal.kind;
-
-    final title = switch ((kind, goal.isComplete)) {
-      (null, _) => 'What will you do this week?',
-      (_, true) => 'You did it!',
-      _ => kind!.label(goal.target),
-    };
-    final line = switch ((kind, goal.isComplete)) {
-      (null, _) => 'Pick one thing. Tap to choose.',
-      (_, true) => 'You said you would, and you did.',
-      _ => '${goal.done} of ${goal.target} ${kind!.noun}',
-    };
-
-    return Pressable(
-      onTap: onTap,
-      color: goal.isComplete ? AppColors.honeyLight : AppColors.surface,
-      borderColor: AppColors.border,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      semanticLabel: '$title. $line',
-      child: Row(
-        children: [
-          // The medal fills from the bottom as the week goes, exactly as
-          // it does on the goal screen — the same object in both places,
-          // so the one on the home screen is recognisably the one the
-          // child is working towards.
-          FillingMedal(
-            weekStart: goal.weekStart,
-            kind: kind,
-            fraction: goal.fraction,
-            size: 56,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppTextStyles.headingSmall),
-                const SizedBox(height: 2),
-                Text(
-                  line,
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.inkSoft),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right_rounded,
-              size: 26, color: AppColors.inkFaint),
-        ],
-      ),
-    );
-  }
-}
-
-/// The way into the listening game.
-///
-/// Phrased as an invitation with no number attached to it. There is no
-/// score on this card and none on the game's own summary either, because
-/// the point of this exercise is that it is the one a child can walk into
-/// and come out of having got something right.
-class _ListenGameCard extends StatelessWidget {
-  final VoidCallback onTap;
-  const _ListenGameCard({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Pressable(
-      onTap: onTap,
-      color: AppColors.leafLight,
-      borderColor: AppColors.border,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      semanticLabel: 'Find the sound — a listening game',
-      child: Row(
-        children: [
-          const Icon(Icons.hearing_rounded, size: 30, color: AppColors.leaf),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Find the sound', style: AppTextStyles.headingSmall),
-                const SizedBox(height: 2),
-                Text(
-                  'Listen, then point at it.',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.inkSoft),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right_rounded,
-              size: 26, color: AppColors.inkFaint),
-        ],
-      ),
-    );
-  }
-}
-
-class _SpellingGameCard extends StatelessWidget {
-  final VoidCallback onTap;
-  const _SpellingGameCard({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Pressable(
-      onTap: onTap,
-      color: AppColors.skyLight,
-      borderColor: AppColors.border,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      semanticLabel: 'Spelling Bee — hear a word and spell it',
-      child: Row(
-        children: [
-          const Icon(Icons.spellcheck_rounded, size: 30, color: AppColors.sky),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Spelling Bee', style: AppTextStyles.headingSmall),
-                const SizedBox(height: 2),
-                Text(
-                  'Hear a word, then build it.',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.inkSoft),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right_rounded,
-              size: 26, color: AppColors.inkFaint),
-        ],
-      ),
-    );
-  }
-}
-
 class _LoadingSkeleton extends StatelessWidget {
   const _LoadingSkeleton();
 

@@ -86,7 +86,16 @@ class _LoadedView extends StatelessWidget {
         slivers: [
           // ── Hero header ────────────────────────────────────────
           SliverToBoxAdapter(
-            child: _ProfileHeader(user: user),
+            child: Stack(
+              children: [
+                _ProfileHeader(user: user),
+                Positioned(
+                  top: MediaQuery.paddingOf(context).top + AppSpacing.xs,
+                  right: AppSpacing.xs,
+                  child: const _GrownUpsMenu(),
+                ),
+              ],
+            ),
           ),
 
           SliverToBoxAdapter(
@@ -103,51 +112,12 @@ class _LoadedView extends StatelessWidget {
                       .animate(delay: 150.ms)
                       .fadeIn(duration: 400.ms),
 
-                  const SizedBox(height: AppSpacing.xl),
-
-                  _SettingsItem(
-                    icon: Icons.volume_up_rounded,
-                    label: 'Sound Effects',
-                    color: AppColors.yellow,
-                    onTap: () {},
-                  ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Everything past here is for an adult, and every one of
-                  // them is behind the gate. Logging out is the sharpest:
-                  // signing back in needs a phone number, so a child who
-                  // taps it locks themselves out of their own app.
-                  Text('For grown-ups', style: AppTextStyles.label)
-                      .animate(delay: 300.ms)
-                      .fadeIn(duration: 400.ms),
-
-                  const SizedBox(height: AppSpacing.md),
-
-                  _SettingsItem(
-                    icon: Icons.family_restroom_rounded,
-                    label: 'Parent Dashboard',
-                    color: AppColors.teal,
-                    onTap: () async {
-                      if (await ParentGate.open(context) && context.mounted) {
-                        context.push(AppRoutes.parentDashboard);
-                      }
-                    },
-                  ).animate(delay: 340.ms).fadeIn(duration: 400.ms),
-
-                  const SizedBox(height: AppSpacing.md),
-
-                  _SettingsItem(
-                    icon: Icons.logout_rounded,
-                    label: 'Log Out',
-                    color: AppColors.coral,
-                    onTap: () async {
-                      if (await ParentGate.open(context) && context.mounted) {
-                        _showLogoutDialog(context);
-                      }
-                    },
-                  ).animate(delay: 380.ms).fadeIn(duration: 400.ms),
-
+                  // "Sound Effects" sat here and did nothing — its onTap
+                  // was empty. Parent Dashboard and Log Out sat under it as
+                  // two more rows, which made three quarters of a child's
+                  // own page controls that were not for them. They are in
+                  // the menu now, behind the gate, leaving this page as
+                  // what it says: the child's things.
                   const SizedBox(height: AppSpacing.xxl),
                 ],
               ),
@@ -158,35 +128,94 @@ class _LoadedView extends StatelessWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-        ),
-        title: const Text('Log Out?'),
-        content: Text(
-          'Are you sure you want to log out?',
-          style: AppTextStyles.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<ProfileCubit>().logout();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.coral,
-            ),
-            child: const Text('Log Out'),
-          ),
-        ],
+}
+
+void _showLogoutDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
+      title: const Text('Log Out?'),
+      content: Text(
+        'Are you sure you want to log out?',
+        style: AppTextStyles.bodyMedium,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            context.read<ProfileCubit>().logout();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.coral,
+          ),
+          child: const Text('Log Out'),
+        ),
+      ],
+    ),
+  );
+}
+
+// ── The grown-ups' menu ────────────────────────────────────────────
+/// Everything on a child's page that is not for the child.
+///
+/// The gate opens the menu rather than each item inside it, so a child
+/// tapping about never reads the words "Log Out" at all. One answer from
+/// an adult, then both controls.
+class _GrownUpsMenu extends StatelessWidget {
+  const _GrownUpsMenu();
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.menu_rounded, color: Colors.white),
+      tooltip: 'For grown-ups',
+      onPressed: () async {
+        if (!await ParentGate.open(context)) return;
+        if (!context.mounted) return;
+        await showModalBottomSheet<void>(
+          context: context,
+          backgroundColor: AppColors.surface,
+          shape: const RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+          ),
+          builder: (sheet) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: AppSpacing.md),
+                ListTile(
+                  leading: const Icon(Icons.family_restroom_rounded,
+                      color: AppColors.teal),
+                  title: Text('Parent Dashboard',
+                      style: AppTextStyles.bodyLarge),
+                  onTap: () {
+                    Navigator.pop(sheet);
+                    context.push(AppRoutes.parentDashboard);
+                  },
+                ),
+                ListTile(
+                  leading:
+                      const Icon(Icons.logout_rounded, color: AppColors.coral),
+                  title: Text('Log Out', style: AppTextStyles.bodyLarge),
+                  onTap: () {
+                    Navigator.pop(sheet);
+                    _showLogoutDialog(context);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
