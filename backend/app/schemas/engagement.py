@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.models.enums import ExerciseType, GoalKind, QuestSlot, RecognitionMode
 
@@ -199,3 +199,23 @@ class StoryListResponse(BaseModel):
     total: int
     unlocked: int
     stories: List[StoryResponse]
+
+
+# ── Where the child left off ─────────────────────────────────────
+class CursorRequest(BaseModel):
+    lesson_id: int
+    phoneme_id: Optional[int] = None
+
+    # A step within a phoneme, named by the Flutter screen that owns the
+    # steps. Free text rather than an enum: these change as that screen
+    # does, and the server has no opinion about them — it stores the note
+    # and hands it back. An unfamiliar value is the client's problem to
+    # recognise, and it already falls back to the first step.
+    stage: str = Field(max_length=32)
+
+
+class CursorResponse(BaseModel):
+    lesson_id: int
+    phoneme_id: Optional[int] = None
+    stage: str
+    updated_at: datetime

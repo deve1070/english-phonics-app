@@ -19,14 +19,19 @@ quest is that child. Parents reach the same underlying facts through
 """
 
 from datetime import date
+from typing import Optional
 from pathlib import Path
 
 from app.api.deps import get_db
 from app.core.security import get_current_student
 from app.models.enums import RecognitionMode
+from app.models.engagement import LearningCursor
+from app.models.lesson import Lesson
 from app.models.phoneme import Phoneme
 from app.models.user import User
 from app.schemas.engagement import (
+    CursorRequest,
+    CursorResponse,
     CollectibleResponse,
     CollectionResponse,
     EarnedWeekResponse,
@@ -56,9 +61,10 @@ from app.services import (
 from app.services.recognition_service import ROUND_SIZE as RECOGNITION_ROUND_SIZE
 from app.services.streak_service import streak_summary
 from app.services.streak_service import week_start as streak_service_week_start
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/me", tags=["engagement"])
@@ -404,4 +410,88 @@ async def my_stories(
             )
             for s in stories
         ],
+    )
+
+
+# ── GET /me/cursor ───────────────────────────────────────────────
+@router.get("/cursor", response_model=Optional[CursorResponse])
+async def my_cursor(
+    db: AsyncSession = Depends(get_db),
+    child: User = Depends(get_current_student),
+):
+    """Where this child stopped, or null if they have not started.
+
+    Null rather than 404: not having begun is an ordinary state for a new
+    child, and a client that has to tell "no cursor yet" apart from "the
+    request failed" will eventually get it wrong and strand somebody on an
+    error screen at the moment they open the app for the first time.
+    """
+    cursor = (
+        await db.execute(
+            select(LearningCursor).where(LearningCursor.child_id == child.id)
+        )
+    ).scalar_one_or_none()
+    if cursor is None:
+        return None
+    return CursorResponse(
+        lesson_id=cursor.lesson_id,
+        phoneme_id=cursor.phoneme_id,
+        stage=cursor.stage,
+        updated_at=cursor.updated_at,
+    )
+
+
+# ── PUT /me/cursor ───────────────────────────────────────────────
+@router.put("/cursor", response_model=CursorResponse)
+async def set_my_cursor(
+    body: CursorRequest,
+    db: AsyncSession = Depends(get_db),
+    child: User = Depends(get_current_student),
+):
+    """Record where the child is now.
+
+    Called on every step rather than on leaving, so it is written often
+    and always overwrites. One row per child, upserted on the unique
+    child_id: two writes racing from a reconnect must not leave a child
+    with two positions, and the later one simply wins.
+
+    The lesson is checked and a bad one refused. A cursor is read at
+    launch to decide where to send a child, so a lesson_id that does not
+    resolve would send them to a screen that cannot load, on every start,
+    with no way back except reinstalling.
+    """
+    lesson = await db.get(Lesson, body.lesson_id)
+    if lesson is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No lesson with id {body.lesson_id}.",
+        )
+
+    values = {
+        "child_id": child.id,
+        "lesson_id": body.lesson_id,
+        "phoneme_id": body.phoneme_id,
+        "stage": body.stage,
+        "updated_at": func.now(),
+    }
+    await db.execute(
+        pg_insert(LearningCursor)
+        .values(**values)
+        .on_conflict_do_update(
+            index_elements=["child_id"],
+            set_={k: v for k, v in values.items() if k != "child_id"},
+        )
+    )
+    await db.commit()
+
+    cursor = (
+        await db.execute(
+            select(LearningCursor).where(LearningCursor.child_id == child.id)
+        )
+    ).scalar_one()
+    return CursorResponse(
+        lesson_id=cursor.lesson_id,
+        phoneme_id=cursor.phoneme_id,
+        stage=cursor.stage,
+        updated_at=cursor.updated_at,
     )

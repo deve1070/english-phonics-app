@@ -290,3 +290,45 @@ class StreakFreeze(Base):
     earned_week_start = Column(Date, nullable=False)
     consumed_for_date = Column(Date, nullable=True, index=True)
     created_at = Column(DateTime, default=func.now())
+
+
+class LearningCursor(Base):
+    """Where a child had got to, so the app can put them back there.
+
+    One row per child, overwritten in place: this is a position, not a
+    history. What they have finished is already recorded in Progress and
+    PronunciationScore, and neither can answer "where were they when they
+    stopped" — a list of completed exercises does not distinguish a child
+    who closed the app after finishing one from a child who is halfway
+    through the next.
+
+    `stage` is a step within a phoneme rather than a phoneme alone. A child
+    who has heard the sound and is about to say it has done something, and
+    sending them back to hear it again spends the little patience they
+    brought. It is stored as text on purpose: the stages belong to the
+    Flutter screen and will change as that screen does, and a database
+    enum would turn every one of those changes into a migration.
+
+    Written on every step, not on leaving. A children's app is closed by
+    the battery, by Android reclaiming memory, or by a parent swiping it
+    away mid-sentence — an exit handler is the one path that mostly does
+    not run.
+    """
+
+    __tablename__ = "learning_cursors"
+    __table_args__ = (
+        UniqueConstraint("child_id", name="uq_cursor_child"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    child_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    lesson_id = Column(
+        Integer, ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False
+    )
+    # No FK: a phoneme removed from the curriculum should leave a stale
+    # cursor to be ignored, not delete the row and lose the lesson too.
+    phoneme_id = Column(Integer, nullable=True)
+    stage = Column(String(32), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
