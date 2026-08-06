@@ -6,7 +6,10 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/auth/parent_gate.dart';
 import '../../../auth/domain/entities/user_entity.dart';
+import '../../../progress/presentation/cubit/progress_cubit.dart';
+import '../../../progress/presentation/cubit/progress_state.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 
@@ -92,13 +95,15 @@ class _LoadedView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-
-                  Text('Settings', style: AppTextStyles.headingSmall)
-                      .animate(delay: 200.ms)
+                  // What they have done. This page used to hold nothing but
+                  // settings — three grown-up controls under a child's own
+                  // name and face — while what they had actually earned sat
+                  // behind a separate Progress tab.
+                  const _MyThings()
+                      .animate(delay: 150.ms)
                       .fadeIn(duration: 400.ms),
 
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.xl),
 
                   _SettingsItem(
                     icon: Icons.volume_up_rounded,
@@ -107,39 +112,41 @@ class _LoadedView extends StatelessWidget {
                     onTap: () {},
                   ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
 
+                  const SizedBox(height: AppSpacing.xl),
+
+                  // Everything past here is for an adult, and every one of
+                  // them is behind the gate. Logging out is the sharpest:
+                  // signing back in needs a phone number, so a child who
+                  // taps it locks themselves out of their own app.
+                  Text('For grown-ups', style: AppTextStyles.label)
+                      .animate(delay: 300.ms)
+                      .fadeIn(duration: 400.ms),
+
                   const SizedBox(height: AppSpacing.md),
 
                   _SettingsItem(
                     icon: Icons.family_restroom_rounded,
                     label: 'Parent Dashboard',
                     color: AppColors.teal,
-                    onTap: () => context.push(AppRoutes.parentDashboard),
-                  ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
+                    onTap: () async {
+                      if (await ParentGate.open(context) && context.mounted) {
+                        context.push(AppRoutes.parentDashboard);
+                      }
+                    },
+                  ).animate(delay: 340.ms).fadeIn(duration: 400.ms),
 
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.md),
 
-                  // ── Logout button ──────────────────────────────
-                  SizedBox(
-                    width: double.infinity,
-                    height: AppSizes.minTouchTarget,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _showLogoutDialog(context),
-                      icon: const Icon(Icons.logout_rounded,
-                          color: AppColors.coral),
-                      label: Text(
-                        'Log Out',
-                        style: AppTextStyles.buttonLarge
-                            .copyWith(color: AppColors.coral),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side:
-                            const BorderSide(color: AppColors.coral, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                        ),
-                      ),
-                    ),
-                  ).animate(delay: 370.ms).fadeIn(duration: 400.ms),
+                  _SettingsItem(
+                    icon: Icons.logout_rounded,
+                    label: 'Log Out',
+                    color: AppColors.coral,
+                    onTap: () async {
+                      if (await ParentGate.open(context) && context.mounted) {
+                        _showLogoutDialog(context);
+                      }
+                    },
+                  ).animate(delay: 380.ms).fadeIn(duration: 400.ms),
 
                   const SizedBox(height: AppSpacing.xxl),
                 ],
@@ -178,6 +185,140 @@ class _LoadedView extends StatelessWidget {
             ),
             child: const Text('Log Out'),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── What the child has earned ──────────────────────────────────────
+/// Counts up, never down.
+///
+/// The Progress tab this replaces opened on "0 Lessons Done", "0
+/// Exercises", "Overall Completion 0%" and "0 of 0 exercises completed",
+/// and the collection on "0 of 90 awake" over two dozen grey eggs. The
+/// first thing the app told a child about themselves was four zeroes and
+/// ninety things they had not done — to a child whose reason for being
+/// here is coming to believe they can achieve something.
+///
+/// So: what they have, and nothing they lack. Before there is anything to
+/// count, an invitation rather than a nought.
+class _MyThings extends StatelessWidget {
+  const _MyThings();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ProgressCubit.create()..load(),
+      child: BlocBuilder<ProgressCubit, ProgressState>(
+        builder: (context, state) {
+          final loaded = state is ProgressLoaded ? state : null;
+          final practised = loaded?.practicedCount ?? 0;
+          final lessons = loaded?.completedLessons ?? 0;
+          final streak = loaded?.streakDays ?? 0;
+          final nothingYet = practised == 0 && lessons == 0 && streak == 0;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('My things', style: AppTextStyles.headingSmall),
+              const SizedBox(height: AppSpacing.md),
+
+              if (nothingYet)
+                Text(
+                  'Practise a sound and it will show up here.',
+                  style: AppTextStyles.bodyMedium
+                      .copyWith(color: AppColors.textSecondary),
+                )
+              else
+                Wrap(
+                  spacing: AppSpacing.md,
+                  runSpacing: AppSpacing.md,
+                  children: [
+                    if (practised > 0)
+                      _Tally(
+                        value: practised,
+                        label: practised == 1 ? 'sound' : 'sounds',
+                        colour: AppColors.honey,
+                      ),
+                    if (lessons > 0)
+                      _Tally(
+                        value: lessons,
+                        label: lessons == 1 ? 'lesson' : 'lessons',
+                        colour: AppColors.leaf,
+                      ),
+                    if (streak > 0)
+                      _Tally(
+                        value: streak,
+                        label: streak == 1 ? 'day' : 'days',
+                        colour: AppColors.coral,
+                      ),
+                  ],
+                ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // The one place a child is meant to browse: things they have
+              // already earned. Rereading a story they liked is reading
+              // practice, so it is carved out of the rule on purpose.
+              //
+              // Full width rather than side by side. _SettingsItem puts its
+              // label in an Expanded between a 40px icon and an arrow, so
+              // at half a phone's width there are about sixty pixels left
+              // for the words.
+              _SettingsItem(
+                icon: Icons.auto_awesome_rounded,
+                label: 'My Sounds',
+                color: AppColors.honey,
+                onTap: () => context.push(AppRoutes.collection),
+              ),
+              _SettingsItem(
+                icon: Icons.menu_book_rounded,
+                label: 'My Stories',
+                color: AppColors.sky,
+                onTap: () => context.push(AppRoutes.stories),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Tally extends StatelessWidget {
+  final int value;
+  final String label;
+  final Color colour;
+
+  const _Tally({
+    required this.value,
+    required this.label,
+    required this.colour,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: colour.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(
+            '$value',
+            style: AppTextStyles.headingMedium.copyWith(color: colour),
+          ),
+          const SizedBox(width: 6),
+          Text(label, style: AppTextStyles.bodyMedium),
         ],
       ),
     );

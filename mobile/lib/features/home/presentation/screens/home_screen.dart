@@ -161,11 +161,21 @@ class _LoadedView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.md),
 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: _ShelfLinks(),
-              ),
+              // The spelling game, which used to be a tab of its own. It is
+              // a thing to do, so it belongs among the things to do rather
+              // than in the furniture of the app.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: _SpellingGameCard(
+                  onTap: () => context.push(AppRoutes.spellingBee),
+                ),
+              ).animate(delay: 120.ms).fadeIn(duration: 350.ms),
 
+              // "My Sounds" and "My Stories" used to sit here. They are
+              // rewards rather than tasks, and they have moved to Me, next
+              // to the child's own name and the rest of what they have
+              // earned — which leaves this screen holding only things to
+              // do.
               const SizedBox(height: AppSpacing.lg),
 
               // Lessons header
@@ -332,85 +342,44 @@ class _ListenGameCard extends StatelessWidget {
   }
 }
 
-/// Two doors: the collection and the story shelf.
-///
-/// Both are rewards rather than tasks, so they sit between the quest and
-/// the lesson path — reachable in one tap from the first screen, but not
-/// competing with the thing the child is actually meant to do today.
-class _ShelfLinks extends StatelessWidget {
-  const _ShelfLinks();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _ShelfLink(
-            icon: Icons.auto_awesome_rounded,
-            label: 'My Sounds',
-            colour: AppColors.honeyLight,
-            border: AppColors.honey,
-            onTap: () => context.push(AppRoutes.collection),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: _ShelfLink(
-            icon: Icons.menu_book_rounded,
-            label: 'My Stories',
-            colour: AppColors.skyLight,
-            border: AppColors.sky,
-            onTap: () => context.push(AppRoutes.stories),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ShelfLink extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color colour;
-  final Color border;
+class _SpellingGameCard extends StatelessWidget {
   final VoidCallback onTap;
-
-  const _ShelfLink({
-    required this.icon,
-    required this.label,
-    required this.colour,
-    required this.border,
-    required this.onTap,
-  });
+  const _SpellingGameCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Pressable(
       onTap: onTap,
-      color: colour,
+      color: AppColors.skyLight,
       borderColor: AppColors.border,
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.md),
-      semanticLabel: label,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      semanticLabel: 'Spelling Bee — hear a word and spell it',
       child: Row(
         children: [
-          Icon(icon, size: 22, color: border),
-          const SizedBox(width: AppSpacing.sm),
+          const Icon(Icons.spellcheck_rounded, size: 30, color: AppColors.sky),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Text(
-              label,
-              style: AppTextStyles.label.copyWith(color: AppColors.ink),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Spelling Bee', style: AppTextStyles.headingSmall),
+                const SizedBox(height: 2),
+                Text(
+                  'Hear a word, then build it.',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.inkSoft),
+                ),
+              ],
             ),
           ),
+          const Icon(Icons.chevron_right_rounded,
+              size: 26, color: AppColors.inkFaint),
         ],
       ),
     );
   }
 }
 
-// ── Loading skeleton ──────────────────────────────────────────────
 class _LoadingSkeleton extends StatelessWidget {
   const _LoadingSkeleton();
 

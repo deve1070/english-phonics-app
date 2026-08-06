@@ -160,14 +160,16 @@ class AppRouter {
             child: child,
             location: state.matchedLocation,
           ),
+          // Two tabs, and only screens a child may wander between.
+          //
+          // Progress and Spelling Bee used to sit here as tabs of their
+          // own. Spelling Bee runs its game inside its own screen, so the
+          // nav bar stayed on-screen throughout: a child halfway through
+          // spelling a word could tap Home and lose it. A screen that is a
+          // task should offer no way out but finishing. Both are now
+          // full-screen routes below.
           routes: [
             GoRoute(path: AppRoutes.home, builder: (_, __) => HomeScreen()),
-            GoRoute(
-                path: AppRoutes.progress,
-                builder: (_, __) => const ProgressScreen()),
-            GoRoute(
-                path: AppRoutes.spellingBee,
-                builder: (_, __) => const SpellingBeeScreen()),
             GoRoute(
                 path: AppRoutes.profile,
                 builder: (_, __) => const ProfileScreen()),
@@ -233,8 +235,16 @@ class AppRouter {
           },
         ),
         GoRoute(
+          path: AppRoutes.spellingBee,
+          builder: (_, __) => const SpellingBeeScreen(),
+        ),
+        GoRoute(
           path: AppRoutes.spellingBeeGame,
           builder: (_, __) => const SpellingBeeScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.progress,
+          builder: (_, __) => const ProgressScreen(),
         ),
       ];
 }
@@ -260,18 +270,10 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Two. Four tabs is four decisions to make before any learning starts,
+    // and three of them led away from it.
     final items = [
       (icon: Icons.home_rounded, label: 'Home', route: AppRoutes.home),
-      (
-        icon: Icons.bar_chart_rounded,
-        label: 'Progress',
-        route: AppRoutes.progress
-      ),
-      (
-        icon: Icons.stars_rounded,
-        label: 'Spelling',
-        route: AppRoutes.spellingBee
-      ),
       (icon: Icons.person_rounded, label: 'Me', route: AppRoutes.profile),
     ];
 
