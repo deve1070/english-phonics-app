@@ -295,6 +295,21 @@ class _MyThings extends StatelessWidget {
               // label in an Expanded between a 40px icon and an arrow, so
               // at half a phone's width there are about sixty pixels left
               // for the words.
+              // The week the child chose for themselves, and whatever their
+              // parent promised for keeping it. It sat on Home as a card
+              // among the day's tasks, which is the one thing it is not:
+              // choosing a week is not work, and the prize is theirs
+              // already. Here it belongs — with their name, their sounds
+              // and their stories.
+              //
+              // First of the three because it is the live one. The other
+              // two are archives.
+              _SettingsItem(
+                icon: Icons.military_tech_rounded,
+                label: 'My Week',
+                color: AppColors.level4,
+                onTap: () => context.push(AppRoutes.goal),
+              ),
               _SettingsItem(
                 icon: Icons.auto_awesome_rounded,
                 label: 'My Sounds',

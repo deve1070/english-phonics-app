@@ -20,6 +20,12 @@ abstract class AppRoutes {
   // ── Main shell (bottom nav) ───────────────────────────────────
   static const String home = '/home';
 
+  /// The end of the day's sequence. A destination rather than a state so
+  /// that reopening the app lands here too: a child who has finished is
+  /// told they have finished, instead of being handed a fourth activity
+  /// they were never meant to be offered.
+  static const String todayDone = '/today-done';
+
   // ── Phonics ───────────────────────────────────────────────────
   static const String lessons              = '/lessons';
   static const String lessonDetail         = '/lessons/:lessonId';

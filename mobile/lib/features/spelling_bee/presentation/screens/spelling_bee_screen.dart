@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/session/day_plan.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -26,6 +28,18 @@ class SpellingBeeScreen extends StatelessWidget {
   }
 }
 
+/// The game is over, so the day moves on by itself.
+///
+/// This is the last activity in the plan, so in practice it leads to the
+/// day's ending — but it asks the runner rather than routing there
+/// directly, because what comes after an activity is the runner's decision
+/// and not this screen's.
+Future<void> _handOnToNext(BuildContext context) async {
+  final next = await getIt<DayRunner>().advance(DayActivity.spellingBee);
+  if (!context.mounted) return;
+  context.go(next);
+}
+
 class _SpellingBeeView extends StatelessWidget {
   const _SpellingBeeView();
 
@@ -38,7 +52,7 @@ class _SpellingBeeView extends StatelessWidget {
           return SpellingBeeFinalScreen(
             state: state,
             onPlayAgain: () => context.read<SpellingBeeCubit>().restartGame(),
-            onGoHome: () => context.go(AppRoutes.home),
+            onGoHome: () => _handOnToNext(context),
           );
         }
 

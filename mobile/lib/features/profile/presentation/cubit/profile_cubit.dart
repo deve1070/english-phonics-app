@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/token_storage.dart';
+import '../../../../core/session/day_plan.dart';
 import '../../../../core/session/learning_cursor.dart';
 import '../../../auth/data/datasources/auth_remote_datasource.dart';
 import '../../../auth/data/repositories/auth_repository_impl.dart';
@@ -38,6 +39,9 @@ class ProfileCubit extends Cubit<ProfileState> {
     // in on this phone — a sibling, most likely — would be dropped into
     // the middle of somebody else's lesson.
     await getIt<CursorStore>().clear();
+    // Same reasoning for how much of today's plan is finished: a sibling
+    // signing in next would otherwise be told their day was nearly over.
+    await getIt<DayRunner>().clear();
     emit(const ProfileLoggedOut());
   }
 }

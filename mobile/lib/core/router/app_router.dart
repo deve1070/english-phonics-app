@@ -16,6 +16,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/lessons/presentation/screens/lessons_list_screen.dart';
 // NEW: engagement — collectibles and the decodable story shelf
 import '../../features/engagement/presentation/screens/collection_screen.dart';
+import '../../features/engagement/presentation/screens/day_done_screen.dart';
 import '../../features/engagement/presentation/screens/goal_screen.dart';
 import '../../features/engagement/presentation/screens/recognition_screen.dart';
 import '../../features/engagement/presentation/screens/story_shelf_screen.dart';
@@ -100,7 +101,8 @@ class AppRouter {
   bool _isChildOnlyRoute(String l) =>
       l == AppRoutes.home ||
       l == AppRoutes.spellingBee ||
-      l == AppRoutes.progress;
+      l == AppRoutes.progress ||
+      l == AppRoutes.todayDone;
 
 
   // ── Routes ────────────────────────────────────────────────────
@@ -250,6 +252,12 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.progress,
           builder: (_, __) => const ProgressScreen(),
+        ),
+        // Outside the shell: the day has ended, and a nav bar under it
+        // would be an invitation to start something else.
+        GoRoute(
+          path: AppRoutes.todayDone,
+          builder: (_, __) => const DayDoneScreen(),
         ),
       ];
 }

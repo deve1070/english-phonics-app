@@ -9,7 +9,7 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/network/token_storage.dart';
-import '../../../core/session/learning_cursor.dart';
+import '../../../core/session/day_plan.dart';
 import '../../../core/di/injection.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -61,23 +61,22 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  /// Straight back to the step they stopped on, or Home if there is none.
+  /// Straight into whatever the child does next.
   ///
-  /// The whole point of the cursor: a child who was halfway through a
-  /// sound yesterday should not have to find their way back to it, because
-  /// finding their way back is a navigation problem and they are four.
+  /// The splash asks the day runner rather than the cursor, so that "carry
+  /// on with the lesson" and "today's lesson is finished, here is the next
+  /// thing" are the same decision made in one place. The child is never
+  /// shown the choice — finding their way back is a navigation problem and
+  /// they are four.
   ///
-  /// Reads the device's copy first, so this costs nothing on a normal
-  /// launch and works with no connection at all. The server is asked only
-  /// when the device has nothing — a reinstall or a new phone — and even
-  /// then it gives up after a few seconds: starting from the top is a
-  /// worse outcome than resuming, but a far better one than a child
-  /// watching a splash screen wondering if the app is broken.
-  Future<String> _whereTheChildLeftOff() async {
-    final cursor = await getIt<CursorStore>().read();
-    if (cursor == null) return AppRoutes.home;
-    return cursor.routeUnder(AppRoutes.lessons);
-  }
+  /// Underneath, the lesson position is read from the device first, so this
+  /// costs nothing on a normal launch and works with no connection at all.
+  /// The server is asked only when the device has nothing — a reinstall or
+  /// a new phone — and even then it gives up after a few seconds: starting
+  /// from the top is a worse outcome than resuming, but a far better one
+  /// than a child watching a splash screen wondering if the app is broken.
+  Future<String> _whereTheChildLeftOff() =>
+      getIt<DayRunner>().openingRoute();
 
   Future<void> _navigate() async {
     if (!mounted) return;

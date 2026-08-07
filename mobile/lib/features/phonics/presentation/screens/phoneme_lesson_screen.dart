@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/session/day_plan.dart';
 import '../../../../core/session/learning_cursor.dart';
 import '../../../lessons/presentation/widgets/session_summary_sheet.dart';
 import '../../../home/presentation/widgets/level_style.dart';
@@ -525,6 +526,35 @@ class _GateRecordButton extends StatelessWidget {
   }
 }
 
+/// The last sound of the lesson is done, so the day moves on.
+///
+/// Two things have to happen here and neither is navigation. The cursor is
+/// moved onto the next lesson — left pointing inside the one just
+/// finished, tomorrow's launch would resume its final sound and hand the
+/// child work they have already done, every day, for as long as they kept
+/// using the app. And the day's plan is told the lesson is finished, which
+/// is what makes the next activity arrive by itself rather than having to
+/// be found.
+Future<void> _finishLesson(BuildContext context) async {
+  final nextLessonId = await context.read<PhonicsCubit>().finishLesson();
+
+  final cursor = getIt<CursorStore>();
+  if (nextLessonId == null) {
+    // The end of the curriculum. Nothing to resume into, and a cursor
+    // pointing at a lesson that no longer follows would be worse than none.
+    await cursor.clear();
+  } else {
+    await cursor.save(LearningCursor(
+      lessonId: nextLessonId,
+      stage: LessonStage.phonemeIntro.name,
+    ));
+  }
+
+  final next = await getIt<DayRunner>().advance(DayActivity.lesson);
+  if (!context.mounted) return;
+  context.go(next);
+}
+
 // ── Exercises section ─────────────────────────────────────────────
 class _ExercisesSection extends StatelessWidget {
   final PhonicsLoaded state;
@@ -630,16 +660,7 @@ class _ExercisesSection extends StatelessWidget {
               ? Icons.flag_rounded
               : Icons.arrow_forward_rounded,
           onNext: state.isLastPhoneme
-              ? () async {
-                  final nextLessonId =
-                      await context.read<PhonicsCubit>().finishLesson();
-                  if (!context.mounted) return;
-                  if (nextLessonId == null) {
-                    context.go('/lessons');
-                  } else {
-                    context.go('/lessons/$nextLessonId');
-                  }
-                }
+              ? () => _finishLesson(context)
               : () => context.read<PhonicsCubit>().nextPhoneme(),
         ),
       ],

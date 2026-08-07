@@ -9,6 +9,7 @@ import '../../../../core/audio/phoneme_audio.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/mascot/kiki.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/session/day_plan.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -48,6 +49,17 @@ class RecognitionScreen extends StatefulWidget {
 }
 
 enum _Phase { asking, right, wrong }
+
+/// The round is finished, so the day moves on by itself.
+///
+/// The child taps "Done" and the next activity simply arrives. Sending
+/// them back to a screen to choose from would put the decision they are
+/// least able to make right where they are most pleased with themselves.
+Future<void> _handOnToNext(BuildContext context) async {
+  final next = await getIt<DayRunner>().advance(DayActivity.findTheSound);
+  if (!context.mounted) return;
+  context.go(next);
+}
 
 class _RecognitionScreenState extends State<RecognitionScreen> {
   late final EngagementRemoteDataSource _source =
@@ -243,7 +255,12 @@ class _RecognitionScreenState extends State<RecognitionScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded,
               size: 18, color: AppColors.ink),
-          onPressed: () => context.pop(),
+          // Backing out without finishing, which does not count as done —
+          // the round will be offered again. `pop` alone is not enough:
+          // when the day handed this screen over there is nothing beneath
+          // it on the stack to pop back to.
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(AppRoutes.home),
         ),
         title: Text('Find the sound', style: AppTextStyles.headingSmall),
         centerTitle: true,
@@ -280,7 +297,7 @@ class _RecognitionScreenState extends State<RecognitionScreen> {
           setState(() => _mode = mode);
           _load();
         },
-        onDone: () => context.pop(),
+        onDone: () => _handOnToNext(context),
       );
     }
 
