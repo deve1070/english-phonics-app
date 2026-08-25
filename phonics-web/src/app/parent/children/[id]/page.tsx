@@ -7,15 +7,8 @@ import { apiClient } from '@/lib/api/client';
 import { ProgressBar } from '@/components/ui';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 
-// Matches backend ChildProgressResponse exactly
-// (GET /parents/children/{id}/progress in schemas/schemas_parent.py).
-// The previous version of this page stitched together GET /progress
-// (doesn't exist on the backend) and GET /exercises (doesn't exist as
-// a list endpoint either), and hardcoded the child's name as a
-// placeholder ("Child"/"username" with a "would come from user
-// endpoint" TODO). This one real endpoint already provides everything
-// needed, including phoneme-level mastery, which the old version never
-// showed at all.
+// Mirrors the backend's ChildProgressResponse
+// (GET /parents/children/{id}/progress, schemas/schemas_parent.py).
 interface PhonemeProgress {
   phoneme_id: number;
   symbol: string;

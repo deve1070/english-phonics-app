@@ -16,8 +16,8 @@ story unlocks only when every grapheme in it is one the child has
 Stories are PARAGRAPH exercises. They are ordinary exercises in every
 other respect — the child can record themselves reading one and be scored
 on it exactly as with any other content — so nothing new was needed in
-the schema, and prompt.md's rule that paragraph exercises get real-time
-feedback continues to hold.
+the schema, and the rule that paragraph exercises get real-time feedback
+continues to hold.
 """
 
 from dataclasses import dataclass
