@@ -71,7 +71,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
               size: 18, color: AppColors.ink),
           onPressed: () => context.pop(),
         ),
-        title: Text('My Sounds', style: AppTextStyles.headingSmall),
+        title: const Text('My Sounds', style: AppTextStyles.headingSmall),
         centerTitle: true,
       ),
       body: switch ((collection, _error)) {

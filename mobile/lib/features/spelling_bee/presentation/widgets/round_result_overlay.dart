@@ -22,7 +22,7 @@ class RoundResultOverlay extends StatelessWidget {
     final color = isCorrect ? AppColors.green : AppColors.coral;
 
     return Container(
-      color: Colors.black.withOpacity(0.5),
+      color: Colors.black.withValues(alpha: 0.5),
       child: Center(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
@@ -55,9 +55,8 @@ class RoundResultOverlay extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.sm),
 
-              // Show correct word if wrong
               if (!isCorrect) ...[
-                Text('The word was:', style: AppTextStyles.bodyMedium),
+                const Text('The word was:', style: AppTextStyles.bodyMedium),
                 const SizedBox(height: 4),
                 Text(
                   state.word.toUpperCase(),
@@ -79,7 +78,7 @@ class RoundResultOverlay extends StatelessWidget {
                       vertical: AppSpacing.sm,
                     ),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppRadius.full),
                     ),
                     child: Text(
@@ -94,7 +93,7 @@ class RoundResultOverlay extends StatelessWidget {
                       vertical: AppSpacing.xs + 2,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.purple.withOpacity(0.12),
+                      color: AppColors.purple.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppRadius.full),
                     ),
                     child: Text(

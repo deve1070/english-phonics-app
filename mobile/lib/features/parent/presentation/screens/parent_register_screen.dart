@@ -246,15 +246,14 @@ class _ParentStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Step indicator
-        _StepIndicator(current: 0),
+        const _StepIndicator(current: 0),
         const SizedBox(height: AppSpacing.xl),
 
         Text('Create Your\nParent Account',
             style:
                 AppTextStyles.displayMedium.copyWith(color: AppColors.coral)),
         const SizedBox(height: AppSpacing.sm),
-        Text(
+        const Text(
           "You'll manage your child's learning from here.",
           style: AppTextStyles.bodyMedium,
         ),
@@ -272,7 +271,7 @@ class _ParentStep extends StatelessWidget {
             icon: Icons.phone_rounded,
             isPhone: true),
         const SizedBox(height: AppSpacing.sm),
-        Text(
+        const Text(
           "This is how you'll sign in — no password to remember.",
           style: AppTextStyles.bodySmall,
         ),
@@ -331,13 +330,13 @@ class _ChildStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _StepIndicator(current: 1),
+        const _StepIndicator(current: 1),
         const SizedBox(height: AppSpacing.xl),
 
         Text("Set Up Your\nChild's Account",
             style: AppTextStyles.displayMedium.copyWith(color: AppColors.teal)),
         const SizedBox(height: AppSpacing.sm),
-        Text(
+        const Text(
           "You'll switch into their account from your dashboard.",
           style: AppTextStyles.bodyMedium,
         ),

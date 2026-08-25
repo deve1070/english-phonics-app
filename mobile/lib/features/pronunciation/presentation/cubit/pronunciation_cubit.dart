@@ -131,9 +131,6 @@ class PronunciationCubit extends Cubit<PronunciationState> {
 
     try {
       final file = File(_recordingPath!);
-      final fileLen = await file.length();
-      // Debug: ensure file has data before upload
-      print('Pronunciation recording size: $fileLen bytes; path=$_recordingPath');
       if (!await file.exists()) {
         emit(const PronunciationError('Recording file not found.'));
         return;
@@ -145,8 +142,6 @@ class PronunciationCubit extends Cubit<PronunciationState> {
           filename: 'pronunciation.wav',
         ),
       });
-
-      print('Pronunciation submit POST -> ${ApiConstants.submitPronunciation(exerciseId)}');
 
       final response = await _dio.post(
         ApiConstants.submitPronunciation(exerciseId),
@@ -176,7 +171,6 @@ class PronunciationCubit extends Cubit<PronunciationState> {
         isPersonalBest: isBest && previousBest != null,
       ));
     } on DioException catch (e) {
-      print('Pronunciation submit failed: ${e.message}');
       emit(PronunciationError(
         e.response?.data?['detail'] ?? 'Could not score your pronunciation.',
       ));

@@ -6,17 +6,15 @@ import '../../domain/entities/lesson_entity.dart';
 
 /// The sound itself: how it is written, and a way to hear it.
 ///
-/// This card used to carry five things — the letters, a type badge reading
-/// "Alphabet" or "Consonant Blend", a "How to say it" heading, a written
-/// description, and the speaker. The description came from the curriculum
-/// and read, in full: *"Voiceless labiodental fricative /f/ as in 'fish',
-/// written with the letter F."* Nobody aged four to eight can read that
-/// sentence, and a child who is still learning what F looks like certainly
-/// cannot. It was four things to look at on the way to the two that matter.
+/// Two things only: the letters, and the button that says them. A sound is
+/// taught by hearing it and seeing how it is written.
 ///
-/// So: the letters, and the button that says them. The sound is taught by
-/// hearing it and seeing how it is written, and everything else on this
-/// card was addressed to an adult.
+/// The curriculum offers three more — a type badge reading "Alphabet" or
+/// "Consonant Blend", a "How to say it" heading, and a description that
+/// runs, in full, *"Voiceless labiodental fricative /f/ as in 'fish',
+/// written with the letter F."* Nobody aged four to eight can read that
+/// sentence, and a child still learning what F looks like certainly cannot.
+/// All three are addressed to an adult, and none is shown.
 class PhonemeHeroCard extends StatelessWidget {
   final PhonemeEntity phoneme;
   final Color color;

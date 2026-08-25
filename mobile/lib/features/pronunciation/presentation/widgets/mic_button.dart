@@ -29,7 +29,7 @@ class MicButton extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.coral.withOpacity(0.15),
+                color: AppColors.coral.withValues(alpha: 0.15),
               ),
             )
                 .animate(onPlay: (c) => c.repeat())
@@ -48,7 +48,7 @@ class MicButton extends StatelessWidget {
               height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.coral.withOpacity(0.2),
+                color: AppColors.coral.withValues(alpha: 0.2),
               ),
             )
                 .animate(onPlay: (c) => c.repeat())
@@ -61,7 +61,6 @@ class MicButton extends StatelessWidget {
                 )
                 .fadeOut(duration: 800.ms, delay: 200.ms),
 
-          // Main button
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             width: 84,
@@ -72,7 +71,7 @@ class MicButton extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: (isRecording ? AppColors.coral : AppColors.teal)
-                      .withOpacity(0.45),
+                      .withValues(alpha: 0.45),
                   blurRadius: isRecording ? 24 : 14,
                   offset: const Offset(0, 6),
                 ),
@@ -134,7 +133,7 @@ class _RecordingWaveformState extends State<RecordingWaveform>
               width: 4,
               height: height.clamp(8.0, 36.0),
               decoration: BoxDecoration(
-                color: AppColors.coral.withOpacity(0.7 + 0.3 * phase),
+                color: AppColors.coral.withValues(alpha: 0.7 + 0.3 * phase),
                 borderRadius: BorderRadius.circular(4),
               ),
             );
@@ -170,7 +169,7 @@ class CountdownDisplay extends StatelessWidget {
               curve: Curves.elasticOut,
             )
             .fadeIn(duration: 200.ms),
-        Text(
+        const Text(
           'Get ready...',
           style: AppTextStyles.bodyMedium,
         ),

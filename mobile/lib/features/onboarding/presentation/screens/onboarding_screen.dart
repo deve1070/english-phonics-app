@@ -92,21 +92,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         color: page.bgColor,
         child: Stack(
           children: [
-            // Decorative background blobs
             Positioned(
               top: -80,
               right: -80,
               child:
-                  _Blob(color: page.accentColor.withOpacity(0.10), size: 240),
+                  _Blob(color: page.accentColor.withValues(alpha: 0.10), size: 240),
             ),
             Positioned(
               bottom: -60,
               left: -60,
               child:
-                  _Blob(color: page.accentColor.withOpacity(0.08), size: 200),
+                  _Blob(color: page.accentColor.withValues(alpha: 0.08), size: 200),
             ),
 
-            // Skip button
             SafeArea(
               child: Align(
                 alignment: Alignment.topRight,
@@ -126,7 +124,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // Page view
             PageView.builder(
               controller: _pageController,
               itemCount: _pages.length,
@@ -136,7 +133,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               },
             ),
 
-            // Bottom controls
             Positioned(
               left: 0,
               right: 0,
@@ -147,7 +143,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Page indicator
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
@@ -160,7 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             decoration: BoxDecoration(
                               color: i == _currentPage
                                   ? page.accentColor
-                                  : page.accentColor.withOpacity(0.25),
+                                  : page.accentColor.withValues(alpha: 0.25),
                               borderRadius:
                                   BorderRadius.circular(AppRadius.full),
                             ),
@@ -169,7 +164,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // CTA button
                       SizedBox(
                         width: double.infinity,
                         height: AppSizes.minTouchTarget,
@@ -222,7 +216,6 @@ class _PageContent extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Floating emoji bubbles
                   ...page.bubbles.map((b) => _FloatingBubble(bubble: b)),
 
                   // She fills whatever the page leaves her. Sized from the
@@ -243,7 +236,6 @@ class _PageContent extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Title
             Text(
               page.title,
               style: AppTextStyles.displayMedium.copyWith(
@@ -257,7 +249,6 @@ class _PageContent extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Subtitle
             Text(
               page.subtitle,
               style: AppTextStyles.bodyLarge.copyWith(
@@ -330,9 +321,9 @@ class _FloatingBubbleState extends State<_FloatingBubble>
           width: 52,
           height: 52,
           decoration: BoxDecoration(
-            color: b.color.withOpacity(0.18),
+            color: b.color.withValues(alpha: 0.18),
             shape: BoxShape.circle,
-            border: Border.all(color: b.color.withOpacity(0.3), width: 1.5),
+            border: Border.all(color: b.color.withValues(alpha: 0.3), width: 1.5),
           ),
           child: Center(
             child: Text(b.emoji, style: const TextStyle(fontSize: 22)),

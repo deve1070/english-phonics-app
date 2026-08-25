@@ -180,7 +180,7 @@ class _ChildDetailView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text("Child's Progress", style: AppTextStyles.headingSmall),
+        title: const Text("Child's Progress", style: AppTextStyles.headingSmall),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded),
@@ -273,7 +273,7 @@ class _DetailContent extends StatelessWidget {
         const SizedBox(height: AppSpacing.xl),
 
         // ── Phoneme progress ─────────────────────────────────────
-        Text('Phoneme Progress', style: AppTextStyles.headingSmall)
+        const Text('Phoneme Progress', style: AppTextStyles.headingSmall)
             .animate(delay: 200.ms)
             .fadeIn(duration: 400.ms),
         const SizedBox(height: AppSpacing.sm),
@@ -309,7 +309,7 @@ class _WeeklyReportCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: AppColors.teal.withOpacity(0.3),
+            color: AppColors.teal.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -332,14 +332,14 @@ class _WeeklyReportCard extends StatelessWidget {
           Text(
             report.summaryText,
             style: AppTextStyles.bodyMedium
-                .copyWith(color: Colors.white.withOpacity(0.95)),
+                .copyWith(color: Colors.white.withValues(alpha: 0.95)),
           ),
           if (report.encouragementMessage != null) ...[
             const SizedBox(height: AppSpacing.md),
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               child: Row(
@@ -390,7 +390,7 @@ class _ReportPill extends StatelessWidget {
       padding:
           const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(AppRadius.full),
       ),
       child: Text(text,
@@ -426,10 +426,10 @@ class _GoalsCardState extends State<_GoalsCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Text('🎯', style: TextStyle(fontSize: 18)),
-              const SizedBox(width: AppSpacing.sm),
+              Text('🎯', style: TextStyle(fontSize: 18)),
+              SizedBox(width: AppSpacing.sm),
               Text('Learning Goals', style: AppTextStyles.headingSmall),
             ],
           ),
@@ -527,8 +527,8 @@ class _GoalSlider extends StatelessWidget {
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: color,
             thumbColor: color,
-            inactiveTrackColor: color.withOpacity(0.2),
-            overlayColor: color.withOpacity(0.1),
+            inactiveTrackColor: color.withValues(alpha: 0.2),
+            overlayColor: color.withValues(alpha: 0.1),
           ),
           child: Slider(
             value: value,
@@ -567,16 +567,15 @@ class _PhonemeRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         children: [
-          // Symbol
           Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Center(
@@ -589,7 +588,6 @@ class _PhonemeRow extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
 
-          // Score bar
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,7 +614,7 @@ class _PhonemeRow extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadius.full),
                     child: LinearProgressIndicator(
                       value: phoneme.avgScore! / 100,
-                      backgroundColor: color.withOpacity(0.12),
+                      backgroundColor: color.withValues(alpha: 0.12),
                       valueColor: AlwaysStoppedAnimation(color),
                       minHeight: 5,
                     ),
@@ -628,7 +626,6 @@ class _PhonemeRow extends StatelessWidget {
 
           const SizedBox(width: AppSpacing.md),
 
-          // Status icon
           Icon(
             phoneme.isMastered
                 ? Icons.check_circle_rounded
@@ -666,7 +663,7 @@ class _StatBox extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
           boxShadow: AppShadows.card,
         ),
         child: Column(

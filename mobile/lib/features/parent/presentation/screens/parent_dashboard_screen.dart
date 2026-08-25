@@ -393,7 +393,7 @@ class _ParentHeader extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.more_vert_rounded,
@@ -441,7 +441,6 @@ class _ParentHeader extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
-              // Add child button
               Wrap(
                 spacing: AppSpacing.md,
                 children: [
@@ -453,10 +452,10 @@ class _ParentHeader extends StatelessWidget {
                         vertical: AppSpacing.sm,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(AppRadius.full),
                         border: Border.all(
-                            color: Colors.white.withOpacity(0.4), width: 1.5),
+                            color: Colors.white.withValues(alpha: 0.4), width: 1.5),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -515,15 +514,14 @@ class _ChildCard extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
               children: [
-                // Avatar
                 Container(
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: progressColor.withOpacity(0.15),
+                    color: progressColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: progressColor.withOpacity(0.3), width: 2),
+                        color: progressColor.withValues(alpha: 0.3), width: 2),
                   ),
                   child: Center(
                     child: Text(
@@ -555,10 +553,10 @@ class _ChildCard extends StatelessWidget {
                   ),
                 ),
 
-                // Nothing here counts points. The app has never had any,
-                // and the badge that used to sit here read total_points
-                // from a response that has never carried it — every
-                // dashboard load threw on it.
+                // Nothing here counts points; the app has none. A badge
+                // reading total_points off this response throws on every
+                // dashboard load, because the response has never carried
+                // that field.
               ],
             ),
           ),
@@ -580,7 +578,7 @@ class _ChildCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Learning Progress', style: AppTextStyles.label),
+                    const Text('Learning Progress', style: AppTextStyles.label),
                     Text(
                       '${child.lessonsCompleted}/${child.totalLessons} lessons',
                       style: AppTextStyles.label.copyWith(color: progressColor),
@@ -592,7 +590,7 @@ class _ChildCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.full),
                   child: LinearProgressIndicator(
                     value: child.overallProgressPct / 100,
-                    backgroundColor: progressColor.withOpacity(0.12),
+                    backgroundColor: progressColor.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation(progressColor),
                     minHeight: 8,
                   ),
@@ -715,7 +713,7 @@ class _PromiseRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: colour.withOpacity(0.08),
+          color: colour.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Row(
@@ -767,7 +765,7 @@ class _ScreenTimeBar extends StatelessWidget {
               children: [
                 Icon(Icons.timer_rounded, color: color, size: 14),
                 const SizedBox(width: 4),
-                Text('Screen time today', style: AppTextStyles.label),
+                const Text('Screen time today', style: AppTextStyles.label),
               ],
             ),
             Text(
@@ -781,7 +779,7 @@ class _ScreenTimeBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.full),
           child: LinearProgressIndicator(
             value: pct,
-            backgroundColor: color.withOpacity(0.12),
+            backgroundColor: color.withValues(alpha: 0.12),
             valueColor: AlwaysStoppedAnimation(color),
             minHeight: 6,
           ),
@@ -803,10 +801,10 @@ class _EmptyChildren extends StatelessWidget {
         const SizedBox(height: AppSpacing.xxl),
         const Text('👶', style: TextStyle(fontSize: 64)),
         const SizedBox(height: AppSpacing.lg),
-        Text('No children yet',
+        const Text('No children yet',
             style: AppTextStyles.headingMedium, textAlign: TextAlign.center),
         const SizedBox(height: AppSpacing.sm),
-        Text(
+        const Text(
           "Add your child's account to start tracking their learning journey.",
           style: AppTextStyles.bodyMedium,
           textAlign: TextAlign.center,

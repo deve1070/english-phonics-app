@@ -185,7 +185,7 @@ class PhonicsCubit extends Cubit<PhonicsState> {
   }
 
   Future<void> stopAndSubmitGate() async {
-    final state0 = this.state;
+    final state0 = state;
     if (state0 is! PhonicsLoaded) return;
     if (!state0.isGateRecording) return;
     if (_gateStopInProgress) return;
@@ -217,10 +217,6 @@ class PhonicsCubit extends Cubit<PhonicsState> {
       }
 
       try {
-        final file = File(_recordingPath!);
-        final fileLen = await file.length();
-        // Debug: ensure file has data before upload
-        print('Gate recording size: $fileLen bytes; path=$_recordingPath');
         final formData = FormData.fromMap({
           'audio': await MultipartFile.fromFile(
             _recordingPath!,
@@ -229,15 +225,10 @@ class PhonicsCubit extends Cubit<PhonicsState> {
         });
 
         final phonemeId = state.currentPhoneme!.id;
-        print('Gate target phoneme id=$phonemeId symbol=${state.currentPhoneme!.symbol}');
-        print('Gate submit POST -> ${ApiConstants.submitPhonemePronunciation(phonemeId)}');
-
         final response = await _dio.post(
           ApiConstants.submitPhonemePronunciation(phonemeId),
           data: formData,
         );
-
-        print('Gate submit response score=${response.data['score']}');
 
         final score = (response.data['score'] as num).toDouble();
         final passed = score >= PhonicsLoaded.gatePassScore;
@@ -250,7 +241,6 @@ class PhonicsCubit extends Cubit<PhonicsState> {
           ));
         }
       } catch (_) {
-        print('Gate submit failed for $_recordingPath');
         if (!isClosed && this.state is PhonicsLoaded) {
           emit((this.state as PhonicsLoaded)
               .copyWith(isGateScoring: false, phonemeUnlocked: false));

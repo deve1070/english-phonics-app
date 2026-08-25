@@ -23,8 +23,8 @@ class LessonCard extends StatelessWidget {
   /// it lists the spellings only — the small-and-capital pair belongs on
   /// the sound's own screen, where both cases are the thing being learnt.
   ///
-  /// It used to read `symbol` and cut it about with a regex, which is why
-  /// this card showed "D3" and "Kw" to children learning J and Q.
+  /// Read straight off `spellings`. Deriving it from `symbol` with a regex
+  /// puts "D3" and "Kw" in front of children learning J and Q.
   String _getPhonemesDisplay() =>
       lesson.phonemes.expand((p) => p.spellings).join('  ');
 
@@ -45,7 +45,7 @@ class LessonCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
               color: lesson.isCompleted
-                  ? color.withOpacity(0.4)
+                  ? color.withValues(alpha: 0.4)
                   : AppColors.border,
               width: lesson.isCompleted ? 2 : 1.5,
             ),
@@ -69,7 +69,7 @@ class LessonCard extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.15),
+                      color: color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Center(
@@ -97,20 +97,19 @@ class LessonCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
 
-              // "Level 1 · 5 sounds" used to sit here. It is a report on
-              // the curriculum rather than anything a child can act on,
-              // and it was also the three or four pixels that pushed this
-              // card past the 190 it is given and striped every one of
-              // them with an overflow warning.
+              // No "Level 1 · 5 sounds" line. It reports on the
+              // curriculum rather than anything a child can act on, and the
+              // three or four pixels it takes push this card past the 190
+              // it is given, striping every one of them with an overflow
+              // warning.
               const Spacer(),
 
-              // Progress bar
               if (lesson.isStarted || lesson.isCompleted) ...[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(AppRadius.full),
                   child: LinearProgressIndicator(
                     value: lesson.progressPercent,
-                    backgroundColor: color.withOpacity(0.12),
+                    backgroundColor: color.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation(color),
                     minHeight: 6,
                   ),
@@ -149,7 +148,7 @@ class _StatusBadge extends StatelessWidget {
       return Container(
         width: 28,
         height: 28,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.green,
           shape: BoxShape.circle,
         ),
@@ -161,7 +160,7 @@ class _StatusBadge extends StatelessWidget {
         width: 28,
         height: 28,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
           shape: BoxShape.circle,
           border: Border.all(color: color, width: 1.5),
         ),

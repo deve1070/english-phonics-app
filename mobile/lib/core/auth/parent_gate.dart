@@ -92,7 +92,7 @@ class _ParentGateDialogState extends State<_ParentGateDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Ask a grown-up to answer this.',
             style: AppTextStyles.bodyMedium,
           ),

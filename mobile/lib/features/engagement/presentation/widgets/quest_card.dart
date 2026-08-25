@@ -55,10 +55,10 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (quest.isComplete) {
-      return Row(
+      return const Row(
         children: [
-          const Kiki(size: 46, mood: KikiMood.celebrating),
-          const SizedBox(width: AppSpacing.sm),
+          Kiki(size: 46, mood: KikiMood.celebrating),
+          SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               // An ending, not a prompt to keep going.
@@ -73,7 +73,7 @@ class _Header extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Expanded(
+        const Expanded(
           child: Text('Today', style: AppTextStyles.headingSmall),
         ),
         // Progress as "1 of 3", not a percentage or a bar. A child can

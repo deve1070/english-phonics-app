@@ -90,7 +90,7 @@ class _RegisterViewState extends State<_RegisterView> {
                 height: 160,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.teal.withOpacity(0.08),
+                  color: AppColors.teal.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -102,7 +102,7 @@ class _RegisterViewState extends State<_RegisterView> {
                 height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.yellow.withOpacity(0.12),
+                  color: AppColors.yellow.withValues(alpha: 0.12),
                 ),
               ),
             ),
@@ -114,7 +114,6 @@ class _RegisterViewState extends State<_RegisterView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header
                       const AuthHeader(
                         title: "Let's Get Started!",
                         subtitle: 'Create your account to begin',
@@ -122,7 +121,6 @@ class _RegisterViewState extends State<_RegisterView> {
 
                       const SizedBox(height: AppSpacing.xl),
 
-                      // Full name
                       AuthTextField(
                         label: 'FULL NAME',
                         hint: 'Your name',
@@ -135,7 +133,6 @@ class _RegisterViewState extends State<_RegisterView> {
 
                       const SizedBox(height: AppSpacing.md),
 
-                      // Phone
                       AuthTextField(
                         label: 'PHONE NUMBER',
                         hint: '+1234567890',
@@ -152,7 +149,6 @@ class _RegisterViewState extends State<_RegisterView> {
 
                       const SizedBox(height: AppSpacing.xl),
 
-                      // Register button
                       BlocBuilder<AuthCubit, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;
@@ -168,7 +164,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                       BorderRadius.circular(AppRadius.full),
                                 ),
                                 elevation: isLoading ? 0 : 3,
-                                shadowColor: AppColors.teal.withOpacity(0.4),
+                                shadowColor: AppColors.teal.withValues(alpha: 0.4),
                               ),
                               child: isLoading
                                   ? const SizedBox(
@@ -180,7 +176,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                             Colors.white),
                                       ),
                                     )
-                                  : Text(
+                                  : const Text(
                                       'Create Account 🎉',
                                       style: AppTextStyles.buttonLarge,
                                     ),
@@ -191,11 +187,10 @@ class _RegisterViewState extends State<_RegisterView> {
 
                       const SizedBox(height: AppSpacing.lg),
 
-                      // Login link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             'Already have an account? ',
                             style: AppTextStyles.bodyMedium,
                           ),

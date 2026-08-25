@@ -144,7 +144,7 @@ class _LoadingView extends StatelessWidget {
             .animate()
             .scale(duration: 500.ms, curve: Curves.elasticOut),
         const SizedBox(height: AppSpacing.xl),
-        Text('Setting up your learning...',
+        const Text('Setting up your learning...',
                 style: AppTextStyles.headingMedium, textAlign: TextAlign.center)
             .animate(delay: 200.ms)
             .fadeIn(duration: 300.ms),

@@ -126,22 +126,21 @@ class _SplashScreenState extends State<SplashScreen>
               top: -60,
               right: -60,
               child:
-                  _Circle(size: 200, color: AppColors.coral.withOpacity(0.08)),
+                  _Circle(size: 200, color: AppColors.coral.withValues(alpha: 0.08)),
             ),
             Positioned(
               bottom: -80,
               left: -80,
               child:
-                  _Circle(size: 260, color: AppColors.teal.withOpacity(0.08)),
+                  _Circle(size: 260, color: AppColors.teal.withValues(alpha: 0.08)),
             ),
             Positioned(
               top: size.height * 0.3,
               left: -40,
               child:
-                  _Circle(size: 120, color: AppColors.yellow.withOpacity(0.15)),
+                  _Circle(size: 120, color: AppColors.yellow.withValues(alpha: 0.15)),
             ),
 
-            // Main content
             SafeArea(
               child: Column(
                 children: [
@@ -167,7 +166,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const SizedBox(height: 32),
 
-                  // App name
                   Text(
                     'PhonicsFriends',
                     style: AppTextStyles.displayLarge.copyWith(
@@ -182,7 +180,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const SizedBox(height: 10),
 
-                  // Tagline
                   Text(
                     'Learn to read, one sound at a time 🎵',
                     style: AppTextStyles.bodyMedium.copyWith(fontSize: 15),
@@ -191,7 +188,6 @@ class _SplashScreenState extends State<SplashScreen>
 
                   const Spacer(flex: 3),
 
-                  // Loading dots
                   _LoadingDots()
                       .animate(delay: 800.ms)
                       .fadeIn(duration: 400.ms),

@@ -29,7 +29,6 @@ class OverallProgressRing extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Ring
           SizedBox(
             width: 88,
             height: 88,
@@ -49,12 +48,11 @@ class OverallProgressRing extends StatelessWidget {
 
           const SizedBox(width: AppSpacing.lg),
 
-          // Stats
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Overall Progress',
                   style: AppTextStyles.headingSmall,
                 ),
@@ -130,14 +128,14 @@ class _RingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - 12) / 2;
-    final strokeWidth = 10.0;
+    const strokeWidth = 10.0;
 
     // Background ring
     canvas.drawCircle(
       center,
       radius,
       Paint()
-        ..color = AppColors.coral.withOpacity(0.12)
+        ..color = AppColors.coral.withValues(alpha: 0.12)
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth,
     );

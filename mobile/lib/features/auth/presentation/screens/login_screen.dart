@@ -71,7 +71,6 @@ class _LoginViewState extends State<_LoginView> {
         backgroundColor: AppColors.background,
         body: Stack(
           children: [
-            // Decorative blobs
             Positioned(
               top: -50,
               right: -50,
@@ -80,7 +79,7 @@ class _LoginViewState extends State<_LoginView> {
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.coral.withOpacity(0.08),
+                  color: AppColors.coral.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -92,7 +91,7 @@ class _LoginViewState extends State<_LoginView> {
                 height: 220,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.teal.withOpacity(0.08),
+                  color: AppColors.teal.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -107,7 +106,6 @@ class _LoginViewState extends State<_LoginView> {
                     children: [
                       const SizedBox(height: AppSpacing.xl),
 
-                      // Header
                       const AuthHeader(
                         title: 'Welcome Back!',
                         subtitle: 'Log in to continue your journey',
@@ -120,7 +118,6 @@ class _LoginViewState extends State<_LoginView> {
 
                       const SizedBox(height: AppSpacing.xxl),
 
-                      // Phone field
                       AuthTextField(
                         label: 'PHONE NUMBER',
                         hint: '+1234567890',
@@ -141,7 +138,6 @@ class _LoginViewState extends State<_LoginView> {
 
                       const SizedBox(height: AppSpacing.xl),
 
-                      // Login button
                       BlocBuilder<AuthCubit, AuthState>(
                         builder: (context, state) {
                           final isLoading = state is AuthLoading;
@@ -155,29 +151,27 @@ class _LoginViewState extends State<_LoginView> {
 
                       const SizedBox(height: AppSpacing.lg),
 
-                      // Divider
-                      Row(
+                      const Row(
                         children: [
-                          const Expanded(child: Divider()),
+                          Expanded(child: Divider()),
                           Padding(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                                 horizontal: AppSpacing.md),
                             child: Text(
                               'or',
                               style: AppTextStyles.bodySmall,
                             ),
                           ),
-                          const Expanded(child: Divider()),
+                          Expanded(child: Divider()),
                         ],
                       ),
 
                       const SizedBox(height: AppSpacing.lg),
 
-                      // Register link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          const Text(
                             "Don't have an account? ",
                             style: AppTextStyles.bodyMedium,
                           ),
@@ -232,7 +226,7 @@ class _PrimaryButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.full),
           ),
           elevation: isLoading ? 0 : 3,
-          shadowColor: AppColors.coral.withOpacity(0.4),
+          shadowColor: AppColors.coral.withValues(alpha: 0.4),
         ),
         child: isLoading
             ? const SizedBox(

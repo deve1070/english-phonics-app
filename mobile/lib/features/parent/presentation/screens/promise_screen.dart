@@ -192,7 +192,7 @@ class _PromiseScreenState extends State<PromiseScreen> {
                 _GoalSummary(promise: promise),
                 const SizedBox(height: AppSpacing.xl),
 
-                Text('What will you two do?', style: AppTextStyles.headingSmall),
+                const Text('What will you two do?', style: AppTextStyles.headingSmall),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   // Together, and small. The point is that it happens,
@@ -221,7 +221,7 @@ class _PromiseScreenState extends State<PromiseScreen> {
                 ),
 
                 const SizedBox(height: AppSpacing.xl),
-                Text('Say something to them',
+                const Text('Say something to them',
                     style: AppTextStyles.headingSmall),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
@@ -307,8 +307,8 @@ class _GoalSummary extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: complete
-            ? AppColors.coral.withOpacity(0.10)
-            : AppColors.teal.withOpacity(0.08),
+            ? AppColors.coral.withValues(alpha: 0.10)
+            : AppColors.teal.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(

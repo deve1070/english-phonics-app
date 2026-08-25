@@ -47,7 +47,6 @@ class _SpellingBeeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SpellingBeeCubit, SpellingBeeState>(
       builder: (context, state) {
-        // Final results screen
         if (state is SpellingBeeDone) {
           return SpellingBeeFinalScreen(
             state: state,
@@ -60,10 +59,8 @@ class _SpellingBeeView extends StatelessWidget {
           backgroundColor: AppColors.background,
           body: Stack(
             children: [
-              // Main game content
               _GameContent(state: state),
 
-              // Round result overlay
               if (state is SpellingBeeResult)
                 RoundResultOverlay(
                   state: state,
@@ -126,7 +123,6 @@ class _GameContent extends StatelessWidget {
 
           const SizedBox(height: AppSpacing.lg),
 
-          // Hint
           Text(
             ready.hasPlayedAudio
                 ? 'Tap letters to spell the word!'
@@ -182,13 +178,12 @@ class _GameHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Back
           GestureDetector(
             onTap: () => context.go(AppRoutes.home),
             child: Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.surfaceVariant,
                 shape: BoxShape.circle,
               ),
@@ -202,7 +197,6 @@ class _GameHeader extends StatelessWidget {
 
           const SizedBox(width: AppSpacing.md),
 
-          // Round indicator
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,17 +215,16 @@ class _GameHeader extends StatelessWidget {
             ),
           ),
 
-          // Score chip
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
               vertical: AppSpacing.xs + 2,
             ),
             decoration: BoxDecoration(
-              color: AppColors.yellow.withOpacity(0.15),
+              color: AppColors.yellow.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppRadius.full),
               border: Border.all(
-                color: AppColors.yellow.withOpacity(0.4),
+                color: AppColors.yellow.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
@@ -282,7 +275,7 @@ class _ListenButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.full),
           boxShadow: [
             BoxShadow(
-              color: AppColors.purple.withOpacity(0.4),
+              color: AppColors.purple.withValues(alpha: 0.4),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
@@ -372,7 +365,6 @@ class _ActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Backspace
         GestureDetector(
           onTap: () {
             HapticFeedback.selectionClick();
@@ -416,7 +408,7 @@ class _ActionButtons extends StatelessWidget {
                 boxShadow: state.isComplete
                     ? [
                         BoxShadow(
-                          color: AppColors.purple.withOpacity(0.4),
+                          color: AppColors.purple.withValues(alpha: 0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         )
@@ -459,7 +451,7 @@ class _StartView extends StatelessWidget {
                   child: Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.surfaceVariant,
                       shape: BoxShape.circle,
                     ),
@@ -504,9 +496,9 @@ class _StartView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.full),
                     ),
                     elevation: 0,
-                    shadowColor: AppColors.purple.withOpacity(0.4),
+                    shadowColor: AppColors.purple.withValues(alpha: 0.4),
                   ),
-                  child: Text(
+                  child: const Text(
                     "Let's Play! 🚀",
                     style: AppTextStyles.buttonLarge,
                   ),

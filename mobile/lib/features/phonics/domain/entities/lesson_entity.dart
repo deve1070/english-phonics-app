@@ -79,10 +79,10 @@ class PhonemeEntity {
 
   /// [letterForms] on one line, for the places that show a sound inline.
   ///
-  /// This replaces a `dualCaseSymbol` that did string surgery on [symbol]:
-  /// splitting on brackets and slashes, capitalising the first character
-  /// and appending the lower-cased whole. For "Aa" that produced "Aa aa" —
-  /// the letter twice, once right and once wrong — and for the IPA symbols
-  /// it produced whatever the characters happened to look like.
+  /// Built from [letterForms] rather than by string surgery on [symbol].
+  /// Splitting that on brackets and slashes, capitalising the first
+  /// character and appending the lower-cased whole turns "Aa" into "Aa aa"
+  /// — the letter twice, once right and once wrong — and turns an IPA
+  /// symbol into whatever its characters happen to look like.
   String get letters => letterForms.join('   ');
 }

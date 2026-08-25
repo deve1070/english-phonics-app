@@ -20,7 +20,7 @@ abstract class ApiConstants {
   // must be on that same wifi.
   static const String productionUrl =
       'https://english-phonics-app.onrender.com/api/v1';
-  static const String _localUrl = 'http://192.168.0.185:8000/api/v1';
+  static const String _localUrl = 'http://192.168.0.126:8000/api/v1';
 
   static const String _override = String.fromEnvironment('API_BASE_URL');
 
@@ -72,10 +72,9 @@ abstract class ApiConstants {
   static String referenceAudio(int id) => '/exercises/$id/reference-audio';
   static const String generateExercises = '/exercises/generate';
 
-  // NOTE: /progress, /gamification, /friends and /subscriptions
-  // constants used to live here. Those backend features were
-  // deliberately deleted, so the routes no longer exist — the
-  // constants are gone with them. Don't reintroduce them.
+  // No /progress, /gamification, /friends or /subscriptions here: the
+  // backend exposes none of them. A constant would only hand a caller a
+  // route to 404 on.
 
   // ── TTS ───────────────────────────────────────────────────────
   static const String ttsSynthesize = '/tts/synthesize';
@@ -131,11 +130,11 @@ abstract class StorageKeys {
   static const String userId = 'user_id';
   static const String userRole = 'user_role';
   static const String subscriptionStatus = 'subscription_status';
-  // NEW — biometric passkey-like token
+  /// Redeemed at `/auth/passkey-login`; the server rotates it on use.
   static const String biometricToken = 'biometric_token';
   /// User opted in to “unlock with Face ID / fingerprint / device PIN” after OTP sign-in.
   static const String biometricUnlockEnabled = 'biometric_unlock_enabled';
-  // NEW — preserved child token when parent switches to dashboard
+  /// The child's session, kept while the parent is in the dashboard.
   static const String childToken = 'child_token';
   /// Parent JWT retained while the active [accessToken] is the child's session.
   static const String parentAccessToken = 'parent_access_token';
@@ -179,12 +178,4 @@ abstract class SubscriptionStatus {
   static const String canceled = 'CANCELED';
   static const String pastDue = 'PAST_DUE';
   static bool isAllowed(String? status) => status == trial || status == active;
-}
-
-abstract class DeepLinkConstants {
-  static const String scheme = 'phonicsfriends';
-  static const String joinPath = '/join';
-  static const String tokenParam = 'token';
-  static String buildInviteLink(String token) => '$scheme://join?token=$token';
-  static String? parseToken(Uri uri) => uri.queryParameters[tokenParam];
 }

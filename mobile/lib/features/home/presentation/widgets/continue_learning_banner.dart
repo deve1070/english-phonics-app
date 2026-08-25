@@ -28,14 +28,14 @@ class ContinueLearningBanner extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color, color.withOpacity(0.75)],
+              colors: [color, color.withValues(alpha: 0.75)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(AppRadius.xl),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.35),
+                color: color.withValues(alpha: 0.35),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -51,7 +51,7 @@ class ContinueLearningBanner extends StatelessWidget {
                     Text(
                       'Continue Learning',
                       style: AppTextStyles.label.copyWith(
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                         letterSpacing: 1,
                       ),
                     ),
@@ -66,16 +66,15 @@ class ContinueLearningBanner extends StatelessWidget {
                     Text(
                       '${lesson.completedExercises} of ${lesson.totalExercises} exercises done',
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Progress bar
                     ClipRRect(
                       borderRadius: BorderRadius.circular(AppRadius.full),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: Colors.white.withOpacity(0.25),
+                        backgroundColor: Colors.white.withValues(alpha: 0.25),
                         valueColor: const AlwaysStoppedAnimation(Colors.white),
                         minHeight: 8,
                       ),
@@ -84,12 +83,11 @@ class ContinueLearningBanner extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
-              // Arrow button
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.25),
+                  color: Colors.white.withValues(alpha: 0.25),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

@@ -61,7 +61,7 @@ class _PronunciationView extends StatelessWidget {
           icon: Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.surfaceVariant,
               shape: BoxShape.circle,
             ),
@@ -73,7 +73,7 @@ class _PronunciationView extends StatelessWidget {
           ),
           onPressed: () => context.pop(),
         ),
-        title: Text('Pronunciation', style: AppTextStyles.headingSmall),
+        title: const Text('Pronunciation', style: AppTextStyles.headingSmall),
         centerTitle: true,
       ),
       body: BlocConsumer<PronunciationCubit, PronunciationState>(
@@ -381,7 +381,7 @@ class _RecordingIndicator extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        Text('Max 10 seconds', style: AppTextStyles.bodySmall),
+        const Text('Max 10 seconds', style: AppTextStyles.bodySmall),
       ],
     );
   }
@@ -397,7 +397,7 @@ class _ScoringIndicator extends StatelessWidget {
           strokeWidth: 3,
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Analysing your pronunciation...', style: AppTextStyles.bodyMedium)
+        const Text('Analysing your pronunciation...', style: AppTextStyles.bodyMedium)
             .animate(onPlay: (c) => c.repeat())
             .fadeOut(duration: 800.ms)
             .then()
@@ -410,10 +410,10 @@ class _ScoringIndicator extends StatelessWidget {
 class _PlayingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       children: [
-        const Icon(Icons.hearing_rounded, color: AppColors.teal, size: 48),
-        const SizedBox(height: AppSpacing.md),
+        Icon(Icons.hearing_rounded, color: AppColors.teal, size: 48),
+        SizedBox(height: AppSpacing.md),
         Text('Listen carefully...', style: AppTextStyles.bodyMedium),
       ],
     );
@@ -431,7 +431,7 @@ class _IdleInstructions extends StatelessWidget {
               curve: Curves.elasticOut,
             ),
         const SizedBox(height: AppSpacing.md),
-        Text(
+        const Text(
           'Ready to practise?',
           style: AppTextStyles.headingSmall,
           textAlign: TextAlign.center,
@@ -454,10 +454,10 @@ class _TipCard extends StatelessWidget {
           width: AppBorders.hairline,
         ),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const Text('💡', style: TextStyle(fontSize: 20)),
-          const SizedBox(width: AppSpacing.sm),
+          Text('💡', style: TextStyle(fontSize: 20)),
+          SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               'Listen to the example first, then record yourself!',

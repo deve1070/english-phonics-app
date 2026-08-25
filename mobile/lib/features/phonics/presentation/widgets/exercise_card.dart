@@ -32,12 +32,11 @@ class ExerciseCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Type icon
             Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Icon(
@@ -48,7 +47,6 @@ class ExerciseCard extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.md),
 
-            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,13 +84,13 @@ class ExerciseCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: i < exercise.difficulty
                             ? color
-                            : color.withOpacity(0.2),
+                            : color.withValues(alpha: 0.2),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Icon(
+                const Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: AppColors.textSecondary,
                   size: 14,

@@ -50,7 +50,7 @@ class SpellingBeeFinalScreen extends StatelessWidget {
                         height: 160,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: _color.withOpacity(0.12),
+                          color: _color.withValues(alpha: 0.12),
                         ),
                       ),
                       Kiki(
@@ -81,7 +81,6 @@ class SpellingBeeFinalScreen extends StatelessWidget {
 
                   const SizedBox(height: AppSpacing.xl),
 
-                  // Score card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(AppSpacing.xl),
@@ -92,7 +91,7 @@ class SpellingBeeFinalScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        Text(
+                        const Text(
                           'Your Score',
                           style: AppTextStyles.label,
                         ),
@@ -122,7 +121,6 @@ class SpellingBeeFinalScreen extends StatelessWidget {
 
                         const SizedBox(height: AppSpacing.md),
 
-                        // Star rating
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: List.generate(5, (i) {
@@ -151,7 +149,6 @@ class SpellingBeeFinalScreen extends StatelessWidget {
 
                   const SizedBox(height: AppSpacing.xl),
 
-                  // Play again
                   SizedBox(
                     width: double.infinity,
                     height: AppSizes.minTouchTarget,
@@ -173,7 +170,6 @@ class SpellingBeeFinalScreen extends StatelessWidget {
 
                   const SizedBox(height: AppSpacing.md),
 
-                  // Go home
                   SizedBox(
                     width: double.infinity,
                     height: AppSizes.minTouchTarget,
@@ -223,7 +219,7 @@ class SpellingBeeFinalScreen extends StatelessWidget {
           height: 10 + rng.nextDouble() * 16,
           decoration: BoxDecoration(
             shape: rng.nextBool() ? BoxShape.circle : BoxShape.rectangle,
-            color: color.withOpacity(0.25),
+            color: color.withValues(alpha: 0.25),
           ),
         )
             .animate(

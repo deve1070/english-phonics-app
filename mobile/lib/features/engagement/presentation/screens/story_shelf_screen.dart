@@ -64,7 +64,7 @@ class _StoryShelfScreenState extends State<StoryShelfScreen> {
               size: 18, color: AppColors.ink),
           onPressed: () => context.pop(),
         ),
-        title: Text('My Stories', style: AppTextStyles.headingSmall),
+        title: const Text('My Stories', style: AppTextStyles.headingSmall),
         centerTitle: true,
       ),
       body: switch ((shelf, _error)) {

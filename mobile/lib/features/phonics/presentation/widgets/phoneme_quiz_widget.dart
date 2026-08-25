@@ -153,10 +153,10 @@ class _QuestionPrompt extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.teal.withOpacity(0.1),
+              color: AppColors.teal.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppRadius.xl),
               border: Border.all(
-                  color: AppColors.teal.withOpacity(0.3), width: 1.5),
+                  color: AppColors.teal.withValues(alpha: 0.3), width: 1.5),
             ),
             child: Text(
               '👂 Which sound did you hear?',
@@ -182,10 +182,10 @@ class _QuestionPrompt extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.coral.withOpacity(0.1),
+              color: AppColors.coral.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppRadius.xl),
               border: Border.all(
-                  color: AppColors.coral.withOpacity(0.3), width: 1.5),
+                  color: AppColors.coral.withValues(alpha: 0.3), width: 1.5),
             ),
             child: Text(
               '🔊 Which sound does this make?',
@@ -240,7 +240,7 @@ class _PlaySoundButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.full),
           boxShadow: [
             BoxShadow(
-              color: AppColors.teal.withOpacity(0.4),
+              color: AppColors.teal.withValues(alpha: 0.4),
               blurRadius: 14,
               offset: const Offset(0, 5),
             ),
@@ -295,8 +295,8 @@ class _OptionTile extends StatelessWidget {
 
   Color _bgColor() {
     if (!answered) return AppColors.surface;
-    if (_isCorrect) return AppColors.green.withOpacity(0.15);
-    if (_isSelected) return AppColors.coral.withOpacity(0.15);
+    if (_isCorrect) return AppColors.green.withValues(alpha: 0.15);
+    if (_isSelected) return AppColors.coral.withValues(alpha: 0.15);
     return AppColors.surface;
   }
 
@@ -435,13 +435,13 @@ class _ResultBanner extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: isCorrect
-            ? AppColors.green.withOpacity(0.12)
-            : AppColors.coral.withOpacity(0.12),
+            ? AppColors.green.withValues(alpha: 0.12)
+            : AppColors.coral.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: isCorrect
-              ? AppColors.green.withOpacity(0.4)
-              : AppColors.coral.withOpacity(0.4),
+              ? AppColors.green.withValues(alpha: 0.4)
+              : AppColors.coral.withValues(alpha: 0.4),
           width: 1.5,
         ),
       ),
@@ -584,7 +584,6 @@ class _PhonemeQuizSessionState extends State<PhonemeQuizSession> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Progress indicator
         _QuizProgress(
           current: _currentIndex + 1,
           total: _questions.length,
@@ -672,7 +671,7 @@ class _QuizProgress extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.full),
                 child: LinearProgressIndicator(
                   value: current / total,
-                  backgroundColor: AppColors.teal.withOpacity(0.12),
+                  backgroundColor: AppColors.teal.withValues(alpha: 0.12),
                   valueColor: const AlwaysStoppedAnimation(AppColors.teal),
                   minHeight: 6,
                 ),
@@ -687,7 +686,7 @@ class _QuizProgress extends StatelessWidget {
             vertical: AppSpacing.xs + 2,
           ),
           decoration: BoxDecoration(
-            color: AppColors.green.withOpacity(0.12),
+            color: AppColors.green.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(AppRadius.full),
           ),
           child: Text(

@@ -94,7 +94,7 @@ class _GoalScreenState extends State<GoalScreen> {
               size: 18, color: AppColors.ink),
           onPressed: () => context.pop(),
         ),
-        title: Text('My Week', style: AppTextStyles.headingSmall),
+        title: const Text('My Week', style: AppTextStyles.headingSmall),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -160,7 +160,7 @@ class _Chooser extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         const Center(child: Kiki(size: 96, mood: KikiMood.idle)),
         const SizedBox(height: AppSpacing.md),
-        Text(
+        const Text(
           'What will you do this week?',
           style: AppTextStyles.headingMedium,
           textAlign: TextAlign.center,

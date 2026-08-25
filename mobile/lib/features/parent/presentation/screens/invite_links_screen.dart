@@ -190,7 +190,7 @@ class _InviteLinksView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_rounded),
           onPressed: () => context.pop(),
         ),
-        title: Text('Invite Links', style: AppTextStyles.headingSmall),
+        title: const Text('Invite Links', style: AppTextStyles.headingSmall),
         centerTitle: true,
         actions: [
           IconButton(
@@ -263,17 +263,17 @@ class _LoadedView extends StatelessWidget {
         const SizedBox(height: AppSpacing.xl),
 
         // ── Active links ──────────────────────────────────────
-        Text('Active Links', style: AppTextStyles.headingSmall),
+        const Text('Active Links', style: AppTextStyles.headingSmall),
         const SizedBox(height: AppSpacing.md),
 
         if (state.links.isEmpty)
-          Center(
+          const Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
               child: Column(
                 children: [
-                  const Text('🔗', style: TextStyle(fontSize: 40)),
-                  const SizedBox(height: AppSpacing.md),
+                  Text('🔗', style: TextStyle(fontSize: 40)),
+                  SizedBox(height: AppSpacing.md),
                   Text(
                     'No active links yet.\nGenerate one above to share with your child\'s device.',
                     style: AppTextStyles.bodyMedium,
@@ -307,9 +307,9 @@ class _HowItWorksCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.teal.withOpacity(0.08),
+        color: AppColors.teal.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.teal.withOpacity(0.25), width: 1.5),
+        border: Border.all(color: AppColors.teal.withValues(alpha: 0.25), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,12 +322,12 @@ class _HowItWorksCard extends StatelessWidget {
                     AppTextStyles.headingSmall.copyWith(color: AppColors.teal)),
           ]),
           const SizedBox(height: AppSpacing.md),
-          _Step(n: '1', text: 'Generate a link for your child below'),
-          _Step(n: '2', text: 'Share it via WhatsApp or SMS'),
-          _Step(
+          const _Step(n: '1', text: 'Generate a link for your child below'),
+          const _Step(n: '2', text: 'Share it via WhatsApp or SMS'),
+          const _Step(
               n: '3',
               text: "Your child taps it — they're logged in automatically"),
-          _Step(
+          const _Step(
               n: '4',
               text: 'They continue learning exactly where they stopped'),
         ],
@@ -351,7 +351,7 @@ class _Step extends StatelessWidget {
           Container(
             width: 22,
             height: 22,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.teal,
               shape: BoxShape.circle,
             ),
@@ -407,15 +407,15 @@ class _GenerateLinkSectionState extends State<_GenerateLinkSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Generate a New Link', style: AppTextStyles.headingSmall),
+          const Text('Generate a New Link', style: AppTextStyles.headingSmall),
           const SizedBox(height: AppSpacing.lg),
 
           // Child selector
           if (widget.children.length > 1) ...[
-            Text('For which child?', style: AppTextStyles.label),
+            const Text('For which child?', style: AppTextStyles.label),
             const SizedBox(height: AppSpacing.sm),
             DropdownButtonFormField<ChildModel>(
-              value: _selectedChild,
+              initialValue: _selectedChild,
               items: widget.children
                   .map((c) => DropdownMenuItem(
                         value: c,
@@ -433,11 +433,10 @@ class _GenerateLinkSectionState extends State<_GenerateLinkSection> {
             const SizedBox(height: AppSpacing.lg),
           ],
 
-          // Expiry
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Link expires in', style: AppTextStyles.label),
+              const Text('Link expires in', style: AppTextStyles.label),
               Text('$_expireDays days',
                   style: AppTextStyles.label.copyWith(color: AppColors.teal)),
             ],
@@ -448,7 +447,7 @@ class _GenerateLinkSectionState extends State<_GenerateLinkSection> {
             max: 30,
             divisions: 29,
             activeColor: AppColors.teal,
-            inactiveColor: AppColors.teal.withOpacity(0.2),
+            inactiveColor: AppColors.teal.withValues(alpha: 0.2),
             onChanged: (v) => setState(() => _expireDays = v.toInt()),
           ),
 
@@ -502,9 +501,9 @@ class _GeneratedLinkCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.green.withOpacity(0.08),
+        color: AppColors.green.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.green.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: AppColors.green.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -609,7 +608,7 @@ class _LinkCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.teal.withOpacity(0.12),
+              color: AppColors.teal.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Center(
@@ -655,7 +654,7 @@ class _LinkCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.xl)),
         title: const Text('Revoke link?'),
-        content: Text(
+        content: const Text(
             "The child's device will no longer be able to use this link. "
             "You can generate a new one at any time.",
             style: AppTextStyles.bodyMedium),

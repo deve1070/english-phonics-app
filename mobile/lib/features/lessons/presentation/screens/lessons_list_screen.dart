@@ -162,7 +162,7 @@ class _LoadedView extends StatelessWidget {
             icon: Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.surfaceVariant,
                 shape: BoxShape.circle,
               ),
@@ -176,7 +176,7 @@ class _LoadedView extends StatelessWidget {
           ),
           title: Column(
             children: [
-              Text('All Lessons', style: AppTextStyles.headingSmall),
+              const Text('All Lessons', style: AppTextStyles.headingSmall),
               Text(
                 '${state.lessons.length} lessons total',
                 style: AppTextStyles.bodySmall,
@@ -211,13 +211,13 @@ class _LoadedView extends StatelessWidget {
 
         // ── Lessons grid ──────────────────────────────────────
         filtered.isEmpty
-            ? SliverToBoxAdapter(
+            ? const SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xxl),
+                  padding: EdgeInsets.all(AppSpacing.xxl),
                   child: Column(
                     children: [
-                      const Text('📭', style: TextStyle(fontSize: 48)),
-                      const SizedBox(height: AppSpacing.md),
+                      Text('📭', style: TextStyle(fontSize: 48)),
+                      SizedBox(height: AppSpacing.md),
                       Text(
                         'No lessons in this level yet.',
                         style: AppTextStyles.bodyMedium,
@@ -289,10 +289,10 @@ class _LevelFilterTabs extends StatelessWidget {
                 vertical: AppSpacing.xs + 2,
               ),
               decoration: BoxDecoration(
-                color: isSelected ? color : color.withOpacity(0.1),
+                color: isSelected ? color : color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.full),
                 border: Border.all(
-                  color: isSelected ? color : color.withOpacity(0.3),
+                  color: isSelected ? color : color.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
               ),
@@ -384,9 +384,9 @@ class _StatChip extends StatelessWidget {
           horizontal: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: color.withOpacity(0.2), width: 1),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
         ),
         child: Column(
           children: [
@@ -419,10 +419,10 @@ class _LoadingSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverAppBar(
+        const SliverAppBar(
           backgroundColor: AppColors.background,
           elevation: 0,
-          leading: const BackButton(),
+          leading: BackButton(),
           title: Text('All Lessons', style: AppTextStyles.headingSmall),
           centerTitle: true,
         ),
@@ -485,7 +485,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
       animation: _anim,
       builder: (_, __) => Container(
         decoration: BoxDecoration(
-          color: AppColors.border.withOpacity(_anim.value),
+          color: AppColors.border.withValues(alpha: _anim.value),
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
       ),
@@ -517,7 +517,7 @@ class _ErrorView extends StatelessWidget {
             children: [
               const Text('😅', style: TextStyle(fontSize: 64)),
               const SizedBox(height: AppSpacing.lg),
-              Text(
+              const Text(
                 'Could not load lessons',
                 style: AppTextStyles.headingMedium,
                 textAlign: TextAlign.center,

@@ -34,7 +34,6 @@ class HomeGreetingHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Text side
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,9 +100,9 @@ class _StatChip extends StatelessWidget {
         vertical: AppSpacing.xs + 2,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -113,7 +112,7 @@ class _StatChip extends StatelessWidget {
           Text(
             label,
             style: AppTextStyles.label.copyWith(
-              color: color.withOpacity(0.85),
+              color: color.withValues(alpha: 0.85),
               fontSize: 12,
             ),
           ),

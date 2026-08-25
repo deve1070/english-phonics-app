@@ -106,7 +106,7 @@ class SessionSummarySheet extends StatelessWidget {
               const TibebBand(height: 10),
               const SizedBox(height: AppSpacing.lg),
 
-              Kiki(size: 96, mood: KikiMood.celebrating),
+              const Kiki(size: 96, mood: KikiMood.celebrating),
               const SizedBox(height: AppSpacing.sm),
 
               Text(
@@ -148,7 +148,7 @@ class SessionSummarySheet extends StatelessWidget {
 
               if (tally.soundsPractised.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.lg),
-                Text('Sounds you practised', style: AppTextStyles.label),
+                const Text('Sounds you practised', style: AppTextStyles.label),
                 const SizedBox(height: AppSpacing.sm),
                 Wrap(
                   alignment: WrapAlignment.center,

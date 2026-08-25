@@ -13,6 +13,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   AuthRepositoryImpl(this._remoteDataSource, this._tokenStorage);
 
+  @override
   Future<Either<Failure, UserEntity>> login({
     required String phoneNumber,
   }) async {
@@ -28,6 +29,7 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
   Future<Either<Failure, UserEntity>> passkeyLogin({
     required String biometricToken,
   }) async {

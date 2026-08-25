@@ -273,19 +273,19 @@ class _LoadedView extends StatelessWidget {
               icon: Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                     color: AppColors.surfaceVariant, shape: BoxShape.circle),
                 child: const Icon(Icons.arrow_back_ios_rounded,
                     size: 18, color: AppColors.textPrimary),
               ),
               onPressed: onLeave,
             ),
-            // "⭐ Level 1", "1 of 5 sounds", a row of progress dots and a
-            // four-icon stage rail used to sit here, above the letter. All
-            // four report on the curriculum; none of them is something a
-            // child can act on, and together they were the first thing on
-            // the screen. Where a child is up to belongs in the parent
-            // dashboard. What belongs here is the sound.
+            // Nothing above the letter — no "⭐ Level 1", no "1 of 5
+            // sounds", no row of progress dots, no stage rail. Each reports
+            // on the curriculum, none is something a child can act on, and
+            // together they would be the first thing on the screen. Where a
+            // child is up to belongs in the parent dashboard. What belongs
+            // here is the sound.
             centerTitle: true,
           ),
 
@@ -322,17 +322,17 @@ class _LoadedView extends StatelessWidget {
               onPlayAudio: () =>
                   context.read<PhonicsCubit>().playPhonemeAudio(phoneme.id),
             ),
-            // A drawn mouth used to sit here, captioned "watch carefully".
-            // It only ever knew one sound of the ninety in the curriculum;
-            // for the rest it sat closed and still while a child was told
-            // to copy it. Nothing is better than that. What belongs here is
-            // a real mouth on video — correct and natural by construction,
-            // which no drawn model of ours would be — and that waits on
-            // someone filming the sounds, not on code.
+            // No drawn mouth captioned "watch carefully". A model we could
+            // draw knows one sound of the ninety in the curriculum; for the
+            // rest it sits closed and still while a child is told to copy
+            // it, and nothing is better than that. What belongs here is a
+            // real mouth on video — correct and natural by construction,
+            // which no drawing of ours would be — and that waits on someone
+            // filming the sounds, not on code.
             const SizedBox(height: AppSpacing.xxl),
             _NavRow(
-              // The label carried a 🎤 emoji next to a mic icon, so the
-              // button showed two microphones.
+              // No emoji in the label: it sits beside a mic icon, and the
+              // button would show two microphones.
               state: state,
               color: color,
               nextLabel: "I'm ready!",
@@ -360,10 +360,10 @@ class _LoadedView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.teal.withOpacity(0.08),
+                color: AppColors.teal.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
-                    color: AppColors.teal.withOpacity(0.2), width: 1.5),
+                    color: AppColors.teal.withValues(alpha: 0.2), width: 1.5),
               ),
               child: Text(
                 '🎮 Quick Quiz — test what you know!',
@@ -420,9 +420,9 @@ class _GateSection extends StatelessWidget {
             vertical: AppSpacing.xxl,
           ),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(color: color.withOpacity(0.25), width: 2),
+            border: Border.all(color: color.withValues(alpha: 0.25), width: 2),
           ),
           child: Center(
             child: Text(
@@ -451,10 +451,10 @@ class _GateRecordButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (state.isGateScoring) {
-      return Column(children: [
-        const CircularProgressIndicator(
+      return const Column(children: [
+        CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation(AppColors.teal), strokeWidth: 3),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: AppSpacing.md),
         Text('Scoring...', style: AppTextStyles.bodyMedium),
       ]);
     }
@@ -474,7 +474,7 @@ class _GateRecordButton extends StatelessWidget {
                   height: 120,
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.coral.withOpacity(0.15)),
+                      color: AppColors.coral.withValues(alpha: 0.15)),
                 )
                     .animate(onPlay: (c) => c.repeat())
                     .scale(
@@ -495,7 +495,7 @@ class _GateRecordButton extends StatelessWidget {
                       color: (state.isGateRecording
                               ? AppColors.coral
                               : AppColors.teal)
-                          .withOpacity(0.45),
+                          .withValues(alpha: 0.45),
                       blurRadius: 24,
                       offset: const Offset(0, 6),
                     ),
@@ -575,14 +575,14 @@ class _ExercisesSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         Row(
           children: [
-            Text('Practice Exercises', style: AppTextStyles.headingSmall),
+            const Text('Practice Exercises', style: AppTextStyles.headingSmall),
             if (state.exercises.isNotEmpty) ...[
               const SizedBox(width: AppSpacing.sm),
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm, vertical: 2),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
                 child: Text('${state.exercises.length}',
@@ -608,16 +608,16 @@ class _ExercisesSection extends StatelessWidget {
             ),
           )
         else if (state.exercises.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
             child: Center(
               child: Column(children: [
-                const Text('🎨', style: TextStyle(fontSize: 48)),
-                const SizedBox(height: AppSpacing.md),
+                Text('🎨', style: TextStyle(fontSize: 48)),
+                SizedBox(height: AppSpacing.md),
                 Text('No exercises yet.',
                     style: AppTextStyles.bodyMedium,
                     textAlign: TextAlign.center),
-                const SizedBox(height: AppSpacing.sm),
+                SizedBox(height: AppSpacing.sm),
                 Text(
                     'Tap "Generate" above to create AI exercises for this sound.',
                     style: AppTextStyles.bodySmall,
@@ -691,9 +691,9 @@ class _GenerateButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(AppRadius.full),
-            border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -773,15 +773,15 @@ class _NavButton extends StatelessWidget {
         child: Container(
           height: AppSizes.minTouchTarget,
           decoration: BoxDecoration(
-            color: isFilled ? color : color.withOpacity(0.08),
+            color: isFilled ? color : color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppRadius.full),
             border: isFilled
                 ? null
-                : Border.all(color: color.withOpacity(0.3), width: 1.5),
+                : Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
             boxShadow: isFilled
                 ? [
                     BoxShadow(
-                        color: color.withOpacity(0.35),
+                        color: color.withValues(alpha: 0.35),
                         blurRadius: 10,
                         offset: const Offset(0, 4))
                   ]

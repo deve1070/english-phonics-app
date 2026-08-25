@@ -87,10 +87,9 @@ class _LoadedView extends StatelessWidget {
           backgroundColor: AppColors.background,
           elevation: 0,
           floating: true,
-          title: Text('My Progress', style: AppTextStyles.headingMedium),
+          title: const Text('My Progress', style: AppTextStyles.headingMedium),
           centerTitle: false,
           actions: [
-            // Refresh button
             IconButton(
               icon: const Icon(Icons.refresh_rounded,
                   color: AppColors.textSecondary),
@@ -129,7 +128,7 @@ class _LoadedView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Lesson Breakdown', style: AppTextStyles.headingSmall),
+                    const Text('Lesson Breakdown', style: AppTextStyles.headingSmall),
                     TextButton(
                       onPressed: () => context.push('/lessons'),
                       child: Text(
@@ -220,7 +219,7 @@ class _StatCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
           boxShadow: AppShadows.card,
         ),
         child: Column(
@@ -262,7 +261,7 @@ class _OverallProgressBar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Overall Completion', style: AppTextStyles.headingSmall),
+              const Text('Overall Completion', style: AppTextStyles.headingSmall),
               Text(
                 '${(pct * 100).toInt()}%',
                 style:
@@ -275,7 +274,7 @@ class _OverallProgressBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.full),
             child: LinearProgressIndicator(
               value: pct,
-              backgroundColor: AppColors.coral.withOpacity(0.12),
+              backgroundColor: AppColors.coral.withValues(alpha: 0.12),
               valueColor: const AlwaysStoppedAnimation(AppColors.coral),
               minHeight: 14,
             ),
@@ -309,7 +308,7 @@ class _StreakCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: AppColors.coral.withOpacity(0.3),
+            color: AppColors.coral.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -331,7 +330,7 @@ class _StreakCard extends StatelessWidget {
                 Text(
                   "You're on fire! Keep it up!",
                   style: AppTextStyles.bodyMedium
-                      .copyWith(color: Colors.white.withOpacity(0.85)),
+                      .copyWith(color: Colors.white.withValues(alpha: 0.85)),
                 ),
               ],
             ),
@@ -381,7 +380,7 @@ class _LessonProgressRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
             color: lesson.isCompleted
-                ? AppColors.green.withOpacity(0.4)
+                ? AppColors.green.withValues(alpha: 0.4)
                 : AppColors.border,
             width: 1.5,
           ),
@@ -393,7 +392,7 @@ class _LessonProgressRow extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Center(
@@ -434,7 +433,7 @@ class _LessonProgressRow extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadius.full),
                     child: LinearProgressIndicator(
                       value: progress,
-                      backgroundColor: color.withOpacity(0.12),
+                      backgroundColor: color.withValues(alpha: 0.12),
                       valueColor: AlwaysStoppedAnimation(
                         lesson.isCompleted ? AppColors.green : color,
                       ),

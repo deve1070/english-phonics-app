@@ -9,7 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-/// Shows a "Parent 👆" button in the home screen AppBar.
+/// A "Parent" button in the home screen AppBar, beside a fingerprint icon.
 ///
 /// When tapped:
 ///   1. Fingerprint/face prompt appears
@@ -114,10 +114,10 @@ class _ParentDashboardButtonState extends State<ParentDashboardButton> {
               decoration: BoxDecoration(
                 color: _isAuthenticating
                     ? AppColors.border
-                    : AppColors.teal.withOpacity(0.12),
+                    : AppColors.teal.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppRadius.full),
                 border: Border.all(
-                  color: AppColors.teal.withOpacity(0.3),
+                  color: AppColors.teal.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
               ),

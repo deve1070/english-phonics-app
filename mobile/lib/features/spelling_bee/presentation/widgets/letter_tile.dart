@@ -30,16 +30,16 @@ class LetterTile extends StatelessWidget {
     Color textColor;
 
     if (isCorrect) {
-      bgColor = AppColors.green.withOpacity(0.15);
+      bgColor = AppColors.green.withValues(alpha: 0.15);
       borderColor = AppColors.green;
       textColor = AppColors.green;
     } else if (isWrong) {
-      bgColor = AppColors.coral.withOpacity(0.15);
+      bgColor = AppColors.coral.withValues(alpha: 0.15);
       borderColor = AppColors.coral;
       textColor = AppColors.coral;
     } else if (isPlaced) {
-      bgColor = AppColors.purple.withOpacity(0.1);
-      borderColor = AppColors.purple.withOpacity(0.4);
+      bgColor = AppColors.purple.withValues(alpha: 0.1);
+      borderColor = AppColors.purple.withValues(alpha: 0.4);
       textColor = AppColors.textSecondary;
     } else {
       bgColor = AppColors.surface;
@@ -66,7 +66,7 @@ class LetterTile extends StatelessWidget {
               ? null
               : [
                   BoxShadow(
-                    color: AppColors.teal.withOpacity(0.2),
+                    color: AppColors.teal.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -118,13 +118,13 @@ class AnswerSlot extends StatelessWidget {
     Color bgColor;
 
     if (isCorrect) {
-      bgColor = AppColors.green.withOpacity(0.12);
+      bgColor = AppColors.green.withValues(alpha: 0.12);
       borderColor = AppColors.green;
     } else if (isWrong) {
-      bgColor = AppColors.coral.withOpacity(0.12);
+      bgColor = AppColors.coral.withValues(alpha: 0.12);
       borderColor = AppColors.coral;
     } else if (!isEmpty) {
-      bgColor = AppColors.purple.withOpacity(0.08);
+      bgColor = AppColors.purple.withValues(alpha: 0.08);
       borderColor = AppColors.purple;
     } else {
       bgColor = AppColors.surfaceVariant;
@@ -156,7 +156,7 @@ class AnswerSlot extends StatelessWidget {
                 child: Container(
                   width: 20,
                   height: 2,
-                  color: borderColor.withOpacity(0.4),
+                  color: borderColor.withValues(alpha: 0.4),
                 ),
               )
             : Center(

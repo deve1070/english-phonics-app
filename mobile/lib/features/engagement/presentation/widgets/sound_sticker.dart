@@ -375,7 +375,7 @@ class _StickerPainter extends CustomPainter {
         width: painter.width + size.width * 0.16,
         height: painter.height + size.height * 0.07,
       ),
-      Radius.circular(AppRadius.sm),
+      const Radius.circular(AppRadius.sm),
     );
     canvas.drawRRect(badge, Paint()..color = AppColors.surface);
     canvas.drawRRect(

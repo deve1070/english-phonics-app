@@ -19,7 +19,7 @@ class ProgressLoaded extends ProgressState {
   final List<LessonEntity> lessons;
 
   final int streakDays;
-  // NEW: motivational feedback from GET /progress/me/feedback
+  // From GET /progress/me/feedback.
   final String feedbackMessage;
   final double? averageRecentScore;
   final int practicedCount;

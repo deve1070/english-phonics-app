@@ -5,16 +5,15 @@ abstract class AppRoutes {
 
   // ── Phone number auth ─────────────────────────────────────────
   //
-  // `login = '/login'` and `register = '/register'` used to sit above.
-  // Nothing was ever mounted at either: LoginScreen and RegisterScreen are
-  // the phone screens and live at the two paths below. Three places called
-  // `context.go(AppRoutes.login)` — the child's Log Out, the parent's Log
-  // Out, and the link back from parent registration — and all three
-  // cleared the session and then navigated to a route that did not exist.
-  // Removed rather than corrected so a fourth cannot be written.
+  // There is no `login`/`register` pair: LoginScreen and RegisterScreen
+  // are the phone screens, and they live at the two paths below. Naming a
+  // route with nothing mounted at it only invites a log-out path to call
+  // `context.go(AppRoutes.login)`, clear the session, and then navigate
+  // nowhere.
   static const String phoneRegister = '/phone-register';
   static const String phoneLogin    = '/phone-login';
-  // Deep link: phonicsfriends://join?token=...
+  // Reached with ?token=... once the invite endpoints exist; no URL
+  // scheme is registered on either platform yet.
   static const String joinInvite    = '/join';
 
   // ── Main shell (bottom nav) ───────────────────────────────────

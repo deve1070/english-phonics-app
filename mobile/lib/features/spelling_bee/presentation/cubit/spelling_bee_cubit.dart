@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -232,7 +233,7 @@ class SpellingBeeCubit extends Cubit<SpellingBeeState> {
         }
       }
     } catch (e) {
-      print('Spelling Bee Tier 1 TTS failed: $e');
+      debugPrint('Spelling Bee Tier 1 TTS failed: $e');
     }
 
     // ── Tier 2: Free TTS URL fallback ─────────────────────────

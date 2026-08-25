@@ -46,7 +46,7 @@ class DayDoneScreen extends StatelessWidget {
                 // Past tense, and about the child rather than about a
                 // score. What they get told is that they finished, because
                 // that is the thing worth believing about themselves.
-                Text(
+                const Text(
                   'You did everything today!',
                   style: AppTextStyles.headingMedium,
                   textAlign: TextAlign.center,
@@ -54,7 +54,7 @@ class DayDoneScreen extends StatelessWidget {
 
                 const SizedBox(height: AppSpacing.sm),
 
-                Text(
+                const Text(
                   'A new sound is waiting tomorrow.',
                   style: AppTextStyles.bodyMedium,
                   textAlign: TextAlign.center,

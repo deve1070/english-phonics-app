@@ -78,7 +78,7 @@ class _LoadedView extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         // ── Transparent SliverAppBar (Clean & Blank) ────────────
-        SliverAppBar(
+        const SliverAppBar(
           backgroundColor: AppColors.background,
           elevation: 0,
           floating: true,
@@ -89,7 +89,6 @@ class _LoadedView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting
               HomeGreetingHeader(
                 name: state.user.name,
                 streakDays: state.streakDays,
@@ -110,25 +109,23 @@ class _LoadedView extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.lg),
 
-              // Four cards used to sit here: today's quest, the week's
-              // goal, Find the Sound and Spelling Bee. Each was a choice,
-              // and choosing between four activities is a harder task than
-              // any one of them. For a child who came to learn a letter it
-              // is a planning problem set before the lesson starts, and
-              // planning is the part of this they are least able to do.
+              // No activity menu here: no today's quest, no week's goal,
+              // no Find the Sound, no Spelling Bee card. Each would be a
+              // choice, and choosing between four activities is a harder
+              // task than any one of them — for a child who came to learn a
+              // letter it is a planning problem set before the lesson
+              // starts, and planning is the part of this they are least
+              // able to do. The app hands those over one at a time, in the
+              // sequence it plays, rather than laying them out as a menu
+              // for a five-year-old to build their own lesson from.
               //
-              // None of them is gone as a feature. They belong in the
-              // sequence the app plays — handed over one at a time, when
-              // they fit — rather than laid out as a menu for a
-              // five-year-old to build their own lesson from.
-              // "My Sounds" and "My Stories" used to sit here. They are
-              // rewards rather than tasks, and they have moved to Me, next
-              // to the child's own name and the rest of what they have
-              // earned — which leaves this screen holding only things to
+              // "My Sounds" and "My Stories" live on Me for the same
+              // reason. They are rewards rather than tasks, and they belong
+              // next to the child's own name and the rest of what they have
+              // earned, which leaves this screen holding only things to
               // do.
               const SizedBox(height: AppSpacing.lg),
 
-              // Lessons header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Text(
@@ -191,13 +188,12 @@ class _LoadingSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppSpacing.xl),
-          // Greeting skeleton
+          SizedBox(height: AppSpacing.xl),
           Row(
             children: [
               Expanded(
@@ -205,9 +201,9 @@ class _LoadingSkeleton extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _Shimmer(width: 100, height: 16),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     _Shimmer(width: 160, height: 32),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     _Shimmer(width: 200, height: 28),
                   ],
                 ),
@@ -215,15 +211,15 @@ class _LoadingSkeleton extends StatelessWidget {
               _Shimmer(width: 90, height: 90, isCircle: true),
             ],
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xl),
           _Shimmer(width: double.infinity, height: 110),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xl),
           _Shimmer(width: double.infinity, height: 110),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xl),
           Row(
             children: [
               Expanded(child: _Shimmer(width: double.infinity, height: 160)),
-              const SizedBox(width: AppSpacing.md),
+              SizedBox(width: AppSpacing.md),
               Expanded(child: _Shimmer(width: double.infinity, height: 160)),
             ],
           ),
@@ -279,7 +275,7 @@ class _ShimmerState extends State<_Shimmer>
         width: widget.width,
         height: widget.height,
         decoration: BoxDecoration(
-          color: AppColors.border.withOpacity(_animation.value),
+          color: AppColors.border.withValues(alpha: _animation.value),
           shape: widget.isCircle ? BoxShape.circle : BoxShape.rectangle,
           borderRadius:
               widget.isCircle ? null : BorderRadius.circular(AppRadius.md),
@@ -308,7 +304,7 @@ class _ErrorView extends StatelessWidget {
             // child, and she is the last thing they should read as upset.
             const Kiki(size: 120, mood: KikiMood.encouraging),
             const SizedBox(height: AppSpacing.lg),
-            Text(
+            const Text(
               'Oops! Something went wrong',
               style: AppTextStyles.headingMedium,
               textAlign: TextAlign.center,

@@ -262,7 +262,7 @@ class _RecognitionScreenState extends State<RecognitionScreen> {
           onPressed: () =>
               context.canPop() ? context.pop() : context.go(AppRoutes.home),
         ),
-        title: Text('Find the sound', style: AppTextStyles.headingSmall),
+        title: const Text('Find the sound', style: AppTextStyles.headingSmall),
         centerTitle: true,
       ),
       body: SafeArea(child: _body()),
@@ -714,7 +714,7 @@ class _WeekKept extends StatelessWidget {
             color: AppColors.honey,
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text('You finished your week!', style: AppTextStyles.headingSmall),
+          const Text('You finished your week!', style: AppTextStyles.headingSmall),
           const SizedBox(height: 2),
           Text(
             hasMessage

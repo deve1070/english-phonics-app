@@ -104,20 +104,19 @@ class _LoadedView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // What they have done. This page used to hold nothing but
-                  // settings — three grown-up controls under a child's own
-                  // name and face — while what they had actually earned sat
-                  // behind a separate Progress tab.
+                  // What they have done, and it comes first. Under a
+                  // child's own name and face, grown-up settings are the
+                  // wrong thing to lead with, and what they earned should
+                  // not sit behind a tab of its own.
                   const _MyThings()
                       .animate(delay: 150.ms)
                       .fadeIn(duration: 400.ms),
 
-                  // "Sound Effects" sat here and did nothing — its onTap
-                  // was empty. Parent Dashboard and Log Out sat under it as
-                  // two more rows, which made three quarters of a child's
-                  // own page controls that were not for them. They are in
-                  // the menu now, behind the gate, leaving this page as
-                  // what it says: the child's things.
+                  // No settings rows here. Sound Effects, Parent Dashboard
+                  // and Log Out as three more rows would make most of a
+                  // child's own page controls that are not for them; they
+                  // live in the menu, behind the gate, which leaves this
+                  // page as what it says it is.
                   const SizedBox(height: AppSpacing.xxl),
                 ],
               ),
@@ -138,7 +137,7 @@ void _showLogoutDialog(BuildContext context) {
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       title: const Text('Log Out?'),
-      content: Text(
+      content: const Text(
         'Are you sure you want to log out?',
         style: AppTextStyles.bodyMedium,
       ),
@@ -194,7 +193,7 @@ class _GrownUpsMenu extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.family_restroom_rounded,
                       color: AppColors.teal),
-                  title: Text('Parent Dashboard',
+                  title: const Text('Parent Dashboard',
                       style: AppTextStyles.bodyLarge),
                   onTap: () {
                     Navigator.pop(sheet);
@@ -204,7 +203,7 @@ class _GrownUpsMenu extends StatelessWidget {
                 ListTile(
                   leading:
                       const Icon(Icons.logout_rounded, color: AppColors.coral),
-                  title: Text('Log Out', style: AppTextStyles.bodyLarge),
+                  title: const Text('Log Out', style: AppTextStyles.bodyLarge),
                   onTap: () {
                     Navigator.pop(sheet);
                     _showLogoutDialog(context);
@@ -223,15 +222,15 @@ class _GrownUpsMenu extends StatelessWidget {
 // ── What the child has earned ──────────────────────────────────────
 /// Counts up, never down.
 ///
-/// The Progress tab this replaces opened on "0 Lessons Done", "0
-/// Exercises", "Overall Completion 0%" and "0 of 0 exercises completed",
-/// and the collection on "0 of 90 awake" over two dozen grey eggs. The
-/// first thing the app told a child about themselves was four zeroes and
-/// ninety things they had not done — to a child whose reason for being
-/// here is coming to believe they can achieve something.
-///
-/// So: what they have, and nothing they lack. Before there is anything to
+/// What they have, and nothing they lack. Before there is anything to
 /// count, an invitation rather than a nought.
+///
+/// Counting both ways gives "0 Lessons Done", "0 Exercises", "Overall
+/// Completion 0%", "0 of 0 exercises completed", and a collection reading
+/// "0 of 90 awake" over two dozen grey eggs — making the first thing the
+/// app says about a child four zeroes and ninety things they have not done.
+/// Their reason for being here is coming to believe they can achieve
+/// something.
 class _MyThings extends StatelessWidget {
   const _MyThings();
 
@@ -250,7 +249,7 @@ class _MyThings extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('My things', style: AppTextStyles.headingSmall),
+              const Text('My things', style: AppTextStyles.headingSmall),
               const SizedBox(height: AppSpacing.md),
 
               if (nothingYet)
@@ -394,12 +393,11 @@ class _ProfileHeader extends StatelessWidget {
               AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
           child: Column(
             children: [
-              // Avatar with initial
               Container(
                 width: 88,
                 height: 88,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.25),
+                  color: Colors.white.withValues(alpha: 0.25),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 3),
                 ),
@@ -420,27 +418,24 @@ class _ProfileHeader extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.md),
 
-              // Name
               Text(
                 user.name,
                 style: AppTextStyles.headingLarge.copyWith(color: Colors.white),
               ).animate(delay: 100.ms).fadeIn(duration: 400.ms),
 
-              // Username
               Text(
                 '@${user.userName}',
                 style: AppTextStyles.bodyMedium
-                    .copyWith(color: Colors.white.withOpacity(0.8)),
+                    .copyWith(color: Colors.white.withValues(alpha: 0.8)),
               ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
 
               const SizedBox(height: AppSpacing.sm),
 
-              // Role badge
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
                 child: Text(
@@ -492,7 +487,7 @@ class _SettingsItem extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(icon, color: color, size: 20),

@@ -10,9 +10,6 @@ import '../session/day_plan.dart';
 import '../session/learning_cursor.dart';
 import '../../features/lessons/presentation/widgets/session_summary_sheet.dart';
 
-// ── Uncomment after: flutter pub add local_auth ───────────────────
-// import 'package:local_auth/local_auth.dart';
-
 final getIt = GetIt.instance;
 
 Future<void> configureDependencies() async {
@@ -69,15 +66,4 @@ Future<void> configureDependencies() async {
   // report. A singleton because a session spans several exercise screens —
   // scoping it to any one of them would reset the tally on every navigation.
   getIt.registerLazySingleton<SessionTracker>(() => SessionTracker());
-
-  // ── LocalAuthentication (biometric) ───────────────────────────
-  // Enabled after: flutter pub add local_auth
-  // AND changing android/app/src/main/kotlin/.../MainActivity.kt
-  //   to extend FlutterFragmentActivity (not FlutterActivity)
-  // AND setting minSdkVersion 23 in android/app/build.gradle
-  //
-  // Uncomment these lines when ready:
-  //
-  // final localAuth = LocalAuthentication();
-  // getIt.registerSingleton<LocalAuthentication>(localAuth);
 }

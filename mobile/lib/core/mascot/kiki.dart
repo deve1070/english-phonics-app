@@ -32,14 +32,14 @@ enum KikiMood {
 /// A parrot is the right mascot for this app specifically because mimicry
 /// is the mechanic: the child says a sound, and something repeats it back.
 ///
-/// She used to be drawn with a [CustomPainter], on the reasoning that a
-/// vector stays crisp at any size and costs a couple of KB. Both were true
-/// and neither mattered, because the drawing could not tell the five moods
-/// apart: rendered side by side they were five near-identical green blobs,
-/// so "I am listening to you" and "well done" reached a child as the same
-/// picture. Distinguishable moods are the entire reason the enum exists.
+/// She is drawn as illustrations rather than with a [CustomPainter]. A
+/// vector would stay crisp at any size for a couple of KB, and both are
+/// beside the point: as paths the five moods come out near-identical green
+/// blobs, so "I am listening to you" and "well done" reach a child as the
+/// same picture. Moods a child can tell apart are the entire reason the
+/// enum exists.
 ///
-/// She is now five illustrations, cut from one character sheet so the bird
+/// So: five illustrations, cut from one character sheet so the bird
 /// is the same bird in all of them. They are aligned on her feet and drawn
 /// at one shared scale, so changing mood changes her posture and nothing
 /// else — a mascot that also changes size or footing reads as a different
