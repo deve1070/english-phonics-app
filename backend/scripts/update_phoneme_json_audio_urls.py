@@ -2,7 +2,7 @@ import json
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 PHONEME_JSON = ROOT / "phoneme.json"
 AUDIO_DIR = ROOT / "uploads" / "audio"
 

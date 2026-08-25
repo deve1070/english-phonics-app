@@ -1,9 +1,12 @@
+from pathlib import Path
+
 import azure.cognitiveservices.speech as speechsdk
 
-# Read key and region directly from .env file
+# Read key and region straight from .env rather than through Settings, so a
+# misconfigured app config cannot mask a working Azure account.
 key = ""
 region = ""
-with open(".env", "r") as f:
+with open(Path(__file__).resolve().parents[1] / ".env") as f:
     for line in f:
         if line.startswith("AZURE_SPEECH_KEY="):
             key = line.split("=", 1)[1].strip()

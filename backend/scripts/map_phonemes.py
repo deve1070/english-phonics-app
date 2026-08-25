@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import asyncio
 import os
 import re
@@ -120,7 +127,7 @@ def normalize_symbol(symbol: str) -> str:
     return re.sub(r"\s+", " ", (symbol or "").strip())
 
 async def main():
-    directory = "uploads/audio"
+    directory = str(ROOT / "uploads" / "audio")
     if not os.path.exists(directory):
         print(f"Directory {directory} not found")
         return

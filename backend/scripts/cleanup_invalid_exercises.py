@@ -16,6 +16,12 @@ Run from backend/ directory:
 Safe to re-run — only deletes exercises that fail the ordering check.
 Prints a summary of what was removed.
 """
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import asyncio
 import re
@@ -210,7 +216,7 @@ async def cleanup() -> None:
                 )
 
         if not to_delete:
-            log.info("✅ No invalid exercises found — database is clean.")
+            log.info("No invalid exercises found; database is clean.")
             return
 
         log.info("\nInvalid exercises to remove (%d):", len(to_delete))
@@ -227,7 +233,7 @@ async def cleanup() -> None:
         )
         await db.commit()
 
-        log.info("✅ Cleanup complete — %d exercises removed.", len(to_delete))
+        log.info("Cleanup complete: %d exercises removed.", len(to_delete))
         log.info(
             "Run seed_phonemes.py again if you want to re-seed with "
             "correct exercises, or use AI generation per phoneme."

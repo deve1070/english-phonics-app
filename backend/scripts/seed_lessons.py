@@ -1,6 +1,12 @@
 # seed_lessons.py
 # Run from backend: python seed_lessons.py
 # Creates a default lesson (id=1) so phonemes and exercises can reference it.
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import asyncio
 

@@ -7,7 +7,7 @@ def verify_audio():
     audio_dir = os.path.join(backend_dir, "uploads", "audio_standardized")
 
     if not os.path.exists(json_path):
-        print(f"❌ Error: phoneme.json not found at {json_path}")
+        print(f"Error: phoneme.json not found at {json_path}")
         return
 
     with open(json_path, "r", encoding="utf-8") as f:
@@ -46,9 +46,9 @@ def verify_audio():
             missing_details.append((phoneme_id, symbol, f"File missing on disk: {filename}"))
 
     print("\nVerification Results Summary:")
-    print(f"✅ Total Verified & Existing on Disk: {mapped_count}")
-    print(f"⚠️ Missing/Empty audio_url: {no_url_count}")
-    print(f"❌ Missing physical files on disk: {missing_count}")
+    print(f"Verified and present on disk: {mapped_count}")
+    print(f"Missing or empty audio_url: {no_url_count}")
+    print(f"Missing physical files on disk: {missing_count}")
     print("-" * 60)
 
     if missing_details:
@@ -56,7 +56,7 @@ def verify_audio():
         for pid, sym, err in missing_details:
             print(f"  - [ID {pid}] Symbol: '{sym}' -> {err}")
     else:
-        print("\n🎉 SUCCESS: Every single phoneme in phoneme.json has a valid, existing audio file on disk!")
+        print("\nEvery phoneme in phoneme.json has an audio file on disk.")
 
     print("="*60)
 

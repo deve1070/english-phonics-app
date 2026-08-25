@@ -66,7 +66,7 @@ def get_direct_wikimedia_url(file_name):
             if image_info:
                 return image_info[0].get("url")
     except Exception as e:
-        print(f"⚠️ Error querying API for {file_name}: {e}")
+        print(f"Error querying API for {file_name}: {e}")
         
     return None
 
@@ -84,7 +84,7 @@ def download_and_process():
         
         direct_url = get_direct_wikimedia_url(commons_file)
         if not direct_url:
-            print(f"❌ Could not resolve URL for: {commons_file}")
+            print(f"Could not resolve URL for: {commons_file}")
             continue
             
         print(f"Found URL: {direct_url}")
@@ -123,10 +123,10 @@ def download_and_process():
             # 4. Save to target location as high-quality MP3 (192kbps)
             dest_path = os.path.join(TARGET_DIR, filename)
             normalized.export(dest_path, format="mp3", bitrate="192k")
-            print(f"✅ Successfully converted & saved to: {dest_path}")
+            print(f"Converted and saved to {dest_path}")
             
         except Exception as e:
-            print(f"❌ Error processing {filename}: {e}")
+            print(f"Error processing {filename}: {e}")
             
     # Clean up temp file
     if os.path.exists(temp_ogg_path):

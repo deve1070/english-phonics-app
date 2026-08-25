@@ -88,7 +88,7 @@ def generate_ssml(ipa: str, text: str) -> str:
 
 def synthesize_and_process():
     if not AZURE_KEY or not AZURE_REGION:
-        print("❌ Error: AZURE_SPEECH_KEY and AZURE_SPEECH_REGION must be configured in .env")
+        print("Error: AZURE_SPEECH_KEY and AZURE_SPEECH_REGION must be configured in .env")
         return
 
     print("Starting Azure synthesis for remaining phoneme assets...")
@@ -112,7 +112,7 @@ def synthesize_and_process():
             result = synth.speak_ssml_async(ssml).get()
             if result.reason != speechsdk.ResultReason.SynthesizingAudioCompleted:
                 cancellation = speechsdk.CancellationDetails(result)
-                print(f"❌ Azure synthesis failed: {cancellation.error_code} - {cancellation.error_details}")
+                print(f"Azure synthesis failed: {cancellation.error_code} - {cancellation.error_details}")
                 continue
                 
             with open(temp_mp3_path, "wb") as f:
@@ -138,10 +138,10 @@ def synthesize_and_process():
             # Export to standard path
             dest_path = os.path.join(TARGET_DIR, filename)
             normalized.export(dest_path, format="mp3", bitrate="192k")
-            print(f"✅ Successfully generated and saved to: {dest_path}")
+            print(f"Generated and saved to {dest_path}")
             
         except Exception as e:
-            print(f"❌ Error processing {filename}: {e}")
+            print(f"Error processing {filename}: {e}")
             
         time.sleep(0.5) # Short throttle
 

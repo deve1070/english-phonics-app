@@ -6,12 +6,17 @@ Behavior:
 - Creates lesson order based on first appearance in that phoneme sequence.
 - Seeds only WORD exercises that satisfy the current ordering constraint.
 """
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import asyncio
 import json
 import logging
 import re
-from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import select
@@ -27,7 +32,7 @@ from app.models.phoneme import Phoneme
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
 
-PHONEME_JSON_PATH = Path(__file__).resolve().parent / "phoneme.json"
+PHONEME_JSON_PATH = ROOT / "phoneme.json"
 
 PHONEME_TYPE_MAP: dict[str, PhonemeType] = {
     "alphabet": PhonemeType.ALPHABET,
